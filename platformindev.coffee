@@ -449,6 +449,20 @@ render = ->
     sprite.render? ctx
   console.log spritelayer.length
 
+#returns elapsed time in ms.
+timecall = (func) ->
+  starttime = Date.now()
+  func()
+  Date.now()-starttime
+
+logtimecall = (func) ->
+  console.log "#{timecall func} ms."
+
+body.append fpscounter=$ xmltag()
+
+tickwaitms = 20
+skipframes = 4
+
 looptick = ->
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
   doomedsprites.forEach (sprite) ->
@@ -459,11 +473,14 @@ looptick = ->
     sprite.tick()?
   ladybug.tick()
   tickno++
-  render()
+  if tickno%(skipframes+1) is 0
+    rendertime = timecall render
+    skipframes = Math.floor rendertime/tickwaitms
+    fpscounter.html "#{rendertime}ms to render, skipping #{skipframes} frames"
 
 mainloop = ->
   looptick()
-  tickwaitms = if slowmo then 50 else 10
+  tickwaitms = if slowmo then 50 else 20
   setTimeout mainloop, tickwaitms
 
 #uses imagesLoaded.js by desandro
