@@ -21,7 +21,11 @@ vadd = (v,u) ->
   new V2d add(v.x,u.x), add(v.y,u.y)
 vnmul = (v,n) ->
   new V2d v.x*n, v.y*n
-
+vnadd = (v,n) ->
+  new V2d v.x+n, v.y+n
+V2d::mag = -> Math.sqrt Math.pow(@x,2)+Math.pow(@y,2)
+V2d::ndiv = (n) -> new V2d @x/n, @y/n
+V2d::norm = -> @ndiv @mag()
 class Sprite
   constructor: () ->
     @vel=new V2d()
@@ -34,6 +38,26 @@ class GenericSprite
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y-img.naturalHeight
 
+#random float between -1 and 1
+randfloat = () -> -1+Math.random()*2
+
+randvec = () ->
+  nvec=new V2d randfloat(), randfloat()
+  return nvec.norm()
+
+class BoggleParticle extends GenericSprite
+  constructor: ( @pos=new V2d(0,0) ) ->
+    @pos = vnadd @pos, -8
+    @pos.y += 16
+    @vel = randvec()
+    @src = 'huh.png'
+    @life = 50
+  tick: () ->
+    @life-=1
+    if @life<=0 then @KILLME=true
+    @pos = vadd @pos, @vel
+    @vel = vadd @vel, randvec().ndiv 8
+
 isholdingkey = (key) ->
   key = key.toUpperCase().charCodeAt 0
   key in heldkeys
@@ -44,8 +68,18 @@ class BugLady extends Sprite
     @jumping = false
     @attacking = false
     @attacktimeout = 0
+    @stuntimeout = 0
 
 BugLady::tick = ->
+  vel = Math.abs( @vel.x )
+  walking = vel > 0.2
+  boggling = not walking and @touchingground() and isholdingkey 'x'
+  if boggling and Math.random()<0.3
+    spritelayer.push new BoggleParticle vnadd ladybug.pos, 32
+  if @stuntimeout > 0
+    @vel.x = 0
+    @stuntimeout -= 1
+  @jumping = isholdingkey 'w'
   if @vel.x > 4
     @vel.x = 4
   if @vel.x < -4
@@ -55,19 +89,27 @@ BugLady::tick = ->
   candidates = hitboxfilter box, bglayer
   if candidates.length > 0 and @vel.y >= 0
     #if topof(fallbox) > bottomof( candidates[0] )
+    if @vel.y > 20 then @stuntimeout = 10
     @pos.y = candidates[0].y-spriteheight
-    @pos.y += 1
     @vel.y = 0
   if candidates.length > 0 and @vel.y < 0
     #if topof(fallbox) > bottomof( candidates[0] )
-    @pos.y += 1
+    @pos.y = candidates[0].y+candidates[0].h
     @vel.y = 0
   else
+  @attacking=@attacktimeout > 0
+  heading = if @facingleft then -1 else 1
+  if @attacking
+    @vel.y *= 0.7
+    @attacktimeout-=1
+    @vel.x += heading*0.3
+  if @attacking and @touchingground()
+    @jumping=true
   @pos = vadd @pos, @vel
-  if candidates.length > 0
-    @pos.y += 1
-    #@pos.y = candidates[0].y-spriteheight
-    @vel.y = 0
+  #if candidates.length > 0
+  #  @pos.y += 1
+  #  @pos.y = candidates[0].y-spriteheight
+  #  @vel.y = 0
   if not @touchingground()
     #@vel.x *= 0.99 #AIR DRAG
     @vel.y += 1 #GRAVITY
@@ -79,13 +121,6 @@ BugLady::tick = ->
     @vel.x = @vel.x*0.5 #GROUND FRICTION
     if Math.abs(@vel.x)<0.0001
       @vel.x = 0
-  @attacking=@attacktimeout > 0
-  heading = if @facingleft then -1 else 1
-  if @attacking
-    @vel.y *= 0.7
-    @attacktimeout-=1
-    @vel.x += heading*0.3
-  @jumping = isholdingkey 'w'
   #super
   if @touchingground() and @jumping
     @vel.y = -13
@@ -106,7 +141,6 @@ boggle = () ->
   hit= bugbox ladybug
   boxes = fglayer.map (obj) ->
     new Block obj.pos.x, obj.pos.y, 64, 64
-  console.log boxes
   cand=hitboxfilter hit, boxes
   if cand.length > 0
     chievo=true
@@ -136,21 +170,25 @@ boggle = () ->
 
 
 BugLady::render = (ctx) ->
+   offsety=3
    src="lovelyshorter.png"
    vel = Math.abs( @vel.x )
    walking = vel > 0.2
    if walking
      src = if (tickno%12>6) then 'lovelyrun1.png' else 'lovelyrun2.png'
    if not @touchingground()
-     src = 'lovelyjump.png'
+     src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
    if not walking and isholdingkey 's'
      src = 'lovelycrouch.png'
    if not walking and @touchingground() and isholdingkey 'x'
      boggle()
      src = 'boggle.png'
    if @attacking then src = 'viewtiful.png'
+   if @stuntimeout > 0
+     src = 'lovelyfall.png'
+     offsety=6
    img = if @facingleft then cacheflippedimg(src) else cachedimg(src)
-   ctx.drawImage img, @pos.x, @pos.y
+   ctx.drawImage img, @pos.x, @pos.y+offsety
 
 hitboxfilter = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
@@ -231,7 +269,7 @@ keytapbind 'g', ->
   somanygrafics = not somanygrafics
 
 keyholdbind 'j', ->
-  ladybug.attacktimeout=10
+  ladybug.attacktimeout=3
 
 keyholdbind 'w', ->
   ladybug.jumping=true
@@ -356,6 +394,7 @@ bglayer.push new Block 64*6, 64*3, 32, 32
 bglayer.push new Block 32, 64*4, 64*2, 64*2
 
 fglayer = []
+spritelayer=[]
 
 placeshrub = (pos) ->
   fglayer.push new GenericSprite pos, 'shrub.png'
@@ -400,15 +439,24 @@ render = ->
   tmpctx.drawImage brickcanvas, 0, 0
   tmpctx.globalCompositeOperation = "source-over"
   ctx.drawImage tmpcanvas , 0, 0
-  drawcolls ctx
+  if not somanygrafics
+    drawcolls ctx
+  spritelayer.forEach (sprite) ->
+    sprite.render? ctx
   #ledibag start
   ladybug.render ctx
   fglayer.forEach (sprite) ->
     sprite.render? ctx
+  console.log spritelayer.length
 
 looptick = ->
+  doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
+  doomedsprites.forEach (sprite) ->
+    spritelayer = arrsansval spritelayer, sprite
   for key in heldkeys
     holdbindings[key]?()
+  spritelayer.forEach (sprite) ->
+    sprite.tick()?
   ladybug.tick()
   tickno++
   render()
