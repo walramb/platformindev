@@ -13,9 +13,12 @@ xmltag = (type="div", atts={}, body="") ->
   "<#{type}#{xmlatts atts}>#{body}</#{type}>"
 
 #mafs
+add = (a,b) -> a+b
+sum = (arr) -> arr.reduce add, 0
+avg = (arr) -> sum(arr)/arr.length
+
 class V2d
   constructor: ( @x=0, @y=0 ) ->
-add = (a,b) -> a+b
 #vadd = (v,w) -> x: add(v.x,w.x), y: add(v.y,w.y)
 vadd = (v,u) ->
   new V2d add(v.x,u.x), add(v.y,u.y)
@@ -461,7 +464,8 @@ logtimecall = (func) ->
 body.append fpscounter=$ xmltag()
 
 tickwaitms = 20
-skipframes = 4
+skipframes = 0
+ticktimes = []
 
 looptick = ->
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
@@ -474,14 +478,25 @@ looptick = ->
   ladybug.tick()
   tickno++
   if tickno%(skipframes+1) is 0
-    rendertime = timecall render
-    skipframes = Math.floor rendertime/tickwaitms
-    fpscounter.html "#{rendertime}ms to render, skipping #{skipframes} frames"
+    render()
+    #skipframes = Math.floor rendertime/tickwaitms
+    #fpscounter.html "#{rendertime}ms to render, skipping #{skipframes} frames"
 
+
+tt=0
 mainloop = ->
-  looptick()
-  tickwaitms = if slowmo then 50 else 20
-  setTimeout mainloop, tickwaitms
+  ticktime = timecall looptick
+  ticktimes.push ticktime
+  if ticktimes.length > 16
+    tt=Math.round avg ticktimes
+    ticktimes=[]
+    skipframes = Math.floor tt/tickwaitms
+  fps=Math.round 1000/Math.max(tickwaitms,ticktime)
+  idealfps=Math.round 1000/tickwaitms
+  fpscounter.html "avg tick time: #{tt}ms, skipping #{skipframes} frames, running at approx #{fps} fps (aiming for #{idealfps} fps)"
+  #fpscounter.html "tick time: #{ticktime}ms, skipping #{skipframes} frames"
+  tickwaitms = if slowmo then 100 else 20
+  setTimeout mainloop, Math.max tickwaitms-ticktime, 1
 
 #uses imagesLoaded.js by desandro
 
