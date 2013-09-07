@@ -6,6 +6,8 @@ slowmo = false
 canvas = $ "<canvas>"
 body = $ "body"
 
+sourcebaseurl = "./sprites/"
+
 
 xmlatts = (atts) ->
   (" #{key}=\"#{val}\"" for own key,val of atts).join() 
@@ -22,10 +24,14 @@ class V2d
 #vadd = (v,w) -> x: add(v.x,w.x), y: add(v.y,w.y)
 vadd = (v,u) ->
   new V2d add(v.x,u.x), add(v.y,u.y)
+vsub = (v,u) ->
+  new V2d v.x-u.x, v.y-u.y
 vnmul = (v,n) ->
   new V2d v.x*n, v.y*n
 vnadd = (v,n) ->
   new V2d v.x+n, v.y+n
+vdist = (v,u) -> vsub(v,u).mag()
+
 V2d::mag = -> Math.sqrt Math.pow(@x,2)+Math.pow(@y,2)
 V2d::ndiv = (n) -> new V2d @x/n, @y/n
 V2d::norm = -> @ndiv @mag()
@@ -40,6 +46,19 @@ class GenericSprite
   render: (ctx) ->
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y-img.naturalHeight
+
+class Target extends GenericSprite
+  constructor: ( @pos ) ->
+    @src = 'target.png'
+  collide: ( otherent ) ->
+    if otherent.attacktimeout? and otherent.attacktimeout > 0
+      @src = 'shatteredtarget.png'
+  render: (ctx) ->
+    img=cachedimg(@src)
+    ctx.drawImage img, @pos.x, @pos.y
+
+Target::gethitbox = () ->
+  new Block @pos.x, @pos.y, 32, 32
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
@@ -74,6 +93,8 @@ class BugLady extends Sprite
     @stuntimeout = 0
 
 BugLady::tick = ->
+  if @attacktimeout > 0 and @touchingground()
+    @attacktimeout=0
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
   boggling = not walking and @touchingground() and isholdingkey 'x'
@@ -81,23 +102,26 @@ BugLady::tick = ->
     spritelayer.push new BoggleParticle vnadd ladybug.pos, 32
   if @stuntimeout > 0
     @vel.x = 0
+    @vel.y = 0
     @stuntimeout -= 1
-  @jumping = isholdingkey 'w'
-  if @vel.x > 4
-    @vel.x = 4
-  if @vel.x < -4
-    @vel.x = -4
+  #@jumping = isholdingkey('w') or isholdingkey('j')
+  #LIMIT VELOCITY
+  vellimit = if @touchingground() then 4 else 5
+  if @vel.x > vellimit
+    @vel.x = vellimit
+  if @vel.x < -vellimit
+    @vel.x = -vellimit
   spriteheight=64
   box=fallbox @
   candidates = hitboxfilter box, bglayer
   if candidates.length > 0 and @vel.y >= 0
-    #if topof(fallbox) > bottomof( candidates[0] )
-    if @vel.y > 20 then @stuntimeout = 10
+    if @vel.y > 20 then @stuntimeout = 20
+    #if topof(fallbox) < bottomof( candidates[0] )
     @pos.y = candidates[0].y-spriteheight
     @vel.y = 0
   if candidates.length > 0 and @vel.y < 0
     #if topof(fallbox) > bottomof( candidates[0] )
-    @pos.y = candidates[0].y+candidates[0].h
+    #@pos.y = candidates[0].y+candidates[0].h
     @vel.y = 0
   else
   @attacking=@attacktimeout > 0
@@ -106,8 +130,6 @@ BugLady::tick = ->
     @vel.y *= 0.7
     @attacktimeout-=1
     @vel.x += heading*0.3
-  if @attacking and @touchingground()
-    @jumping=true
   @pos = vadd @pos, @vel
   #if candidates.length > 0
   #  @pos.y += 1
@@ -127,6 +149,7 @@ BugLady::tick = ->
   #super
   if @touchingground() and @jumping
     @vel.y = -13
+  @jumping = false #so we don't repeat by accident yo
   lbw=32
   width = 640+lbw
   @avoidwalls()
@@ -135,13 +158,15 @@ BugLady::tick = ->
 randint = (max) -> Math.floor Math.random()*max
 randelem = (arr) -> arr[randint(arr.length)]
 
+bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
+
 boggletitle = () ->
-  randelem [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat" ]
+  randelem [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat", "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools", "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
 
 chievo=false
 boggle = () ->
   if chievo then return
-  hit= bugbox ladybug
+  hit=ladybug.gethitbox()
   boxes = fglayer.map (obj) ->
     new Block obj.pos.x, obj.pos.y, 64, 64
   cand=hitboxfilter hit, boxes
@@ -188,6 +213,8 @@ BugLady::render = (ctx) ->
      src = 'boggle.png'
    if @attacking then src = 'viewtiful.png'
    if @stuntimeout > 0
+     src = 'lovelycrouch.png'
+   if @stuntimeout > 4
      src = 'lovelyfall.png'
      offsety=6
    img = if @facingleft then cacheflippedimg(src) else cachedimg(src)
@@ -206,14 +233,15 @@ rectsoverlap = ( recta, rectb ) ->
   else
     return true
 
-bugbox = (bug) ->
+BugLady::gethitbox = ->
   trueh = 64
   offsety=-4
   h = 50
-  w = 20 + Math.abs bug.vel.x
-  return new Block bug.pos.x+(64/2-w/2), bug.pos.y+(trueh-h), w, h
+  w = 20 + Math.abs @vel.x
+  return new Block @pos.x+(64/2-w/2), @pos.y+(trueh-h), w, h
+
 fallbox = (bug) ->
-  box=bugbox bug
+  box=bug.gethitbox()
   box.y+=bug.vel.y
   return box
 
@@ -227,7 +255,7 @@ bottomof = (box) -> box.y+box.h
 topof = (box) -> box.y
 
 BugLady::avoidwalls = () ->
-  collidebox = bugbox ladybug
+  collidebox = ladybug.gethitbox()
   blockcandidates=hitboxfilter collidebox, bglayer
   for block in blockcandidates
     #if leftof(collidebox) < rightof(block)
@@ -242,7 +270,7 @@ BugLady::avoidwalls = () ->
 
 BugLady::touchingground = () ->
   touch=false
-  collidebox = bugbox ladybug
+  collidebox = ladybug.gethitbox()
   blockcandidates=bglayer.filter (block) ->
     rectsoverlap collidebox, block
   for block in blockcandidates
@@ -271,19 +299,21 @@ somanygrafics = true
 keytapbind 'g', ->
   somanygrafics = not somanygrafics
 
+keytapbind 'j', ->
+  ladybug.jumping=true
 keyholdbind 'j', ->
-  ladybug.attacktimeout=3
+  ladybug.attacktimeout=10
 
 keyholdbind 'w', ->
   ladybug.jumping=true
 keyholdbind 's', ->
 keyholdbind 'a', ->
   ladybug.facingleft = true
-  amt = if ladybug.touchingground() then 4 else 1
+  amt = if ladybug.touchingground() then 3 else 1
   ladybug.vel.x-=amt
 keyholdbind 'd', ->
   ladybug.facingleft = false
-  amt = if ladybug.touchingground() then 4 else 1
+  amt = if ladybug.touchingground() then 3 else 1
   ladybug.vel.x+=amt
 
 arrsansval = (arr,val) ->
@@ -318,7 +348,6 @@ canvas.css 'border', '1px solid black'
 
 tickno = 0
 
-sourcebaseurl = "./sprites/"
 loadimg = (src) ->
   img = new Image
   img.src = sourcebaseurl+src
@@ -366,6 +395,8 @@ preload = ->
 preload()
 
 tilebackground = ( ctx, offset, src ) ->
+  offset.x = Math.round offset.x
+  offset.y = Math.round offset.y
   cw = canvas[0].width
   ch = canvas[0].height
   img = cachedimg src
@@ -399,6 +430,9 @@ bglayer.push new Block 32, 64*4, 64*2, 64*2
 fglayer = []
 spritelayer=[]
 
+spritelayer.push new Target new V2d 128,128
+spritelayer.push new Target new V2d 64*7,64*3
+
 placeshrub = (pos) ->
   fglayer.push new GenericSprite pos, 'shrub.png'
 
@@ -422,7 +456,7 @@ drawoutline = (ctx, block, color) ->
   ctx.stroke()
 
 drawcolls = (ctx) ->
-  collidebox = bugbox ladybug
+  collidebox = ladybug.gethitbox()
   drawoutline ctx, collidebox, 'blue'
   collidebox = fallbox ladybug
   drawoutline ctx, collidebox, 'orange'
@@ -450,7 +484,6 @@ render = ->
   ladybug.render ctx
   fglayer.forEach (sprite) ->
     sprite.render? ctx
-  console.log spritelayer.length
 
 #returns elapsed time in ms.
 timecall = (func) ->
@@ -467,14 +500,23 @@ tickwaitms = 20
 skipframes = 0
 ticktimes = []
 
+
+checkcolls = ( ent, otherents ) ->
+  bawks = ent.gethitbox()
+  otherents.forEach (target) ->
+    targethitbox = target.gethitbox()
+    if rectsoverlap bawks, targethitbox
+      target.collide?(ent)
+
 looptick = ->
+  checkcolls ladybug, spritelayer
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
   doomedsprites.forEach (sprite) ->
     spritelayer = arrsansval spritelayer, sprite
   for key in heldkeys
     holdbindings[key]?()
   spritelayer.forEach (sprite) ->
-    sprite.tick()?
+    sprite.tick?()
   ladybug.tick()
   tickno++
   if tickno%(skipframes+1) is 0
