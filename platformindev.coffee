@@ -46,6 +46,8 @@ class GenericSprite
   render: (ctx) ->
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y-img.naturalHeight
+GenericSprite::gethitbox = () ->
+  new Block @pos.x, @pos.y, 32, 32
 
 class Target extends GenericSprite
   constructor: ( @pos ) ->
@@ -57,8 +59,9 @@ class Target extends GenericSprite
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y
 
-Target::gethitbox = () ->
-  new Block @pos.x, @pos.y, 32, 32
+GenericSprite::gethitbox = ->
+  img = cachedimg @src
+  new Block @pos.x, @pos.y, img.naturalWidth, img.naturalHeight
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
