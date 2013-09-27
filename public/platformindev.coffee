@@ -1,6 +1,10 @@
-#vidyon gem
+# video gem
 
-slowmo = false
+settings={}
+settings.somanygrafics = true
+settings.drawsprites = true
+settings.slowmo = false
+settings.altcostume = true
 
 canvas = $ "<canvas>"
 body = $ "body"
@@ -9,10 +13,25 @@ sourcebaseurl = "./sprites/"
 
 chievs={}
 
-xmlatts = (atts) ->
-  (" #{key}=\"#{val}\"" for own key,val of atts).join() 
-xmltag = (type="div", atts={}, body="") ->
-  "<#{type}#{xmlatts atts}>#{body}</#{type}>"
+achieve = (title) ->
+  if chievs[title].gotten? then return
+  chievs[title].gotten = true
+  console.log chievs
+  makechievbox chievs[title].pic, randelem chievs[title].text
+
+bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
+
+murdertitles = [ "This isn't brave, it's murder", "Jellycide" ]
+fieldgoaltitles = [ "3 points field goal", "Into the dunklesphere", "Blasting off again", "pow zoom straight to the moon" ]
+falltitles = [ "Fractured spine", "Faceplant", "Dats gotta hoit", "OW FUCK", "pomf =3", "Broken legs", "Have a nice trip", "Ow my organs", "Shattered pelvis", "Bugsplat" ]
+boggletitles = [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat", "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools", "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
+
+chievs.fall = pic: "lovelyfall.png", text: falltitles
+chievs.kick = pic: "jelly.png", text: fieldgoaltitles
+chievs.boggle = pic: "boggle.png", text: boggletitles
+chievs.murder = pic: "lovelyshorter.png", text: murdertitles
+chievs.target = pic: "target.png", text: [ "there's no achievement for this" ]
+
 
 #ARRAY HELPER FUNCS
 arrclone = (arr) -> arr.slice 0
@@ -25,46 +44,16 @@ arrsansval = (arr,val) ->
  newarr.splice i, 1
  return newarr
 
-#mafs
-add = (a,b) -> a+b
-sum = (arr) -> arr.reduce add, 0
-avg = (arr) -> sum(arr)/arr.length
 
-class V2d
-  constructor: ( @x=0, @y=0 ) ->
-
-V = (x,y) -> new V2d x,y
-V2d::clone = -> V @x, @y
-
-ZEROVEC=V()
-vadd = (v,u) -> V add(v.x,u.x), add(v.y,u.y)
-vsub = (v,u) -> V v.x-u.x, v.y-u.y
-vmul = (v,u) -> V v.x*u.x, v.y*u.y
-vnmul = (v,n) -> V v.x*n, v.y*n
-vnadd = (v,n) -> V v.x+n, v.y+n
-vdist = (v,u) -> vsub(v,u).mag()
-
-V2d::vadd = (v) -> vadd @,v
-V2d::vsub = (v) -> vsub @,v
-V2d::vnmul = (n) -> vnmul @,n
-V2d::vnadd = (n) -> vnadd @,n
-V2d::vmul = (u) -> vmul @,u
-V2d::op = (op) -> V op(@x), op(@y)
-
-V2d::mag = -> Math.sqrt Math.pow(@x,2)+Math.pow(@y,2)
-V2d::ndiv = (n) -> V @x/n, @y/n
-V2d::norm = -> @ndiv @mag()
+V = (x=0,y=0) -> new V2d x,y
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
 
-randvec = () ->
-  #return #nvec.norm()
-  V randfloat(), randfloat()
+randvec = () -> V randfloat(), randfloat()
 
 randint = (max) -> Math.floor Math.random()*max
 randelem = (arr) -> arr[randint(arr.length)]
-
 
 class Sprite
   constructor: () ->
@@ -73,34 +62,20 @@ class Sprite
   tick: () ->
 
 makechievbox = ( src, text ) ->
-  #jesus christ how horrifying
-  chievbox = $ "<div><span style='display: inline-block; margin-left: 16px'><b>ACHIEVEMENT UNLOCKED</b><br/>#{text}</span></div>"
-  chievbox.css 'border-radius', '50px'
-  chievbox.css 'padding', '8px 32px 8px 8px'
-  chievbox.css 'background-color', '#333'
-  chievbox.css 'color', 'white'
-  chievbox.css 'font-family', 'sans-serif'
-  chievbox.css 'display', 'inline-block'
-  chievbox.css 'position', 'absolute'
-  chievbox.css 'top', '-100px'
-  chievbox.css 'left', '32px'
+  body.append chievbox = $ "<div class=chievbox><span style='display: inline-block; margin-left: 16px'><b>ACHIEVEMENT UNLOCKED</b><br/>#{text}</span></div>"
   chievbox.prepend pic=$ xmltag 'img', src: sourcebaseurl+src
-  pic.css 'background-color', '#444'
-  pic.css 'float', 'left'
-  pic.css 'border', '2px solid white'
-  pic.css 'border-radius', '64px'
-  body.append chievbox
   chievbox.animate( top: '32px' ).delay 4000
   chievbox.animate( { top: '-100px'}, { queue: true } ).delay 2000
-
 
 class GenericSprite
   constructor: ( @pos=V(), @src ) ->
   render: (ctx) ->
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y
-GenericSprite::gethitbox = () ->
-  new Block @pos.x, @pos.y, 32, 32
+
+GenericSprite::gethitbox = ->
+  img = cachedimg @src
+  new Block @pos.x, @pos.y, img.naturalWidth, img.naturalHeight
 
 class Target extends GenericSprite
   constructor: ( @pos ) ->
@@ -109,43 +84,143 @@ class Target extends GenericSprite
     @vel = V()
   collide: ( otherent ) ->
     if otherent instanceof BoggleParticle
-      @vel = @vel.vadd otherent.vel.vnmul 1/8
+      @vel = @vel.vadd otherent.vel.nmul 1/8
     if otherent.attacktimeout? and otherent.attacktimeout > 0 and topof(otherent.gethitbox()) < topof(@.gethitbox())
       @gethitby otherent
   gethitby: ( otherent ) ->
       if @src isnt 'shatteredtarget.png'
         @src = 'shatteredtarget.png'
-        @vel = otherent.vel.vnmul 1/2
+        @vel = otherent.vel.nmul 1/2
         @lifetime = 10
-  render: (ctx) ->
+
+Target::render = (ctx) ->
     img=cachedimg(@src)
     ctx.drawImage img, @pos.x, @pos.y
 
+canvascircle = ( context, pos, r ) ->
+  context.beginPath()
+  context.arc pos.x, pos.y, r, 0, 2*Math.PI, false
 
-GenericSprite::gethitbox = ->
-  img = cachedimg @src
-  new Block @pos.x, @pos.y, img.naturalWidth, img.naturalHeight
+degstorads = (deg) -> (deg*Math.PI)/180
+
+class Jelly extends GenericSprite
+  constructor: ( @pos ) ->
+    @lifetime=-1
+    @vel = V()
+    @src='jelly.png'
+    if Math.random()*10<1
+      @royal=true
+  render: (ctx) ->
+  collide: ( otherent ) ->
+    if otherent instanceof Jelly
+      @vel.x = (@vel.x+otherent.vel.x)/2
+      @pos.x+=randfloat()*2
+    if otherent instanceof BoggleParticle
+      @vel = @vel.vadd otherent.vel.nmul 1/8
+    if otherent instanceof BugLady and otherent.vel.y > 0
+      otherent.vel.y *= -0.9
+    if otherent.attacktimeout? and otherent.attacktimeout > 0 and topof(otherent.gethitbox()) < topof(@.gethitbox())
+      @gethitby otherent
+  gethitby: ( otherent ) ->
+    @vel.y += otherent.vel.y
+    dir=if otherent.facingleft then -1 else 1
+    @vel.x += dir*4
+    @lifetime = 10
+  render: (ctx) ->
+    img=cachedimg @src
+    if tickno%10<5 then img=cacheflippedimg @src
+    ctx.drawImage img, @pos.x, @pos.y
+    if @royal?
+      ctx.drawImage cachedimg("crown.png"), @pos.x+8, @pos.y
+
+Jelly::gethitbox = ->
+  new Block @pos.x, @pos.y+16, 32, 16
+
+Jelly::touchingground = () ->
+  touch=false
+  collidebox = @gethitbox()
+  blockcandidates=bglayer.filter (block) ->
+    rectsoverlap collidebox, block
+  for block in blockcandidates
+    if collidebox.y+collidebox.h < block.y+block.h
+      touch=true
+  return touch
+
+entitycount = ( classtype ) ->
+  ents = spritelayer.filter (sprite) -> sprite instanceof classtype
+  return ents.length
+
+Jelly::tick = () ->
+  @avoidwalls()
+  if @pos.y < 0
+    achieve "kick"
+  if @pos.y < 0 or @pos.y > 640
+    @KILLME=true
+    if entitycount(Jelly) is 1 then achieve "murder"
+  if @touchingground()
+    @vel.y=0
+    @pos.y--
+    @jiggle()
+  @gravitate()
+  @pos=@pos.vadd @vel
+Jelly::jiggle = () ->
+  @vel.x*=9/10
+  if Math.random()*100<50
+    @vel.y = -Math.random()*4
+    @vel.x += randfloat()*1
+Jelly::gravitate = () ->
+  if not @touchingground()
+    @vel.y++
 
 class BoggleParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
-    @pos = @pos.vnadd -8
+    @pos = @pos.nadd -8
     @pos.y += 16
     @vel = randvec().norm()
     @src = 'huh.png'
     @life = 50
   tick: () ->
-    @life-=1
+    @life--
     if @life<=0 then @KILLME=true
-    @pos = vadd @pos, @vel
-    @vel = vadd @vel, randvec().norm().ndiv 8
-    checkcolls @, spritelayer
+    @pos = @pos.vadd @vel
+    @vel = @vel.vadd randvec().norm().ndiv 8
+
+hueshift = (src,n) ->
+  origimg=loadimg src
+  pic = Pixastic.process origimg, "hsl", hue: n, saturation: 0, lightness: 0
+  return pic
+
+hueshiftmemo = memoize hueshift
+
+rainbowhuh = (n) -> hueshiftmemo 'huh.png', n
+
+BoggleParticle::render = (ctx) ->
+    pic=rainbowhuh @life*10
+    ctx.drawImage pic, @pos.x, @pos.y
+
+class PchooParticle extends GenericSprite
+  constructor: ( @pos=V() ) ->
+    @pos = @pos.nadd -8
+    @pos.y += 16
+    @vel = randvec().norm().ndiv 8
+    @life = 20
+  tick: () ->
+    @life--
+    if @life<=0 then @KILLME=true
+    @pos = @pos.vadd @vel
+    @vel = @vel.vadd randvec().norm().ndiv 64
+  render: (ctx) ->
+    ctx.rect @pos.x, @pos.y, 4, 4
+    ctx.fillStyle = "cyan"
+    ctx.fill()
 
 Target::tick = ->
   @vel = @vel or V 0,0
-  @vel = @vel.vnmul 7/10
-  @pos = vadd @pos, @vel
+  @vel = @vel.nmul 7/10
+  @pos = @pos.vadd @vel
   if @lifetime is 0 then @KILLME=true
   if @lifetime > 0 then @lifetime--
+  if @lifetime is 0 and entitycount(Target) is 1 then achieve "target"
 
 isholdingkey = (key) ->
   key = key.toUpperCase().charCodeAt 0
@@ -159,106 +234,129 @@ class BugLady extends Sprite
     @attacktimeout = 0
     @stuntimeout = 0
 
-BugLady::tick = ->
-  @holdingboggle = isholdingkey 'x'
-  if @pos.y > 640 #fall in bottomless pit
-    if not ded
-      body.prepend "<p><b>YOU'RE DEAD</b> now don't let me catch you doing that again young lady</p>"
-      ded=true
-    @pos = V()
-    @vel = V()
+BugLady::respawn = ->
+  @pos = V()
+  @vel = V()
 
-  if @attacktimeout > 0 and @touchingground()
-    @attacktimeout=0
+ded=false
+
+entcenter = ( ent ) ->
+  hb=ent.gethitbox()
+  return V hb.x+hb.w/2, hb.y+hb.h/2
+
+BugLady::blockcollisions = ->
+  spriteheight=64
+  box=@fallbox()
+  candidates = hitboxfilter box, bglayer
+  if candidates.length > 0 # and @vel.y >= 0
+    if bottomof(@.gethitbox()) <= topof( candidates[0] )
+      if @vel.y > 20 then @stuntimeout = 20
+      @pos.y = candidates[0].y-spriteheight
+      @vel.y = 0
+  if candidates.length > 0 and @vel.y < 0
+    @vel.y = 0
+
+BugLady::tick = ->
+  unpowered = settings.altcostume
+  if unpowered
+    @attacktimeout = 0
+    @attacking=false
+  @holdingboggle = isholdingkey 'x'
+  @holdingjump = isholdingkey 'w'
+  if @pos.y > 640 #fall in bottomless pit
+    if ded then $('#deathmsg').html "<b>WHAT DID I JUST TELL YOU</b>"
+    if not ded
+      body.prepend "<p id=deathmsg><b>YOU'RE DEAD</b> now don't let me catch you doing that again young lady</p>"
+      ded=true
+    @respawn()
+  #if @attacktimeout > 0 and @touchingground() then @attacktimeout=0
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
   boggling = not walking and @touchingground() and @holdingboggle
   if boggling and Math.random()<0.3
-    spritelayer.push new BoggleParticle ladybug.pos.vnadd 32
+    @boggle()
+  if @poweruptimeout > 0
+    @poweruptimeout--
+    @vel = V2d.zero()
   if @stuntimeout > 0
-    if not chievs.fall?
-      chievs.fall=true
-      makechievbox "lovelyfall.png", randelem falltitles
-    @vel.x = 0
-    @vel.y = 0
-    @stuntimeout -= 1
+    @stuntimeout--
+    achieve "fall"
+    @vel = V2d.zero()
   #LIMIT VELOCITY
   vellimit = if @touchingground() then 4 else 5
-  if @vel.x > vellimit
-    @vel.x = vellimit
-  if @vel.x < -vellimit
-    @vel.x = -vellimit
-  spriteheight=64
-  box=fallbox @
-  candidates = hitboxfilter box, bglayer
-  if candidates.length > 0 and @vel.y >= 0
-    if @vel.y > 20 then @stuntimeout = 20
-    @pos.y = candidates[0].y-spriteheight
-    @vel.y = 0
-  if candidates.length > 0 and @vel.y < 0
-    @vel.y = 0
-  else
+  @vel.x = mafs.clamp @vel.x, -vellimit, vellimit
+  #BLOCK COLLISIONS
+  @blockcollisions()
   @attacking=@attacktimeout > 0
   heading = if @facingleft then -1 else 1
   if @attacking
     @vel.y *= 0.7
     @attacktimeout-=1
     @vel.x += heading*0.3
-  @pos = vadd @pos, @vel
+    spritelayer.push new PchooParticle entcenter @
+  if @attacking and @punching and @touchingground()
+    @vel.x = @vel.x*0.1
+  @pos = @pos.vadd @vel
   if not @touchingground()
     @vel.y += 1 #GRAVITY
+    if not @holdingjump and @vel.y < 0 then @vel.y /= 2
   if @touchingground()
     @vel.x = @vel.x*0.5 #GROUND FRICTION
     if Math.abs(@vel.x)<0.0001
       @vel.x = 0
+  jumpvel = 15
+  if unpowered then jumpvel = 12
   if @touchingground() and @jumping
-    @vel.y = -13
+    @vel.y = -jumpvel
   @jumping = false #so we don't repeat by accident yo
-  lbw=32
-  width = 640+lbw
   @avoidwalls()
-  #@pos.x = ( (@pos.x + (width+lbw)) % (width) )-lbw #WRAPAROUND
-
-bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
 
 
-falltitles = [ "Fractured spine", "Faceplant", "Dats gotta hoit", "OW FUCK", "pomf =3", "Broken legs", "Have a nice trip", "Ow my organs", "Shattered pelvis", "Bugsplat" ]
-boggletitles = [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat", "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools", "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
-
-
-boggle = () ->
-  if chievs.boggle? then return
+BugLady::boggle = () ->
+  spritelayer.push new BoggleParticle entcenter @
   hit=ladybug.gethitbox()
   boxes = fglayer.map (obj) -> obj.gethitbox()
   #  new Block obj.pos.x, obj.pos.y, 64, 64
   cand=hitboxfilter hit, boxes
   if cand.length > 0
-    chievs.boggle=true
-    makechievbox 'boggle.png', randelem boggletitles
+    achieve "boggle"
 
 
 BugLady::render = (ctx) ->
-   offsety=3
-   src="lovelyshorter.png"
-   vel = Math.abs( @vel.x )
-   walking = vel > 0.2
-   if walking
-     src = if (tickno%12>6) then 'lovelyrun1.png' else 'lovelyrun2.png'
-   if not @touchingground()
-     src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
-   if not walking and isholdingkey 's'
-     src = 'lovelycrouch.png'
-   if not walking and @touchingground() and @holdingboggle
-     boggle()
-     src = 'boggle.png'
-   if @attacking then src = 'viewtiful.png'
-   if @stuntimeout > 0
-     src = 'lovelycrouch.png'
-   if @stuntimeout > 4
-     src = 'lovelyfall.png'
-     offsety=6
-   img = if @facingleft then cacheflippedimg(src) else cachedimg(src)
-   ctx.drawImage img, @pos.x, @pos.y+offsety
+  offsety=3
+  src="lovelyshorter.png"
+  vel = Math.abs( @vel.x )
+  walking = vel > 0.2
+  if walking
+    src = if (tickno%12>6) then 'lovelyrun1.png' else 'lovelyrun2.png'
+  if not @touchingground()
+    src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
+  if not walking and isholdingkey 's'
+    src = 'lovelycrouch.png'
+  if not walking and @touchingground() and @holdingboggle
+    src = 'boggle.png'
+  if @attacking then src = 'viewtiful.png'
+  if @attacking and @punching then src = 'bugpunch.png'
+  if @attacking and @kicking then src = 'bugkick.png'
+  if @stuntimeout > 0
+    src = 'lovelycrouch.png'
+  if @stuntimeout > 4
+    src = 'lovelyfall.png'
+    offsety=6
+  if @poweruptimeout > 0
+    src = 'viewtiful.png'
+  censor=false
+  if @poweruptimeout > 16
+    src = 'boggle.png'
+    @facingleft = @poweruptimeout % 10 < 5
+    censor=true
+  if @poweruptimeout > 32
+    src = 'marl/boggle.png'
+  if settings.altcostume
+    src = "marl/" + src
+  img = if @facingleft then cacheflippedimg(src) else cachedimg(src)
+  ctx.drawImage img, @pos.x, @pos.y+offsety
+  if censor then ctx.drawImage cachedimg("censor.png"), @pos.x+16, @pos.y+32
 
 hitboxfilter = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
@@ -276,13 +374,14 @@ rectsoverlap = ( recta, rectb ) ->
 BugLady::gethitbox = ->
   trueh = 64
   offsety=-4
-  h = 50
+  h = 40
   w = 20 + Math.abs @vel.x
   return new Block @pos.x+(64/2-w/2), @pos.y+(trueh-h), w, h
 
-fallbox = (bug) ->
-  box=bug.gethitbox()
-  box.y+=bug.vel.y
+BugLady::fallbox = ->
+  box=@gethitbox()
+  box.y+=@vel.y
+  box.x+=@vel.x
   return box
 
 ladybug = new BugLady
@@ -294,12 +393,10 @@ rightof = (box) -> box.x+box.w
 bottomof = (box) -> box.y+box.h
 topof = (box) -> box.y
 
-BugLady::avoidwalls = () ->
-  collidebox = ladybug.gethitbox()
+GenericSprite::avoidwalls = Sprite::avoidwalls = () ->
+  collidebox = @gethitbox()
   blockcandidates=hitboxfilter collidebox, bglayer
   for block in blockcandidates
-    #if leftof(collidebox) < rightof(block)
-    #  @pos.x++
     notontop = bottomof(collidebox)>topof(block)+8 #some wiggle room hack
     if notontop and leftof(collidebox) < leftof(block)
       @vel.x=0
@@ -310,11 +407,11 @@ BugLady::avoidwalls = () ->
 
 BugLady::touchingground = () ->
   touch=false
-  collidebox = ladybug.gethitbox()
+  collidebox = @gethitbox()
   blockcandidates=bglayer.filter (block) ->
     rectsoverlap collidebox, block
   for block in blockcandidates
-    if collidebox.y+collidebox.h < block.y+block.h
+    if bottomof(collidebox) < bottomof(block)
       touch=true
   return touch
 
@@ -326,10 +423,6 @@ class ControlObj
 
 control = new ControlObj
 
-control.bindings = {}
-control.holdbindings = {}
-control.heldkeys = []
-
 normalizekey = (key) -> key.toUpperCase().charCodeAt 0
 
 ControlObj::keytapbind = ( key, func ) ->
@@ -338,16 +431,27 @@ ControlObj::keyholdbind = ( key, func ) ->
   control.holdbindings[normalizekey(key)]=func
 
 control.keytapbind 't', ->
-  slowmo = not slowmo
+  settings.slowmo = not settings.slowmo
 
-somanygrafics = true
-drawsprites = true
+control.keytapbind 'g', -> settings.somanygrafics = not settings.somanygrafics
+control.keytapbind 'b', -> settings.drawsprites = not settings.drawsprites
 
-control.keytapbind 'g', -> somanygrafics = not somanygrafics
-control.keytapbind 'b', -> drawsprites = not drawsprites
+control.keytapbind 'l', ->
+  ladybug.jumping=true
+  ladybug.kicking=false
+  ladybug.punching=false
+control.keyholdbind 'l', -> ladybug.attacktimeout=10
+#control.keytapbind 'p', -> settings.altcostume = not settings.altcostume
 
-control.keytapbind 'j', -> ladybug.jumping=true
-control.keyholdbind 'j', -> ladybug.attacktimeout=10
+control.keytapbind 'j', ->
+  ladybug.punching=true
+  ladybug.kicking=false
+  ladybug.attacktimeout=10
+control.keytapbind 'k', ->
+  ladybug.kicking=true
+  ladybug.jumping=true
+  ladybug.punching=false
+  ladybug.attacktimeout=10
 
 up = -> ladybug.jumping=true
 down = ->
@@ -367,6 +471,24 @@ control.keyholdbind 's', down
 control.keyholdbind 'a', left
 control.keyholdbind 'd', right
 
+
+save = ->
+  console.log "saving"
+  localStorage["bug"] = JSON.stringify ladybug
+  console.log localStorage["bug"]
+  localStorage["settings"] = JSON.stringify settings
+
+load = ->
+  console.log "loading"
+  $.extend ladybug, JSON.parse localStorage["bug"]
+  ladybug.pos = $.extend V(), ladybug.pos
+  ladybug.vel = V ladybug.vel.x, ladybug.vel.y
+  $.extend settings, JSON.parse localStorage["settings"]
+
+control.keytapbind '6', save
+control.keytapbind '7', load
+
+
 @CONTROL = control
 
 $(document).bind 'keydown', (e) ->
@@ -381,7 +503,7 @@ $(document).bind 'keyup', (e) ->
 tmpcanvasjq = $ "<canvas>"
 tmpcanvas = tmpcanvasjq[0]
 
-ladybug.pos = V 64, 100
+ladybug.pos = V 64, 128+64
 
 ctx = canvas[0].getContext '2d'
 
@@ -395,14 +517,6 @@ loadimg = (src) ->
   img = new Image
   img.src = sourcebaseurl+src
   return img
-
-memoize = (func) ->
-  newfunc = (args...) ->
-    if not (args of newfunc._memos)
-      newfunc._memos[args]=func.apply @, args
-    newfunc._memos[args]
-  newfunc._memos={}
-  return newfunc
 
 cachedimg = memoize loadimg
 
@@ -419,8 +533,12 @@ flipimg = (src) ->
 
 cacheflippedimg = memoize flipimg
 
-sources = [ 'lovelyshorter.png', 'lovelycrouch.png', 'lovelyrun1.png', 'lovelyrun2.png', 'lovelyjump.png', 'cloud.png', 'lovelyfall.png', 'viewtiful.png', 'boggle.png' ]
+sources = [ 'cloud.png', 'jelly.png', 'huh.png', 'suit.png', 'censor.png' ]
 sources.push 'groundtile.png'
+bugsprites=[ 'lovelyshorter.png', 'lovelycrouch.png', 'lovelyrun1.png', 'lovelyrun2.png', 'lovelyjump.png', 'lovelyfall.png', 'viewtiful.png', 'boggle.png', 'bugpunch.png', 'bugkick.png' ]
+marlsprites=bugsprites.map (str) -> "marl/"+str
+sources = sources.concat marlsprites, bugsprites
+
 #PRELOAD
 
 preloadcontainer = $ "<div>"
@@ -476,13 +594,30 @@ spritelayer=[]
 
 spritelayer=spritelayer.concat [0..10].map ->
   new Target V(640*1.5,64*2).vadd randvec().vmul V 640, 100
+spritelayer=spritelayer.concat [0..10].map ->
+  new Jelly V(640*1.5,64*2).vadd randvec().vmul V 640, 100
+
+class PowerSuit extends GenericSprite
+  constructor: (@pos) ->
+    super @pos, 'suit.png'
+PowerSuit::collide = ( otherent ) ->
+  if otherent instanceof BugLady and @pos.dist(otherent.pos)<32
+    @KILLME=true
+    otherent.poweruptimeout = 45
+    settings.altcostume=false
+
+spritelayer.push new PowerSuit V(128,32)
+bglayer.push new Block 128+8, 64+20, 64, 32
+bglayer.push new Block 128+8+64, 64+20+32, 32, 32
 
 placeshrub = (pos) ->
-  pos = vsub pos, V 0, 32
+  pos = pos.vsub V 0, 32
   fglayer.push new GenericSprite pos, 'shrub.png'
+
 
 placeshrub V 64*8, 64*5-4
 placeshrub V 64*7-48, 64*5-4
+placeshrub V 64*9, 64*5-4
 
 Layer = () ->
   newlayer = $ "<canvas>"
@@ -495,7 +630,7 @@ brickctx = brickcanvas.getContext '2d'
 
 drawoutline = (ctx, block, color) ->
   ctx.beginPath()
-  ctx.rect block.x, block.y, block.w, block.h
+  ctx.rect block.x-1/2, block.y-1/2, block.w, block.h
   ctx.lineWidth=1
   ctx.strokeStyle = color
   ctx.stroke()
@@ -503,52 +638,81 @@ drawoutline = (ctx, block, color) ->
 drawcolls = (ctx) ->
   collidebox = ladybug.gethitbox()
   drawoutline ctx, collidebox, 'blue'
-  collidebox = fallbox ladybug
+  collidebox = ladybug.fallbox()
   drawoutline ctx, collidebox, 'orange'
-  findhitboxesof = [].concat spritelayer, fglayer
+  findhitboxesof = [].concat fglayer, spritelayer
   hits=findhitboxesof.map (sprite) -> sprite.gethitbox()
   hitboxes = [].concat bglayer, hits
   hitboxes.forEach (block) ->
     color=if rectsoverlap(collidebox, block) then 'red' else 'green'
     drawoutline ctx, block, color
 
-render = ->
-  ctx.fillStyle="skyblue"
-  ctx.save()
-  ctx.fillRect 0, 0, 640, 640
-  if somanygrafics
-    tilebackground ctx, V( tickno*-0.2, Math.sin(tickno/200)*64), "cloud.png"
-  cw = 640
-  offs = -(ladybug.pos.x-cw/2)
-  ctx.translate offs, 0
-  if drawsprites
-    tilebackground brickctx, V(), "groundtile.png"
+
+skylayer = {}
+skylayer.render = (ctx) ->
+  origtile=cachedimg 'cloud.png'
+  tile=origtile
+  if ladybug.holdingboggle
+    tile = hueshiftmemo 'cloud.png', Math.round(tickno/10)*10
+  
+  if settings.somanygrafics
+    offset=V tickno*-0.2, Math.sin(tickno/200)*64
+    tilebackgroundobj ctx, offset, tile
+
+bricklayer = {}
+bricklayer.render = (ctx) ->
+  if settings.drawsprites
+    tilebackground brickctx, V(-camera.pos.x%64,-camera.pos.y%64), "groundtile.png"
   tmpctx.clearRect 0, 0, 640, 640
   bglayer.forEach (sprite) ->
     sprite.render? ctx
+  tmpctx.save()
+  tmpctx.translate -camera.pos.x, -camera.pos.y
   bglayer.forEach (sprite) ->
     sprite.render? tmpctx
+  tmpctx.restore()
+  #tmpctx.translate camera.pos.x, camera.pos.y
   tmpctx.globalCompositeOperation = "source-in"
   tmpctx.drawImage brickcanvas, 0, 0
   tmpctx.globalCompositeOperation = "source-over"
+  ctx.save()
+  ctx.translate camera.pos.x, camera.pos.y
   ctx.drawImage tmpcanvas , 0, 0
-  if not somanygrafics
-    drawcolls ctx
-  renderables = [].concat spritelayer, [ladybug], fglayer
-  if drawsprites
-    renderables.forEach (sprite) ->
-      sprite.render? ctx
-  else
-    renderables.forEach (sprite) ->
-      hb=sprite.gethitbox()
-      offs=0.5
-      hb.x=offs+Math.round hb.x
-      hb.y=offs+Math.round hb.y
-      hb.w=Math.round(hb.w)-offs*2
-      hb.h=+Math.round(hb.h)-offs*2
-      drawoutline ctx, hb, 'black'
   ctx.restore()
+  #camera.pos.x, camera.pos.y
+  tmpctx.restore()
+  
+spritedrawhitbox = (ctx, sprite) ->
+  hb=sprite.gethitbox()
+  offs=0.5
+  vec=V hb.x, hb.y
+  vec = vec.op(Math.round).nadd offs
+  [hb.x,hb.y]=vec.toarr()
+  hb.w=Math.round(hb.w)-offs*2
+  hb.h=+Math.round(hb.h)-offs*2
+  drawoutline ctx, hb, 'black'
 
+camera={}
+camera.pos=V()
+
+render = ->
+  ctx.fillStyle="skyblue"
+  ctx.fillRect 0, 0, 640, 640
+  ctx.save()
+  skylayer.render ctx
+  screensize = V 640, 480
+  camera.pos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
+  camera.pos.y = mafs.clamp camera.pos.y, -screensize.y, 0
+  offs = -camera.pos.x
+  ctx.translate offs, -camera.pos.y
+  bricklayer.render ctx
+  if not settings.somanygrafics then drawcolls ctx
+  renderables = [].concat spritelayer, [ladybug], fglayer
+  if settings.drawsprites
+    renderables.forEach (sprite) -> sprite.render? ctx
+  else
+    renderables.forEach (sprite) -> spritedrawhitbox ctx, sprite
+  ctx.restore()
 
 #returns elapsed time in ms.
 timecall = (func) ->
@@ -565,7 +729,6 @@ tickwaitms = 20
 skipframes = 0
 ticktimes = []
 
-
 checkcolls = ( ent, otherents ) ->
   bawks = ent.gethitbox()
   otherents.forEach (target) ->
@@ -578,6 +741,8 @@ looptick = ->
   for key in control.heldkeys
     control.holdbindings[key]?()
   checkcolls ladybug, spritelayer
+  spritelayer.forEach (sprite) ->
+    checkcolls sprite, arrsansval spritelayer, sprite
   
   #remove entities that requested death
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
@@ -595,25 +760,28 @@ mainloop = ->
   ticktime = timecall looptick
   ticktimes.push ticktime
   if ticktimes.length > 16
-    tt=Math.round avg ticktimes
+    tt=Math.round mafs.avg ticktimes
     ticktimes=[]
     skipframes = Math.floor tt/tickwaitms
   fps=Math.round 1000/Math.max(tickwaitms,ticktime)
   idealfps=Math.round 1000/tickwaitms
   fpscounter.html "avg tick time: #{tt}ms, skipping #{skipframes} frames, running at approx #{fps} fps (aiming for #{idealfps} fps)"
   #fpscounter.html "tick time: #{ticktime}ms, skipping #{skipframes} frames"
-  tickwaitms = if slowmo then 1000/4 else 1000/60
+  tickwaitms = if settings.slowmo then 1000/4 else 1000/50
   setTimeout mainloop, Math.max tickwaitms-ticktime, 1
 
 #uses imagesLoaded.js by desandro
 
 preloadcontainer.imagesLoaded 'done', ->
-  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and J to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit</p>"
+  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit</p>"
   mainloop()
 
 body.append canvas
 canvas.mousedown (e) ->
   coffs=$(canvas).offset()
   adjusted = V e.pageX-coffs.left, e.pageY-coffs.top
-  bglayer.push new Block Math.round(-320+adjusted.x+ladybug.pos.x), adjusted.y, 32, 32
+  adjusted = adjusted.vadd camera.pos
+  adjusted = adjusted.op Math.round
+  bglayer.push new Block adjusted.x, adjusted.y, 32, 32
+
 
