@@ -9,6 +9,16 @@ settings.altcostume = true
 canvas = $ "<canvas>"
 body = $ "body"
 
+stage = new PIXI.Stage 0x66FF99
+renderer = PIXI.autoDetectRenderer 400, 300
+
+body.append renderer.view
+
+animate = ->
+  requestAnimFrame animate
+  renderer.render stage
+requestAnimFrame animate
+
 sourcebaseurl = "./sprites/"
 
 chievs={}
@@ -32,18 +42,16 @@ chievs.boggle = pic: "boggle.png", text: boggletitles
 chievs.murder = pic: "lovelyshorter.png", text: murdertitles
 chievs.target = pic: "target.png", text: [ "there's no achievement for this" ]
 
-
 #ARRAY HELPER FUNCS
 arrclone = (arr) -> arr.slice 0
 arrsansval = (arr,val) ->
- #DEVNOTE: unsure whether i should always return a clone,
- # or just the original if there's nothing removed
- newarr=arrclone arr
- if not val in arr then return newarr
- i=newarr.indexOf val
- newarr.splice i, 1
- return newarr
-
+  #DEVNOTE: unsure whether i should always return a clone,
+  # or just the original if there's nothing removed
+  newarr=arrclone arr
+  if not val in arr then return newarr
+  i=newarr.indexOf val
+  newarr.splice i, 1
+  return newarr
 
 V = (x=0,y=0) -> new V2d x,y
 
@@ -94,8 +102,8 @@ class Target extends GenericSprite
         @lifetime = 10
 
 Target::render = (ctx) ->
-    img=cachedimg(@src)
-    ctx.drawImage img, @pos.x, @pos.y
+  img=cachedimg(@src)
+  ctx.drawImage img, @pos.x, @pos.y
 
 canvascircle = ( context, pos, r ) ->
   context.beginPath()
@@ -110,7 +118,6 @@ class Jelly extends GenericSprite
     @src='jelly.png'
     if Math.random()*10<1
       @royal=true
-  render: (ctx) ->
   collide: ( otherent ) ->
     if otherent instanceof Jelly
       @vel.x = (@vel.x+otherent.vel.x)/2
@@ -127,11 +134,13 @@ class Jelly extends GenericSprite
     @vel.x += dir*4
     @lifetime = 10
   render: (ctx) ->
-    img=cachedimg @src
-    if tickno%10<5 then img=cacheflippedimg @src
-    ctx.drawImage img, @pos.x, @pos.y
-    if @royal?
-      ctx.drawImage cachedimg("crown.png"), @pos.x+8, @pos.y
+    flip = tickno%10<5
+    drawsprite @, @src, @pos, flip
+  #  img=cachedimg @src
+  #  if tickno%10<5 then img=cacheflippedimg @src
+  #  ctx.drawImage img, @pos.x, @pos.y
+  #  if @royal?
+  #    ctx.drawImage cachedimg("crown.png"), @pos.x+8, @pos.y
 
 Jelly::gethitbox = ->
   new Block @pos.x, @pos.y+16, 32, 16
@@ -197,6 +206,7 @@ rainbowhuh = (n) -> hueshiftmemo 'huh.png', n
 BoggleParticle::render = (ctx) ->
     pic=rainbowhuh @life*10
     ctx.drawImage pic, @pos.x, @pos.y
+    drawsprite @, 'huh.png', @pos, false
 
 class PchooParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -309,6 +319,7 @@ BugLady::tick = ->
   if @touchingground() and @jumping
     @vel.y = -jumpvel
   @jumping = false #so we don't repeat by accident yo
+  @climbing = @touchingwall()
   @avoidwalls()
 
 
@@ -337,6 +348,7 @@ BugLady::render = (ctx) ->
     src = 'boggle.png'
   if @attacking then src = 'viewtiful.png'
   if @attacking and @punching then src = 'bugpunch.png'
+  if @attacking and @attacktimeout < 2 and @punching then src = 'lovelyrun2.png'
   if @attacking and @kicking then src = 'bugkick.png'
   if @stuntimeout > 0
     src = 'lovelycrouch.png'
@@ -354,9 +366,27 @@ BugLady::render = (ctx) ->
     src = 'marl/boggle.png'
   if settings.altcostume
     src = "marl/" + src
-  img = if @facingleft then cacheflippedimg(src) else cachedimg(src)
-  ctx.drawImage img, @pos.x, @pos.y+offsety
+  if @climbing then src = 'bugclimb1.png'
+  flip = @facingleft
+  pos = V @pos.x, @pos.y+offsety
+  drawsprite @, src, pos, flip
   if censor then ctx.drawImage cachedimg("censor.png"), @pos.x+16, @pos.y+32
+
+drawsprite = (ent, src, pos, flip) ->
+  tex = PIXI.Texture.fromImage sourcebaseurl+src
+  if not ent._pixisprite
+    sprit = new PIXI.Sprite tex
+    ent._pixisprite=sprit
+    stage.addChild sprit
+  sprit = ent._pixisprite
+  img = if flip then cacheflippedimg(src) else cachedimg(src)
+  ctx.drawImage img, pos.x, pos.y
+  sprit.position.x = pos.x
+  if flip then sprit.position.x = pos.x + tex.width
+  sprit.position.y = pos.y
+  sprit.anchor.x = 0
+  sprit.setTexture tex 
+  sprit.scale.x = if flip then -1 else 1
 
 hitboxfilter = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
@@ -384,26 +414,34 @@ BugLady::fallbox = ->
   box.x+=@vel.x
   return box
 
-ladybug = new BugLady
-ladybug.facingleft = false
-ladybug.jumping=false
-
 leftof = (box) -> box.x
 rightof = (box) -> box.x+box.w
 bottomof = (box) -> box.y+box.h
 topof = (box) -> box.y
+
+GenericSprite::touchingwall = Sprite::touchingwall = () ->
+  collidebox = @gethitbox()
+  blockcandidates=hitboxfilter collidebox, bglayer
+  for block in blockcandidates
+    notontop = bottomof(collidebox)>topof(block)+8 #some wiggle room hack
+    if notontop and leftof(collidebox) < leftof(block)
+      return true
+    if notontop and rightof(collidebox) > rightof(block)
+      return true
+  return false
 
 GenericSprite::avoidwalls = Sprite::avoidwalls = () ->
   collidebox = @gethitbox()
   blockcandidates=hitboxfilter collidebox, bglayer
   for block in blockcandidates
     notontop = bottomof(collidebox)>topof(block)+8 #some wiggle room hack
+    ofs=4
     if notontop and leftof(collidebox) < leftof(block)
       @vel.x=0
-      @pos.x-=4
+      @pos.x-=ofs
     if notontop and rightof(collidebox) > rightof(block)
       @vel.x=0
-      @pos.x+=4
+      @pos.x+=ofs
 
 BugLady::touchingground = () ->
   touch=false
@@ -503,7 +541,6 @@ $(document).bind 'keyup', (e) ->
 tmpcanvasjq = $ "<canvas>"
 tmpcanvas = tmpcanvasjq[0]
 
-ladybug.pos = V 64, 128+64
 
 ctx = canvas[0].getContext '2d'
 
@@ -535,7 +572,7 @@ cacheflippedimg = memoize flipimg
 
 sources = [ 'cloud.png', 'jelly.png', 'huh.png', 'suit.png', 'censor.png' ]
 sources.push 'groundtile.png'
-bugsprites=[ 'lovelyshorter.png', 'lovelycrouch.png', 'lovelyrun1.png', 'lovelyrun2.png', 'lovelyjump.png', 'lovelyfall.png', 'viewtiful.png', 'boggle.png', 'bugpunch.png', 'bugkick.png' ]
+bugsprites=[ 'lovelyshorter.png', 'lovelycrouch.png', 'lovelyrun1.png', 'lovelyrun2.png', 'lovelyjump.png', 'lovelyfall.png', 'viewtiful.png', 'boggle.png', 'bugpunch.png', 'bugkick.png', 'bugclimb1.png', 'bugclimb2.png' ]
 marlsprites=bugsprites.map (str) -> "marl/"+str
 sources = sources.concat marlsprites, bugsprites
 
@@ -581,6 +618,13 @@ tmpcanvas.width = canvas[0].width
 tmpcanvas.height = canvas[0].height
 tmpctx = tmpcanvas.getContext '2d'
 
+
+ladybug = new BugLady
+ladybug.facingleft = false
+ladybug.jumping=false
+ladybug.pos = V 64, 128+64
+
+
 bglayer = []
 bglayer.push new Block -64, 64*5-4, 64*12, 100
 bglayer.push new Block 64*4, 64*2, 32, 32
@@ -591,6 +635,11 @@ bglayer.push new Block 64*12, 64*4, 64*12, 200
 
 fglayer = []
 spritelayer=[]
+
+WORLD={}
+WORLD.bglayer = bglayer
+WORLD.fglayer=fglayer
+WORLD.spritelayer=spritelayer
 
 spritelayer=spritelayer.concat [0..10].map ->
   new Target V(640*1.5,64*2).vadd randvec().vmul V 640, 100
@@ -613,7 +662,6 @@ bglayer.push new Block 128+8+64, 64+20+32, 32, 32
 placeshrub = (pos) ->
   pos = pos.vsub V 0, 32
   fglayer.push new GenericSprite pos, 'shrub.png'
-
 
 placeshrub V 64*8, 64*5-4
 placeshrub V 64*7-48, 64*5-4
@@ -646,7 +694,6 @@ drawcolls = (ctx) ->
   hitboxes.forEach (block) ->
     color=if rectsoverlap(collidebox, block) then 'red' else 'green'
     drawoutline ctx, block, color
-
 
 skylayer = {}
 skylayer.render = (ctx) ->
