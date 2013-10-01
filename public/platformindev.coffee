@@ -5,21 +5,32 @@ settings.somanygrafics = true
 settings.drawsprites = true
 settings.slowmo = false
 settings.altcostume = true
+sourcebaseurl = "./sprites/"
 
 canvas = $ "<canvas>"
 body = $ "body"
 
-stage = new PIXI.Stage 0x66FF99
-renderer = PIXI.autoDetectRenderer 400, 300
+V = (x=0,y=0) -> new V2d x,y
+
+screensize = V 640, 64*6
+
+parentstage = new PIXI.Stage 0x66FF99
+stage = new PIXI.DisplayObjectContainer
+parentstage.addChild stage
+renderer = PIXI.autoDetectRenderer screensize.x, screensize.y
 
 body.append renderer.view
 
+scale = 1
 animate = ->
+  cam=cameraoffset().nmul -scale
+  stage.position.x = cam.x
+  stage.position.y = cam.y
+  stage.scale.x = scale
+  stage.scale.y = scale
+  renderer.render parentstage
   requestAnimFrame animate
-  renderer.render stage
 requestAnimFrame animate
-
-sourcebaseurl = "./sprites/"
 
 chievs={}
 
@@ -35,12 +46,13 @@ murdertitles = [ "This isn't brave, it's murder", "Jellycide" ]
 fieldgoaltitles = [ "3 points field goal", "Into the dunklesphere", "Blasting off again", "pow zoom straight to the moon" ]
 falltitles = [ "Fractured spine", "Faceplant", "Dats gotta hoit", "OW FUCK", "pomf =3", "Broken legs", "Have a nice trip", "Ow my organs", "Shattered pelvis", "Bugsplat" ]
 boggletitles = [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat", "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools", "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
+targettitles = [ "there's no achievement for this", "\"Pow, motherfucker, pow\" -socrates", "Expect more. Pay less.", "You're supposed to use arrows you dingus" ]
 
 chievs.fall = pic: "lovelyfall.png", text: falltitles
 chievs.kick = pic: "jelly.png", text: fieldgoaltitles
 chievs.boggle = pic: "boggle.png", text: boggletitles
 chievs.murder = pic: "lovelyshorter.png", text: murdertitles
-chievs.target = pic: "target.png", text: [ "there's no achievement for this" ]
+chievs.target = pic: "target.png", text: targettitles
 
 #ARRAY HELPER FUNCS
 arrclone = (arr) -> arr.slice 0
@@ -53,7 +65,6 @@ arrsansval = (arr,val) ->
   newarr.splice i, 1
   return newarr
 
-V = (x=0,y=0) -> new V2d x,y
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
@@ -78,8 +89,9 @@ makechievbox = ( src, text ) ->
 class GenericSprite
   constructor: ( @pos=V(), @src ) ->
   render: (ctx) ->
-    img=cachedimg(@src)
-    ctx.drawImage img, @pos.x, @pos.y
+    drawsprite @, @src, @pos, false
+    #img=cachedimg(@src)
+    #ctx.drawImage img, @pos.x, @pos.y
 
 GenericSprite::gethitbox = ->
   img = cachedimg @src
@@ -102,8 +114,9 @@ class Target extends GenericSprite
         @lifetime = 10
 
 Target::render = (ctx) ->
-  img=cachedimg(@src)
-  ctx.drawImage img, @pos.x, @pos.y
+  drawsprite @, @src, @pos, false
+GenericSprite::cleanup = ->
+  removesprite @
 
 canvascircle = ( context, pos, r ) ->
   context.beginPath()
@@ -205,8 +218,8 @@ rainbowhuh = (n) -> hueshiftmemo 'huh.png', n
 
 BoggleParticle::render = (ctx) ->
     pic=rainbowhuh @life*10
-    ctx.drawImage pic, @pos.x, @pos.y
     drawsprite @, 'huh.png', @pos, false
+    ctx.drawImage pic, @pos.x, @pos.y
 
 class PchooParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -333,8 +346,7 @@ BugLady::boggle = () ->
     achieve "boggle"
 
 
-BugLady::render = (ctx) ->
-  offsety=3
+BugLady::getsprite = ->
   src="lovelyshorter.png"
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
@@ -354,23 +366,28 @@ BugLady::render = (ctx) ->
     src = 'lovelycrouch.png'
   if @stuntimeout > 4
     src = 'lovelyfall.png'
-    offsety=6
   if @poweruptimeout > 0
     src = 'viewtiful.png'
-  censor=false
   if @poweruptimeout > 16
     src = 'boggle.png'
     @facingleft = @poweruptimeout % 10 < 5
-    censor=true
   if @poweruptimeout > 32
     src = 'marl/boggle.png'
   if settings.altcostume
     src = "marl/" + src
   if @climbing then src = 'bugclimb1.png'
+  return src
+
+BugLady::render = (ctx) ->
+  src=@getsprite()
   flip = @facingleft
-  pos = V @pos.x, @pos.y+offsety
+  offs = V 0, 4
+  pos = offs.vadd @pos
   drawsprite @, src, pos, flip
-  if censor then ctx.drawImage cachedimg("censor.png"), @pos.x+16, @pos.y+32
+
+removesprite = ( ent ) ->
+  if not ent._pixisprite then return
+  stage.removeChild ent._pixisprite
 
 drawsprite = (ent, src, pos, flip) ->
   tex = PIXI.Texture.fromImage sourcebaseurl+src
@@ -468,6 +485,9 @@ ControlObj::keytapbind = ( key, func ) ->
 ControlObj::keyholdbind = ( key, func ) ->
   control.holdbindings[normalizekey(key)]=func
 
+control.keytapbind '9', -> scale-=0.1
+control.keytapbind '0', -> scale+=0.1
+
 control.keytapbind 't', ->
   settings.slowmo = not settings.slowmo
 
@@ -511,6 +531,7 @@ control.keyholdbind 'd', right
 
 
 save = ->
+  console.log ladybug
   console.log "saving"
   localStorage["bug"] = JSON.stringify ladybug
   console.log localStorage["bug"]
@@ -544,8 +565,8 @@ tmpcanvas = tmpcanvasjq[0]
 
 ctx = canvas[0].getContext '2d'
 
-canvas.attr 'height', 64*6
-canvas.attr 'width', 640
+canvas.attr 'height', screensize.y
+canvas.attr 'width', screensize.x
 canvas.css 'border', '1px solid black'
 
 tickno = 0
@@ -614,6 +635,26 @@ class Block
     ctx.fillStyle = 'brown'
     ctx.fillRect @x, @y, @w, @h
 
+
+Block::render = (ctx) ->
+  ctx.beginPath()
+  ctx.fillStyle = 'brown'
+  ctx.fillRect @x, @y, @w, @h
+  
+  ent = @
+  src = "groundtile.png"
+  pos = @pos
+  tex = PIXI.Texture.fromImage sourcebaseurl+src
+  if not ent._pixisprite
+    sprit = new PIXI.TilingSprite tex, @w, @h
+    ent._pixisprite=sprit
+    stage.addChild sprit
+  sprit = ent._pixisprite
+  sprit.tilePosition.x = -@x
+  sprit.tilePosition.y = -@y
+  sprit.position.x = @x
+  sprit.position.y = @y
+
 tmpcanvas.width = canvas[0].width
 tmpcanvas.height = canvas[0].height
 tmpctx = tmpcanvas.getContext '2d'
@@ -636,7 +677,33 @@ bglayer.push new Block 64*12, 64*4, 64*12, 200
 fglayer = []
 spritelayer=[]
 
+class Sky
+  constructor: () ->
+Sky::render = () ->
+class Cloud extends Sprite
+  constructor: () ->
+    super()
+    @src='cloud.png'
+Cloud::render = () ->
+  ent = @
+  src = @src
+  pos = cameraoffset()
+  flip = false
+  tex = PIXI.Texture.fromImage sourcebaseurl+src
+  if not ent._pixisprite
+    sprit = new PIXI.TilingSprite tex, screensize.x, screensize.y
+    ent._pixisprite=sprit
+    stage.addChildAt sprit, 0
+  sprit = ent._pixisprite
+  img = if flip then cacheflippedimg(src) else cachedimg(src)
+  sprit.position.x = pos.x
+  sprit.position.y = pos.y
+  sprit.setTexture tex 
+
 WORLD={}
+WORLD.entities = []
+WORLD.entities.push new Cloud()
+
 WORLD.bglayer = bglayer
 WORLD.fglayer=fglayer
 WORLD.spritelayer=spritelayer
@@ -742,14 +809,18 @@ spritedrawhitbox = (ctx, sprite) ->
 camera={}
 camera.pos=V()
 
+PIXI.DisplayObjectContainer
+cameraoffset = ->
+  tmppos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
+  tmppos.y = mafs.clamp camera.pos.y, -screensize.y, 0
+  return tmppos
+
 render = ->
   ctx.fillStyle="skyblue"
   ctx.fillRect 0, 0, 640, 640
   ctx.save()
   skylayer.render ctx
-  screensize = V 640, 480
-  camera.pos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
-  camera.pos.y = mafs.clamp camera.pos.y, -screensize.y, 0
+  camera.pos = cameraoffset()
   offs = -camera.pos.x
   ctx.translate offs, -camera.pos.y
   bricklayer.render ctx
@@ -759,6 +830,7 @@ render = ->
     renderables.forEach (sprite) -> sprite.render? ctx
   else
     renderables.forEach (sprite) -> spritedrawhitbox ctx, sprite
+  WORLD.entities.forEach (ent) -> ent.render?()
   ctx.restore()
 
 #returns elapsed time in ms.
@@ -770,7 +842,6 @@ timecall = (func) ->
 logtimecall = (func) ->
   console.log "#{timecall func} ms."
 
-body.append fpscounter=$ xmltag()
 
 tickwaitms = 20
 skipframes = 0
@@ -794,14 +865,17 @@ looptick = ->
   #remove entities that requested death
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
   doomedsprites.forEach (sprite) ->
+    sprite.cleanup?()
     spritelayer = arrsansval spritelayer, sprite
   
   spritelayer.forEach (sprite) -> sprite.tick?()
   ladybug.tick()
+  WORLD.entities.forEach (ent) -> ent.tick?()
   if skipframes is 0 or tickno%(skipframes+1) is 0
     render()
   tickno++
 
+fpscounter=$ xmltag()
 tt=0
 mainloop = ->
   ticktime = timecall looptick
@@ -821,6 +895,7 @@ mainloop = ->
 
 preloadcontainer.imagesLoaded 'done', ->
   body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit</p>"
+  body.append fpscounter
   mainloop()
 
 body.append canvas
