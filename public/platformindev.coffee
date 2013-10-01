@@ -7,7 +7,6 @@ settings.slowmo = false
 settings.altcostume = true
 sourcebaseurl = "./sprites/"
 
-canvas = $ "<canvas>"
 body = $ "body"
 
 V = (x=0,y=0) -> new V2d x,y
@@ -30,7 +29,6 @@ animate = ->
   stage.scale.y = scale
   renderer.render parentstage
   requestAnimFrame animate
-requestAnimFrame animate
 
 chievs={}
 
@@ -88,10 +86,10 @@ makechievbox = ( src, text ) ->
 
 class GenericSprite
   constructor: ( @pos=V(), @src ) ->
-  render: (ctx) ->
+  render:  ->
     drawsprite @, @src, @pos, false
-    #img=cachedimg(@src)
-    #ctx.drawImage img, @pos.x, @pos.y
+GenericSprite::cleanup = ->
+  removesprite @
 
 GenericSprite::gethitbox = ->
   img = cachedimg @src
@@ -113,10 +111,6 @@ class Target extends GenericSprite
         @vel = otherent.vel.nmul 1/2
         @lifetime = 10
 
-Target::render = (ctx) ->
-  drawsprite @, @src, @pos, false
-GenericSprite::cleanup = ->
-  removesprite @
 
 canvascircle = ( context, pos, r ) ->
   context.beginPath()
@@ -146,14 +140,9 @@ class Jelly extends GenericSprite
     dir=if otherent.facingleft then -1 else 1
     @vel.x += dir*4
     @lifetime = 10
-  render: (ctx) ->
+  render: ->
     flip = tickno%10<5
     drawsprite @, @src, @pos, flip
-  #  img=cachedimg @src
-  #  if tickno%10<5 then img=cacheflippedimg @src
-  #  ctx.drawImage img, @pos.x, @pos.y
-  #  if @royal?
-  #    ctx.drawImage cachedimg("crown.png"), @pos.x+8, @pos.y
 
 Jelly::gethitbox = ->
   new Block @pos.x, @pos.y+16, 32, 16
@@ -216,10 +205,8 @@ hueshiftmemo = memoize hueshift
 
 rainbowhuh = (n) -> hueshiftmemo 'huh.png', n
 
-BoggleParticle::render = (ctx) ->
-    pic=rainbowhuh @life*10
+BoggleParticle::render = ->
     drawsprite @, 'huh.png', @pos, false
-    ctx.drawImage pic, @pos.x, @pos.y
 
 class PchooParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -232,10 +219,7 @@ class PchooParticle extends GenericSprite
     if @life<=0 then @KILLME=true
     @pos = @pos.vadd @vel
     @vel = @vel.vadd randvec().norm().ndiv 64
-  render: (ctx) ->
-    ctx.rect @pos.x, @pos.y, 4, 4
-    ctx.fillStyle = "cyan"
-    ctx.fill()
+  render: ->
 
 Target::tick = ->
   @vel = @vel or V 0,0
@@ -378,7 +362,7 @@ BugLady::getsprite = ->
   if @climbing then src = 'bugclimb1.png'
   return src
 
-BugLady::render = (ctx) ->
+BugLady::render = ->
   src=@getsprite()
   flip = @facingleft
   offs = V 0, 4
@@ -397,7 +381,6 @@ drawsprite = (ent, src, pos, flip) ->
     stage.addChild sprit
   sprit = ent._pixisprite
   img = if flip then cacheflippedimg(src) else cachedimg(src)
-  ctx.drawImage img, pos.x, pos.y
   sprit.position.x = pos.x
   if flip then sprit.position.x = pos.x + tex.width
   sprit.position.y = pos.y
@@ -562,13 +545,6 @@ $(document).bind 'keyup', (e) ->
 tmpcanvasjq = $ "<canvas>"
 tmpcanvas = tmpcanvasjq[0]
 
-
-ctx = canvas[0].getContext '2d'
-
-canvas.attr 'height', screensize.y
-canvas.attr 'width', screensize.x
-canvas.css 'border', '1px solid black'
-
 tickno = 0
 
 loadimg = (src) ->
@@ -603,44 +579,17 @@ preloadcontainer = $ "<div>"
 preloadcontainer.hide()
 body.append preloadcontainer
 
-preload = ->
-  for src in sources
-    console.log "PRELOADING #{src}"
-    img = cachedimg src
-    preloadcontainer.append img
+#preload = ->
+#  for src in sources
+#    img = cachedimg src
+#    preloadcontainer.append img
 
-preload()
-
-tilebackgroundobj = ( ctx, offset, imgobj ) ->
-  offset = offset.op Math.round
-  cw = canvas[0].width
-  ch = canvas[0].height
-  img = imgobj
-  if img.width == 0 or img.height == 0 then return
-  horiznum = Math.floor cw/img.width
-  vertnum = Math.floor ch/img.height
-  [-1...horiznum+1].forEach (n) ->
-    [-1..vertnum+1].forEach (m) ->
-      finalx = n*img.width+(offset.x%img.width)
-      finaly = m*img.height+(offset.y%img.height)
-      ctx.drawImage img, finalx, finaly
-
-tilebackground = ( ctx, offset, src ) ->
-  tilebackgroundobj ctx, offset, cachedimg src
+#preload()
 
 class Block
   constructor: (@x,@y,@w,@h) ->
-  render: (ctx) ->
-    ctx.beginPath()
-    ctx.fillStyle = 'brown'
-    ctx.fillRect @x, @y, @w, @h
 
-
-Block::render = (ctx) ->
-  ctx.beginPath()
-  ctx.fillStyle = 'brown'
-  ctx.fillRect @x, @y, @w, @h
-  
+Block::render = ->
   ent = @
   src = "groundtile.png"
   pos = @pos
@@ -654,11 +603,6 @@ Block::render = (ctx) ->
   sprit.tilePosition.y = -@y
   sprit.position.x = @x
   sprit.position.y = @y
-
-tmpcanvas.width = canvas[0].width
-tmpcanvas.height = canvas[0].height
-tmpctx = tmpcanvas.getContext '2d'
-
 
 ladybug = new BugLady
 ladybug.facingleft = false
@@ -738,11 +682,6 @@ Layer = () ->
   newlayer = $ "<canvas>"
   return newlayer[0]
 
-brickcanvas = Layer()
-brickcanvas.width = canvas[0].width
-brickcanvas.height = canvas[0].height
-brickctx = brickcanvas.getContext '2d'
-
 drawoutline = (ctx, block, color) ->
   ctx.beginPath()
   ctx.rect block.x-1/2, block.y-1/2, block.w, block.h
@@ -771,31 +710,7 @@ skylayer.render = (ctx) ->
   
   if settings.somanygrafics
     offset=V tickno*-0.2, Math.sin(tickno/200)*64
-    tilebackgroundobj ctx, offset, tile
-
-bricklayer = {}
-bricklayer.render = (ctx) ->
-  if settings.drawsprites
-    tilebackground brickctx, V(-camera.pos.x%64,-camera.pos.y%64), "groundtile.png"
-  tmpctx.clearRect 0, 0, 640, 640
-  bglayer.forEach (sprite) ->
-    sprite.render? ctx
-  tmpctx.save()
-  tmpctx.translate -camera.pos.x, -camera.pos.y
-  bglayer.forEach (sprite) ->
-    sprite.render? tmpctx
-  tmpctx.restore()
-  #tmpctx.translate camera.pos.x, camera.pos.y
-  tmpctx.globalCompositeOperation = "source-in"
-  tmpctx.drawImage brickcanvas, 0, 0
-  tmpctx.globalCompositeOperation = "source-over"
-  ctx.save()
-  ctx.translate camera.pos.x, camera.pos.y
-  ctx.drawImage tmpcanvas , 0, 0
-  ctx.restore()
-  #camera.pos.x, camera.pos.y
-  tmpctx.restore()
-  
+ 
 spritedrawhitbox = (ctx, sprite) ->
   hb=sprite.gethitbox()
   offs=0.5
@@ -816,22 +731,14 @@ cameraoffset = ->
   return tmppos
 
 render = ->
-  ctx.fillStyle="skyblue"
-  ctx.fillRect 0, 0, 640, 640
-  ctx.save()
-  skylayer.render ctx
+  skylayer.render()
   camera.pos = cameraoffset()
   offs = -camera.pos.x
-  ctx.translate offs, -camera.pos.y
-  bricklayer.render ctx
-  if not settings.somanygrafics then drawcolls ctx
   renderables = [].concat spritelayer, [ladybug], fglayer
-  if settings.drawsprites
-    renderables.forEach (sprite) -> sprite.render? ctx
-  else
-    renderables.forEach (sprite) -> spritedrawhitbox ctx, sprite
+  WORLD.bglayer.forEach (ent) -> ent.render?()
+  renderables.forEach (sprite) -> sprite.render?()
   WORLD.entities.forEach (ent) -> ent.render?()
-  ctx.restore()
+
 
 #returns elapsed time in ms.
 timecall = (func) ->
@@ -897,10 +804,10 @@ preloadcontainer.imagesLoaded 'done', ->
   body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit</p>"
   body.append fpscounter
   mainloop()
+  requestAnimFrame animate
 
-body.append canvas
-canvas.mousedown (e) ->
-  coffs=$(canvas).offset()
+$(renderer.view).mousedown (e) ->
+  coffs=$(renderer.view).offset()
   adjusted = V e.pageX-coffs.left, e.pageY-coffs.top
   adjusted = adjusted.vadd camera.pos
   adjusted = adjusted.op Math.round
