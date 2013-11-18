@@ -42,7 +42,7 @@ pausetext.anchor.x = 1/2
 pausetext.anchor.y = 1/2
 
 pausescreen.addChild pausetext
-pausetext = new PIXI.Text "go take a bathroom break or maybe have a snack??? its up to you, doge", { font: "16px Arial", fill:"white"}
+pausetext = new PIXI.Text "GO GET SOME SNACKS\nPERHAPS A CARBONATED SODA", { font: "16px Arial", fill:"white"}
 pausetext.position.x = screensize.x/2
 pausetext.position.y = screensize.y/2+64
 pausetext.anchor.x = 1/2
@@ -52,8 +52,6 @@ pausescreen.addChild pausetext
 
 tex = PIXI.Texture.fromImage sourcebaseurl+'titleplaceholder.png'
 titlescreen = new PIXI.Sprite tex
-
-parentstage.addChild titlescreen
 
 
 body.append renderer.view
@@ -556,6 +554,7 @@ leftof = (box) -> box.x
 rightof = (box) -> box.x+box.w
 bottomof = (box) -> box.y+box.h
 topof = (box) -> box.y
+
 class Block
   constructor: (@x,@y,@w,@h) ->
     @pos = V @x, @y
@@ -563,6 +562,8 @@ Block::left = -> leftof @
 Block::right = -> rightof @
 Block::bottom = -> bottomof @
 Block::top = -> topof @
+blocksatpoint = (blocks, p) ->
+  blocks.filter (box) -> box.x <= p.x and box.y <= p.y and box.x+box.w >= p.x and box.y+box.h >= p.y
 
 GenericSprite::touchingwall = Sprite::touchingwall = () ->
   collidebox = @gethitbox()
@@ -746,18 +747,6 @@ flipimg = (src) ->
 
 cacheflippedimg = memoize flipimg
 
-sources = [ 'cloud.png', 'jelly.png', 'huh.png', 'suit.png', 'censor.png' ]
-sources.push 'groundtile.png'
-bugsprites=[ 'lovelyshorter.png', 'lovelycrouch.png', 'lovelyrun1.png', 'lovelyrun2.png', 'lovelyjump.png', 'lovelyfall.png', 'viewtiful.png', 'boggle.png', 'bugpunch.png', 'bugkick.png', 'bugclimb1.png', 'bugclimb2.png' ]
-marlsprites=bugsprites.map (str) -> "marl/"+str
-sources = sources.concat marlsprites, bugsprites
-
-#PRELOAD
-
-preloadcontainer = $ "<div>"
-preloadcontainer.hide()
-body.append preloadcontainer
-
 Block::gethitbox = () ->
   return @
 
@@ -875,50 +864,20 @@ PowerSuit::collide = ( otherent ) ->
     otherent.poweruptimeout = 45
     settings.altcostume=false
 
-spritelayer.push new PowerSuit V(128,32)
-bglayer.push new Block 128+8, 64+20, 64, 32
-bglayer.push new Block 128+8+64, 64+20+32, 32, 32
 
 placeshrub = (pos) ->
   pos = pos.vsub V 0, 32
   fglayer.push new GenericSprite pos, 'shrub.png'
 
-placeshrub V 64*8, 64*5-4
-placeshrub V 64*7-48, 64*5-4
-placeshrub V 64*9, 64*5-4
+WORLD_ONE_INIT = ->
+  spritelayer.push new PowerSuit V(128,32)
+  bglayer.push new Block 128+8, 64+20, 64, 32
+  bglayer.push new Block 128+8+64, 64+20+32, 32, 32
+  placeshrub V 64*8, 64*5-4
+  placeshrub V 64*7-48, 64*5-4
+  placeshrub V 64*9, 64*5-4
 
-Layer = () ->
-  newlayer = $ "<canvas>"
-  return newlayer[0]
-
-drawoutline = (ctx, block, color) ->
-  ctx.beginPath()
-  ctx.rect block.x-1/2, block.y-1/2, block.w, block.h
-  ctx.lineWidth=1
-  ctx.strokeStyle = color
-  ctx.stroke()
-
-drawcolls = (ctx) ->
-  collidebox = ladybug.gethitbox()
-  drawoutline ctx, collidebox, 'blue'
-  collidebox = ladybug.fallbox()
-  drawoutline ctx, collidebox, 'orange'
-  findhitboxesof = [].concat fglayer, spritelayer
-  hits=findhitboxesof.map (sprite) -> sprite.gethitbox()
-  hitboxes = [].concat bglayer, hits
-  hitboxes.forEach (block) ->
-    color=if rectsoverlap(collidebox, block) then 'red' else 'green'
-    drawoutline ctx, block, color
- 
-spritedrawhitbox = (ctx, sprite) ->
-  hb=sprite.gethitbox()
-  offs=0.5
-  vec=V hb.x, hb.y
-  vec = vec.op(Math.round).nadd offs
-  [hb.x,hb.y]=vec.toarr()
-  hb.w=Math.round(hb.w)-offs*2
-  hb.h=+Math.round(hb.h)-offs*2
-  drawoutline ctx, hb, 'black'
+WORLD_ONE_INIT()
 
 camera={}
 camera.offset=V()
@@ -983,8 +942,8 @@ euthanasia = ->
     sprite.cleanup?()
     spritelayer = arrsansval spritelayer, sprite
 
-looptick = ->
-  if settings.paused then return
+WORLD.tick = () ->
+#looptick = ->
   for key in control.heldkeys
     control.holdbindings[key]?()
   checkcolls ladybug, spritelayer
@@ -1002,32 +961,36 @@ looptick = ->
 
 fpscounter=$ xmltag()
 tt=0
-titlescreentimeout = 200
 mainloop = ->
-  if titlescreentimeout>0
-    titlescreentimeout--
-    if titlescreentimeout == 0
-      parentstage.removeChild titlescreen
-  ticktime = timecall looptick
-  ticktimes.push ticktime
-  if ticktimes.length > 16
-    tt=Math.round mafs.avg ticktimes
-    ticktimes=[]
-    skipframes = Math.floor tt/tickwaitms
-  fps=Math.round 1000/Math.max(tickwaitms,ticktime)
-  idealfps=Math.round 1000/tickwaitms
-  fpscounter.html "avg tick time: #{tt}ms, skipping #{skipframes} frames, running at approx #{fps} fps (aiming for #{idealfps} fps)"
+  if not settings.paused
+    ticktime = timecall WORLD.tick
+    ticktimes.push ticktime
+    if ticktimes.length > 16
+      tt=Math.round mafs.avg ticktimes
+      ticktimes=[]
+      skipframes = Math.floor tt/tickwaitms
+    fps=Math.round 1000/Math.max(tickwaitms,ticktime)
+    idealfps=Math.round 1000/tickwaitms
+    fpscounter.html "avg tick time: #{tt}ms, skipping #{skipframes} frames, running at approx #{fps} fps (aiming for #{idealfps} fps)"
   #fpscounter.html "tick time: #{ticktime}ms, skipping #{skipframes} frames"
   tickwaitms = if settings.slowmo then 1000/4 else 1000/50
   setTimeout mainloop, Math.max tickwaitms-ticktime, 1
 
-#uses imagesLoaded.js by desandro
-
-preloadcontainer.imagesLoaded 'done', ->
-  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit, Y for fullscreen</p>"
+#INITIALIZATION
+INIT = ->
+  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit, Y for fullscreen, P to pause</p>"
   body.append fpscounter
   mainloop()
   requestAnimFrame animate
+
+INIT()
+bindingsDOM = $ "<table>"
+for k,v of control.bindings
+  k=String.fromCharCode k
+  bindingsDOM.append "<tr><td>#{k}</td><td>something</td></tr>"
+
+body.append "<p>bindings:</p>"
+body.append bindingsDOM
 
 
 adjustmouseevent = (e) ->
@@ -1091,14 +1054,12 @@ $(renderer.view).mousemove mousemovehandler
 $(renderer.view).mousedown mousemiddledownhandler
 $(renderer.view).mouseup mousemiddleuphandler
 
-blocksatpoint = (p) ->
-  bglayer.filter (box) -> box.x <= p.x and box.y <= p.y and box.x+box.w >= p.x and box.y+box.h >= p.y
 
 mouserightdownhandler = (e) ->
   if e.button != 2 then return
   e.preventDefault()
   adjusted = adjustmouseevent e
-  blox=blocksatpoint adjusted
+  blox=blocksatpoint bglayer, adjusted
   console.log blox
   if blox.length > 0
     ent=blox[0]
@@ -1117,4 +1078,4 @@ $(renderer.view).bind 'wheel', (e) ->
   console.log delta
   if up then scale-=0.1
   if not up then scale+=0.1
-  
+
