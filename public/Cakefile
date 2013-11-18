@@ -1,5 +1,8 @@
 {exec}= require 'child_process'
 
 task "build", "build the files", (options) ->
-  exec "coffee -c *.coffee"
+  exec "coffee -c --output . ./src/*.coffee"
+
+task "buildwatch", "build the files and watch for changes", (options) ->
+  exec "coffee -wc --output . ./src/*.coffee"
 

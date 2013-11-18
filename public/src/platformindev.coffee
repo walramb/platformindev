@@ -1,22 +1,60 @@
 # video gem
 
 settings={}
-settings.somanygrafics = true
 settings.drawsprites = true
 settings.slowmo = false
 settings.altcostume = true
+settings.beanmode = false
+settings.muted = true
+settings.paused = false
+
 sourcebaseurl = "./sprites/"
 
 body = $ "body"
 
 V = (x=0,y=0) -> new V2d x,y
 
-screensize = V 640, 64*6
+screensize = V 64*10, 64*6
+
+audiobaseurl="./audio/"
+
+playsound = ( src ) ->
+  if settings.muted then return
+  snd = new Audio audiobaseurl+src
+  snd.play()
 
 parentstage = new PIXI.Stage 0x66FF99
 stage = new PIXI.DisplayObjectContainer
 parentstage.addChild stage
+hitboxlayer = new PIXI.DisplayObjectContainer
+stage.addChild hitboxlayer
 renderer = PIXI.autoDetectRenderer screensize.x, screensize.y
+
+pausescreen = new PIXI.Graphics()
+pausescreen.beginFill 0x000000
+pausescreen.drawRect 0, 0, screensize.x, screensize.y
+pausescreen.alpha = 0.5
+
+pausetext = new PIXI.Text "PAUSED", { font: "32px Arial", fill:"white", strokeThickness: 8, stroke:'red'}
+pausetext.position.x = screensize.x/2
+pausetext.position.y = screensize.y/2
+pausetext.anchor.x = 1/2
+pausetext.anchor.y = 1/2
+
+pausescreen.addChild pausetext
+pausetext = new PIXI.Text "go take a bathroom break or maybe have a snack??? its up to you, doge", { font: "16px Arial", fill:"white"}
+pausetext.position.x = screensize.x/2
+pausetext.position.y = screensize.y/2+64
+pausetext.anchor.x = 1/2
+pausetext.anchor.y = 0
+
+pausescreen.addChild pausetext
+
+tex = PIXI.Texture.fromImage sourcebaseurl+'titleplaceholder.png'
+titlescreen = new PIXI.Sprite tex
+
+parentstage.addChild titlescreen
+
 
 body.append renderer.view
 
@@ -63,7 +101,6 @@ arrsansval = (arr,val) ->
   newarr.splice i, 1
   return newarr
 
-
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
 
@@ -92,8 +129,11 @@ GenericSprite::cleanup = ->
   removesprite @
 
 GenericSprite::gethitbox = ->
-  img = cachedimg @src
-  new Block @pos.x, @pos.y, img.naturalWidth, img.naturalHeight
+  size=V 32, 32
+  anchor = @anchor or V(0,0)
+  makebox @pos, size, anchor
+  #img = cachedimg @src
+  #new Block @pos.x, @pos.y, img.naturalWidth, img.naturalHeight
 
 class Target extends GenericSprite
   constructor: ( @pos ) ->
@@ -110,13 +150,6 @@ class Target extends GenericSprite
         @src = 'shatteredtarget.png'
         @vel = otherent.vel.nmul 1/2
         @lifetime = 10
-
-
-canvascircle = ( context, pos, r ) ->
-  context.beginPath()
-  context.arc pos.x, pos.y, r, 0, 2*Math.PI, false
-
-degstorads = (deg) -> (deg*Math.PI)/180
 
 class Jelly extends GenericSprite
   constructor: ( @pos ) ->
@@ -142,12 +175,36 @@ class Jelly extends GenericSprite
     @lifetime = 10
   render: ->
     flip = tickno%10<5
-    drawsprite @, @src, @pos, flip
+    anchor = V 1/2, 1
+    pos=relativetobox(@gethitbox(),anchor)
+    drawsprite @, @src, pos, flip, anchor
 
 Jelly::gethitbox = ->
   new Block @pos.x, @pos.y+16, 32, 16
 
-Jelly::touchingground = () ->
+degstorads = (degs) -> degs*Math.PI/180
+
+class Skitter extends GenericSprite
+  constructor: ( @pos ) ->
+    @src='suit.png'
+    @vel=V()
+  render: ->
+    flip = false
+    @anchor = V 0.5, 1
+    pos=@pos #relativetobox(@gethitbox(),anchor)
+    spriteanchor = V 6/8, 5/8
+    sprit=drawsprite @, @src, pos, flip, spriteanchor
+    sprit.rotation = degstorads 90+randfloat()*6
+Skitter::tick = () ->
+  @avoidwalls()
+  @gravitate()
+  @pos=@pos.vadd @vel
+  if @touchingground()
+    @pos.x++
+    @vel.y=0
+    @pos.y--
+
+GenericSprite::touchingground = () ->
   touch=false
   collidebox = @gethitbox()
   blockcandidates=bglayer.filter (block) ->
@@ -179,9 +236,67 @@ Jelly::jiggle = () ->
   if Math.random()*100<50
     @vel.y = -Math.random()*4
     @vel.x += randfloat()*1
-Jelly::gravitate = () ->
+GenericSprite::gravitate = () ->
   if not @touchingground()
     @vel.y++
+
+relativetobox = ( box, anchor ) ->
+  pos = V box.x, box.y
+  size = V box.w, box.h
+  pos = pos.vadd size.vmul anchor
+  return pos
+
+class Thug extends GenericSprite
+  constructor: ( @pos ) ->
+    @lifetime=-1
+    @vel = V()
+    @src='bugthug.png'
+    @facingleft = false
+  render: ->
+    flip = not @facingleft
+    box = @gethitbox()
+    anchor = V 1/2, 1
+    pos = relativetobox box, anchor
+    sprit=drawsprite @, @src, pos, flip
+    sprit.anchor.x = anchor.x
+    sprit.anchor.y = anchor.y
+Thug::gethitbox = ->
+  new Block @pos.x, @pos.y+30, 32, 64
+GenericSprite::friction = ->
+  @vel.x *= 0.9
+Thug::tick = () ->
+  @avoidwalls()
+  @blockcollisions()
+  @pos = @pos.vadd @vel
+  if @touchingground()
+    @pos.y--
+    @vel.y=0
+    @friction()
+  @gravitate()
+  if @lifetime == 0 and @touchingground() then @src = 'bugthug.png'
+  if @lifetime > 0
+    @lifetime--
+    @src="bugthugoof.png"
+Thug::collide = ( otherent ) ->
+    if otherent instanceof BoggleParticle
+      @vel = @vel.vadd otherent.vel.nmul 1/8
+    if otherent.attacktimeout? and otherent.attacktimeout > 0
+      @gethitby otherent
+Thug::gethitby = ( otherent ) ->
+    @vel.y += otherent.vel.y
+    dir=if otherent.facingleft then -1 else 1
+    @vel.x += dir*1
+    @lifetime = 10
+Thug::blockcollisions = ->
+  box=@gethitbox()
+  spriteheight=box.h
+  candidates = hitboxfilter box, bglayer
+  if candidates.length > 0 # and @vel.y >= 0
+    if bottomof(@.gethitbox()) <= topof( candidates[0] )
+      @pos.y = candidates[0].y-spriteheight
+      @vel.y = 0
+  if candidates.length > 0 and @vel.y < 0
+    @vel.y = 0
 
 class BoggleParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -255,10 +370,10 @@ BugLady::blockcollisions = ->
   spriteheight=64
   box=@fallbox()
   candidates = hitboxfilter box, bglayer
-  if candidates.length > 0 # and @vel.y >= 0
-    if bottomof(@.gethitbox()) <= topof( candidates[0] )
+  candidates.forEach (candidate) =>
+    if bottomof(@.gethitbox()) <= topof( candidate )
       if @vel.y > 20 then @stuntimeout = 20
-      @pos.y = candidates[0].y-spriteheight
+      @pos.y = candidate.y
       @vel.y = 0
   if candidates.length > 0 and @vel.y < 0
     @vel.y = 0
@@ -303,6 +418,7 @@ BugLady::tick = ->
     spritelayer.push new PchooParticle entcenter @
   if @attacking and @punching and @touchingground()
     @vel.x = @vel.x*0.1
+  @avoidwalls()
   @pos = @pos.vadd @vel
   if not @touchingground()
     @vel.y += 1 #GRAVITY
@@ -317,7 +433,7 @@ BugLady::tick = ->
     @vel.y = -jumpvel
   @jumping = false #so we don't repeat by accident yo
   @climbing = @touchingwall()
-  @avoidwalls()
+  #if @climbing and @vel.y > 0 then @vel.y = 0
 
 
 BugLady::boggle = () ->
@@ -331,6 +447,7 @@ BugLady::boggle = () ->
 
 
 BugLady::getsprite = ->
+  if settings.beanmode then return "bugbean.png"
   src="lovelyshorter.png"
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
@@ -363,17 +480,26 @@ BugLady::getsprite = ->
   return src
 
 BugLady::render = ->
+  vel = Math.abs( @vel.x )
+  walking = vel > 1
   src=@getsprite()
   flip = @facingleft
+  if settings.beanmode and walking then flip = tickno % 8 < 4
   offs = V 0, 4
-  pos = offs.vadd @pos
-  drawsprite @, src, pos, flip
+  anchor = V 1/2, 1
+  pos = relativetobox @gethitbox(), anchor
+  pos = offs.vadd pos
+  sprit=drawsprite @, src, pos, flip, anchor
+  if src == 'boggle.png'
+    sprit.rotation=degstorads randfloat()*4
+  else
+    sprit.rotation=0
 
 removesprite = ( ent ) ->
   if not ent._pixisprite then return
   stage.removeChild ent._pixisprite
 
-drawsprite = (ent, src, pos, flip) ->
+drawsprite = (ent, src, pos, flip, anchor=V()) ->
   tex = PIXI.Texture.fromImage sourcebaseurl+src
   if not ent._pixisprite
     sprit = new PIXI.Sprite tex
@@ -382,11 +508,13 @@ drawsprite = (ent, src, pos, flip) ->
   sprit = ent._pixisprite
   img = if flip then cacheflippedimg(src) else cachedimg(src)
   sprit.position.x = pos.x
-  if flip then sprit.position.x = pos.x + tex.width
+  #if flip then sprit.position.x = pos.x + tex.width
   sprit.position.y = pos.y
-  sprit.anchor.x = 0
+  sprit.anchor.x = anchor.x
+  sprit.anchor.y = anchor.y
   sprit.setTexture tex 
   sprit.scale.x = if flip then -1 else 1
+  return sprit
 
 hitboxfilter = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
@@ -401,12 +529,22 @@ rectsoverlap = ( recta, rectb ) ->
   else
     return true
 
+makebox = (position, dimensions, anchor) ->
+  truepos = position.vsub dimensions.vmul anchor
+  return new Block truepos.x, truepos.y, dimensions.x, dimensions.y
+
 BugLady::gethitbox = ->
   trueh = 64
   offsety=-4
   h = 40
   w = 20 + Math.abs @vel.x
   return new Block @pos.x+(64/2-w/2), @pos.y+(trueh-h), w, h
+
+bottomcenter = V 1/2, 1
+BugLady::gethitbox = ->
+  w=16
+  h=32
+  return makebox @pos, V(w,h), bottomcenter
 
 BugLady::fallbox = ->
   box=@gethitbox()
@@ -418,15 +556,22 @@ leftof = (box) -> box.x
 rightof = (box) -> box.x+box.w
 bottomof = (box) -> box.y+box.h
 topof = (box) -> box.y
+class Block
+  constructor: (@x,@y,@w,@h) ->
+    @pos = V @x, @y
+Block::left = -> leftof @
+Block::right = -> rightof @
+Block::bottom = -> bottomof @
+Block::top = -> topof @
 
 GenericSprite::touchingwall = Sprite::touchingwall = () ->
   collidebox = @gethitbox()
   blockcandidates=hitboxfilter collidebox, bglayer
   for block in blockcandidates
-    notontop = bottomof(collidebox)>topof(block)+8 #some wiggle room hack
-    if notontop and leftof(collidebox) < leftof(block)
+    notontop = bottomof(collidebox)>topof(block)
+    if notontop and collidebox.left() < block.left()
       return true
-    if notontop and rightof(collidebox) > rightof(block)
+    if notontop and collidebox.right() > block.right()
       return true
   return false
 
@@ -434,8 +579,8 @@ GenericSprite::avoidwalls = Sprite::avoidwalls = () ->
   collidebox = @gethitbox()
   blockcandidates=hitboxfilter collidebox, bglayer
   for block in blockcandidates
-    notontop = bottomof(collidebox)>topof(block)+8 #some wiggle room hack
-    ofs=4
+    notontop = bottomof(collidebox)>topof(block)
+    ofs=1
     if notontop and leftof(collidebox) < leftof(block)
       @vel.x=0
       @pos.x-=ofs
@@ -471,11 +616,36 @@ ControlObj::keyholdbind = ( key, func ) ->
 control.keytapbind '9', -> scale-=0.1
 control.keytapbind '0', -> scale+=0.1
 
+launchFullScreen = (elm) ->
+  elm.requestFullScreen?()
+  elm.mozRequestFullScreen?()
+  elm.webkitRequestFullScreen?()
+cancelFullScreen = ->
+  document.cancelFullScreen?()
+  document.mozCancelFullScreen?()
+  document.webkitCancelFullScreen?()
+toggleFullScreen = (elm) ->
+  #isfullscreen = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement
+  isfullscreen = document.fullScreen || document.mozFullScreen || document.webkitFullScreen
+  if isfullscreen
+    cancelFullScreen()
+  else
+    launchFullScreen elm
+
+control.keytapbind 'y', ->
+  toggleFullScreen renderer.view
+control.keytapbind 'p', ->
+  settings.paused = not settings.paused
+  if settings.paused then parentstage.addChild pausescreen
+  if not settings.paused then parentstage.removeChild pausescreen
+  
 control.keytapbind 't', ->
   settings.slowmo = not settings.slowmo
 
-control.keytapbind 'g', -> settings.somanygrafics = not settings.somanygrafics
-control.keytapbind 'b', -> settings.drawsprites = not settings.drawsprites
+control.keytapbind 'g', ->
+  settings.grid = not settings.grid
+
+control.keytapbind 'b', -> settings.beanmode = not settings.beanmode
 
 control.keytapbind 'l', ->
   ladybug.jumping=true
@@ -488,13 +658,20 @@ control.keytapbind 'j', ->
   ladybug.punching=true
   ladybug.kicking=false
   ladybug.attacktimeout=10
+  playsound "hit.wav"
 control.keytapbind 'k', ->
   ladybug.kicking=true
   ladybug.jumping=true
   ladybug.punching=false
   ladybug.attacktimeout=10
+  playsound "hit.wav"
+control.keytapbind 'm', ->
+  settings.muted = not settings.muted
 
-up = -> ladybug.jumping=true
+up = ->
+  if ladybug.touchingground()
+    playsound "jump.wav"
+  ladybug.jumping=true
 down = ->
 left = ->
   ladybug.facingleft = true
@@ -515,8 +692,10 @@ control.keyholdbind 'd', right
 
 save = ->
   console.log ladybug
+  tmpladybug = $.extend {}, ladybug
+  tmpladybug._pixisprite = undefined
   console.log "saving"
-  localStorage["bug"] = JSON.stringify ladybug
+  localStorage["bug"] = JSON.stringify tmpladybug
   console.log localStorage["bug"]
   localStorage["settings"] = JSON.stringify settings
 
@@ -579,15 +758,8 @@ preloadcontainer = $ "<div>"
 preloadcontainer.hide()
 body.append preloadcontainer
 
-#preload = ->
-#  for src in sources
-#    img = cachedimg src
-#    preloadcontainer.append img
-
-#preload()
-
-class Block
-  constructor: (@x,@y,@w,@h) ->
+Block::gethitbox = () ->
+  return @
 
 Block::render = ->
   ent = @
@@ -633,35 +805,72 @@ Cloud::render = () ->
   src = @src
   pos = cameraoffset()
   flip = false
-  tex = PIXI.Texture.fromImage sourcebaseurl+src
   if not ent._pixisprite
+    tex = PIXI.Texture.fromImage sourcebaseurl+src
     sprit = new PIXI.TilingSprite tex, screensize.x, screensize.y
     ent._pixisprite=sprit
     stage.addChildAt sprit, 0
   sprit = ent._pixisprite
-  img = if flip then cacheflippedimg(src) else cachedimg(src)
+  offset=V tickno*-0.2, Math.sin(tickno/200)*64
   sprit.position.x = pos.x
   sprit.position.y = pos.y
+  sprit.tilePosition.x = offset.x
+  sprit.tilePosition.y = offset.y
+  #sprit.setTexture tex 
+
+class Grid extends Sprite
+  constructor: () ->
+    super()
+    @src='square.png'
+Grid::render = () ->
+  ent = @
+  src = @src
+  pos = cameraoffset()
+  flip = false
+  tex = PIXI.Texture.fromImage sourcebaseurl+src
+  if not ent._pixisprite
+    sprit = new PIXI.TilingSprite tex, screensize.x, screensize.y
+    ent._pixisprite=sprit
+    stage.addChildAt sprit, 1
+  sprit = ent._pixisprite
+  #img = if flip then cacheflippedimg(src) else cachedimg(src)
+  offset=V tickno*-0.2, Math.sin(tickno/200)*64
+  sprit.position.x = pos.x
+  sprit.position.y = pos.y
+  #if settings.grid then 
+  offset = camera.pos.nmul -1
+  sprit.tilePosition.x = offset.x
+  sprit.tilePosition.y = offset.y
   sprit.setTexture tex 
+  if not settings.grid and @_pixisprite
+    stage.removeChild @_pixisprite
+    @_pixisprite=undefined
 
 WORLD={}
 WORLD.entities = []
 WORLD.entities.push new Cloud()
+WORLD.entities.push new Grid()
 
 WORLD.bglayer = bglayer
 WORLD.fglayer=fglayer
 WORLD.spritelayer=spritelayer
 
+randpos = -> V(640*1.5,64*2).vadd randvec().vmul V 640, 100
+
 spritelayer=spritelayer.concat [0..10].map ->
-  new Target V(640*1.5,64*2).vadd randvec().vmul V 640, 100
+  new Target randpos()
 spritelayer=spritelayer.concat [0..10].map ->
-  new Jelly V(640*1.5,64*2).vadd randvec().vmul V 640, 100
+  new Jelly randpos()
+spritelayer=spritelayer.concat [0..3].map ->
+  new Thug randpos()
+#spritelayer=spritelayer.concat [0..10].map ->
+#  new Skitter randpos()
 
 class PowerSuit extends GenericSprite
   constructor: (@pos) ->
     super @pos, 'suit.png'
 PowerSuit::collide = ( otherent ) ->
-  if otherent instanceof BugLady and @pos.dist(otherent.pos)<32
+  if otherent instanceof BugLady
     @KILLME=true
     otherent.poweruptimeout = 45
     settings.altcostume=false
@@ -700,16 +909,6 @@ drawcolls = (ctx) ->
   hitboxes.forEach (block) ->
     color=if rectsoverlap(collidebox, block) then 'red' else 'green'
     drawoutline ctx, block, color
-
-skylayer = {}
-skylayer.render = (ctx) ->
-  origtile=cachedimg 'cloud.png'
-  tile=origtile
-  if ladybug.holdingboggle
-    tile = hueshiftmemo 'cloud.png', Math.round(tickno/10)*10
-  
-  if settings.somanygrafics
-    offset=V tickno*-0.2, Math.sin(tickno/200)*64
  
 spritedrawhitbox = (ctx, sprite) ->
   hb=sprite.gethitbox()
@@ -722,22 +921,37 @@ spritedrawhitbox = (ctx, sprite) ->
   drawoutline ctx, hb, 'black'
 
 camera={}
+camera.offset=V()
 camera.pos=V()
 
 PIXI.DisplayObjectContainer
 cameraoffset = ->
   tmppos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
-  tmppos.y = mafs.clamp camera.pos.y, -screensize.y, 0
-  return tmppos
+  tmppos.y = mafs.clamp tmppos.y, -screensize.y, 0
+  return tmppos.vsub camera.offset.ndiv scale
 
 render = ->
-  skylayer.render()
   camera.pos = cameraoffset()
-  offs = -camera.pos.x
-  renderables = [].concat spritelayer, [ladybug], fglayer
-  WORLD.bglayer.forEach (ent) -> ent.render?()
+  #offs = -camera.pos.x
+  renderables = [].concat WORLD.bglayer, spritelayer, [ladybug], fglayer
+  #WORLD.bglayer.forEach (ent) -> ent.render?()
   renderables.forEach (sprite) -> sprite.render?()
   WORLD.entities.forEach (ent) -> ent.render?()
+  drawhitboxes renderables
+
+drawhitboxes = ( ents ) ->
+  stage.removeChild hitboxlayer
+  hitboxlayer = new PIXI.DisplayObjectContainer
+  stage.addChild hitboxlayer
+  if not settings.grid then return
+  graf = new PIXI.Graphics()
+  graf.lineStyle 1, 0x00ff00, 1
+  graf.beginFill 0xff0000, 1/8
+  ents.forEach (ent) ->
+    graf.drawCircle ent.pos.x, ent.pos.y, 4
+    box = ent.gethitbox?()
+    graf.drawRect box.x, box.y, box.w, box.h
+  hitboxlayer.addChild graf
 
 
 #returns elapsed time in ms.
@@ -762,29 +976,38 @@ checkcolls = ( ent, otherents ) ->
     if rectsoverlap bawks, targethitbox
       target.collide?(ent)
 
+#remove entities that requested death
+euthanasia = ->
+  doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
+  doomedsprites.forEach (sprite) ->
+    sprite.cleanup?()
+    spritelayer = arrsansval spritelayer, sprite
+
 looptick = ->
+  if settings.paused then return
   for key in control.heldkeys
     control.holdbindings[key]?()
   checkcolls ladybug, spritelayer
   spritelayer.forEach (sprite) ->
     checkcolls sprite, arrsansval spritelayer, sprite
-  
-  #remove entities that requested death
-  doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
-  doomedsprites.forEach (sprite) ->
-    sprite.cleanup?()
-    spritelayer = arrsansval spritelayer, sprite
+  euthanasia() 
   
   spritelayer.forEach (sprite) -> sprite.tick?()
   ladybug.tick()
   WORLD.entities.forEach (ent) -> ent.tick?()
-  if skipframes is 0 or tickno%(skipframes+1) is 0
-    render()
+  #if skipframes is 0 or tickno%(skipframes+1) is 0
+  #  render()
+  render()
   tickno++
 
 fpscounter=$ xmltag()
 tt=0
+titlescreentimeout = 200
 mainloop = ->
+  if titlescreentimeout>0
+    titlescreentimeout--
+    if titlescreentimeout == 0
+      parentstage.removeChild titlescreen
   ticktime = timecall looptick
   ticktimes.push ticktime
   if ticktimes.length > 16
@@ -801,16 +1024,97 @@ mainloop = ->
 #uses imagesLoaded.js by desandro
 
 preloadcontainer.imagesLoaded 'done', ->
-  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit</p>"
+  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit, Y for fullscreen</p>"
   body.append fpscounter
   mainloop()
   requestAnimFrame animate
 
-$(renderer.view).mousedown (e) ->
+
+adjustmouseevent = (e) ->
   coffs=$(renderer.view).offset()
   adjusted = V e.pageX-coffs.left, e.pageY-coffs.top
+  adjusted = adjusted.ndiv scale
   adjusted = adjusted.vadd camera.pos
   adjusted = adjusted.op Math.round
-  bglayer.push new Block adjusted.x, adjusted.y, 32, 32
+  return adjusted
 
 
+creatingblock = false
+
+snapmouseadjust = (mpos) ->
+  snaptogrid = isholdingkey 'z'
+  if snaptogrid
+    gridsize = 32
+    mpos = mpos.ndiv(gridsize).op(Math.floor).nmul(gridsize)
+  return mpos
+
+$(renderer.view).mousedown (e) ->
+  #ADD BLOCK, LEFT MBUTTON
+  #HOLD Z TO SNAP TO GRID
+  if e.button != 0 then return
+  adjusted = adjustmouseevent e
+  adjusted=snapmouseadjust adjusted
+  creatingblock=new Block adjusted.x, adjusted.y, 32, 32
+  bglayer.push creatingblock
+
+mouseleftuphandler = (e) ->
+  creatingblock = false
+
+$(renderer.view).mouseup mouseleftuphandler
+
+ORIGCLICKPOS = false
+mousemiddledownhandler = (e) ->
+  if e.button != 1 then return
+  e.preventDefault()
+  ORIGCLICKPOS = V e.pageX, e.pageY
+mousemiddleuphandler = (e) ->
+  if e.button != 1 then return
+  ORIGCLICKPOS = false
+  camera.offset = V()
+mousemovehandler = (e) ->
+  mpos = snapmouseadjust adjustmouseevent e
+  if creatingblock
+    creatingblock.w = mpos.x-creatingblock.x
+    creatingblock.h = mpos.y-creatingblock.y
+    stage.removeChild creatingblock._pixisprite
+    creatingblock._pixisprite = undefined
+    #.width = creatingblock.w
+    #creatingblock._pixisprite.height = creatingblock.h
+  if ORIGCLICKPOS
+    currclickpos=V e.pageX, e.pageY
+    offset=currclickpos.vsub ORIGCLICKPOS
+    camera.offset = offset
+    console.log offset
+
+$(renderer.view).mousemove mousemovehandler
+
+$(renderer.view).mousedown mousemiddledownhandler
+$(renderer.view).mouseup mousemiddleuphandler
+
+blocksatpoint = (p) ->
+  bglayer.filter (box) -> box.x <= p.x and box.y <= p.y and box.x+box.w >= p.x and box.y+box.h >= p.y
+
+mouserightdownhandler = (e) ->
+  if e.button != 2 then return
+  e.preventDefault()
+  adjusted = adjustmouseevent e
+  blox=blocksatpoint adjusted
+  console.log blox
+  if blox.length > 0
+    ent=blox[0]
+    bglayer = arrsansval bglayer, ent
+    WORLD.bglayer=bglayer
+    stage.removeChild ent._pixisprite
+
+$(renderer.view).mousedown mouserightdownhandler
+
+$(renderer.view).contextmenu -> return false #NOOP
+
+$(renderer.view).bind 'wheel', (e) ->
+  e.preventDefault()
+  delta=e.originalEvent.deltaY
+  up=delta>0
+  console.log delta
+  if up then scale-=0.1
+  if not up then scale+=0.1
+  
