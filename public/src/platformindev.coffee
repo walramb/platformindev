@@ -105,11 +105,6 @@ randvec = () -> V randfloat(), randfloat()
 randint = (max) -> Math.floor Math.random()*max
 randelem = (arr) -> arr[randint(arr.length)]
 
-class Sprite
-  constructor: () ->
-    @vel=V()
-    @pos=V()
-  tick: () ->
 
 makechievbox = ( src, text ) ->
   body.append chievbox = $ "<div class=chievbox><span style='display: inline-block; margin-left: 16px'><b>ACHIEVEMENT UNLOCKED</b><br/>#{text}</span></div>"
@@ -119,6 +114,7 @@ makechievbox = ( src, text ) ->
 
 class GenericSprite
   constructor: ( @pos=V(), @src ) ->
+    @vel=V()
   render: ->
     anchor = @anchor or V(0,0)
     flip=false
@@ -127,6 +123,12 @@ class GenericSprite
     #drawsprite @, @src, @pos, false
 GenericSprite::cleanup = ->
   removesprite @
+
+class Sprite
+  constructor: () ->
+    @vel=V()
+    @pos=V()
+  tick: () ->
 
 class Hat extends GenericSprite
   constructor: () ->
@@ -247,8 +249,6 @@ class Thug extends GenericSprite
 bottomcenter = V 1/2, 1
 Thug::gethitbox = ->
   return makebox @pos, V(24,64), bottomcenter
-GenericSprite::friction = ->
-  @vel.x *= 0.9
 Thug::tick = () ->
   @pos = @pos.vadd @vel
   @avoidwalls()
@@ -260,7 +260,9 @@ Thug::tick = () ->
   @gravitate()
   @getsprite()
 Thug::getsprite = ->
-  if @lifetime == 0 and @touchingground() then @src = 'bugthug.png'
+  if @lifetime <= 0
+    @src = 'bugthug.png'
+#and @touchingground() then @src = 'bugthug.png'
   if @lifetime > 0
     @lifetime--
     @src="bugthugoof.png"
@@ -303,16 +305,19 @@ BoggleParticle::render = ->
 
 class PchooParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
-    @pos = @pos.nadd -8
-    @pos.y += 16
     @vel = randvec().norm().ndiv 8
     @life = 20
+    @src = 'bughealth.png'
+    @anchor = V 1/2, 1/2
+#randelem [ 'huh.png', 'bughealth.png' ]
   tick: () ->
     @life--
     if @life<=0 then @KILLME=true
     @pos = @pos.vadd @vel
     @vel = @vel.vadd randvec().norm().ndiv 64
   render: ->
+    drawsprite @, @src, @pos, false, @anchor
+    @_pixisprite.alpha = 0.25
 
 Target::tick = ->
   @vel = @vel or V 0,0
@@ -326,17 +331,23 @@ isholdingkey = (key) ->
   key = key.toUpperCase().charCodeAt 0
   key in control.heldkeys
 
-class BugLady extends Sprite
+class BugLady extends GenericSprite
   constructor: () ->
     super
     @jumping = false
     @attacking = false
     @attacktimeout = 0
     @stuntimeout = 0
+    @health=3
 
 BugLady::respawn = ->
   @pos = V()
   @vel = V()
+  @health=3
+
+BugLady::takedamage = ->
+  @health-=1
+  if @health <= 0 then @kill()
 
 entcenter = ( ent ) ->
   hb=ent.gethitbox()
@@ -348,7 +359,9 @@ BugLady::blockcollisions = ->
   candidates = hitboxfilter box, bglayer
   candidates.forEach (candidate) =>
     if bottomof(@.gethitbox()) <= topof( candidate )
-      if @vel.y > 20 then @stuntimeout = 20
+      if @vel.y > 20
+        @stuntimeout = 20
+        @takedamage()
       @pos.y = candidate.y
       @vel.y = 0
   if candidates.length > 0 and @vel.y < 0
@@ -420,7 +433,7 @@ BugLady::jumpimpulse = (jumpvel) ->
 
 BugLady::gravitate = () ->
   @vel.y += 1
-BugLady::friction = () ->
+GenericSprite::friction = () ->
   @vel.x = @vel.x*0.5
   if Math.abs(@vel.x)<0.0001
     @vel.x = 0
@@ -597,6 +610,8 @@ control = new ControlObj
 
 normalizekey = (key) -> key.toUpperCase().charCodeAt 0
 
+ControlObj::keytapbindraw = ( key, func ) ->
+  @bindings[key]=func
 ControlObj::keytapbind = ( key, func ) ->
   @bindings[normalizekey(key)]=func
 
@@ -605,11 +620,17 @@ ControlObj::keytapbindname = ( key, name, func ) ->
   console.log @bindingnames
   @keytapbind key, func
 
+ControlObj::keyBindRawNamed = ( key, name, func ) ->
+  @bindingnames[key]=name
+  console.log @bindingnames
+  @keytapbindraw key, func
+
 ControlObj::keyholdbind = ( key, func ) ->
   @holdbindings[normalizekey(key)]=func
 
 control.keytapbindname '9', 'zoom out', -> scale-=0.1
 control.keytapbindname '0', 'zoom in', -> scale+=0.1
+
 
 launchFullScreen = (elm) ->
   elm.requestFullScreen?()
@@ -686,6 +707,11 @@ control.keyholdbind 's', down
 control.keyholdbind 'a', left
 control.keyholdbind 'd', right
 
+arrowleft = 37
+arrowup = 38
+arrowright = 39
+arrowdown = 40
+control.keyBindRawNamed arrowup, 'jump', up
 
 save = ->
   console.log ladybug
@@ -820,6 +846,35 @@ placeshrub = (pos) ->
   pos = pos.vsub V 0, 32
   fglayer.push new GenericSprite pos, 'shrub.png'
 
+class BugMeter extends GenericSprite
+  constructor: () ->
+    super()
+    @src='bughealth.png'
+    @value=3
+
+BugMeter::spriteinit = () ->
+  tex = PIXI.Texture.fromImage sourcebaseurl+@src
+  @spritesize = V 32, 32
+  sprit = new PIXI.TilingSprite tex, @spritesize.x, @spritesize.y
+  @_pixisprite=sprit
+  stage.addChild sprit
+  return sprit
+
+BugMeter::render = () ->
+  pos = cameraoffset()
+  flip = false
+  if not @_pixisprite then @spriteinit()
+  sprit = @_pixisprite
+  #offset=V tickno*-0.2, Math.sin(tickno/200)*64
+  sprit.width = @spritesize.x*@value
+  sprit.position = VTOPP pos
+  #sprit.tilePosition = VTOPP offset
+BugMeter::tick = () ->
+  console.log ladybug.health
+  @update ladybug.health
+BugMeter::update = (value) ->
+  @value = value
+
 WORLD_ONE_INIT = ->
   spritelayer=spritelayer.concat [0..10].map ->
     new Target randpos()
@@ -833,6 +888,7 @@ WORLD_ONE_INIT = ->
   placeshrub V 64*8, 64*5-4
   placeshrub V 64*7-48, 64*5-4
   placeshrub V 64*9, 64*5-4
+  WORLD.entities.push new BugMeter
   if settings.decemberween
     WORLD.entities.push new Hat()
 
