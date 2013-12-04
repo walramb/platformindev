@@ -1,0 +1,60 @@
+{"frames": [
+
+{
+	"filename": "lilaidle1.png",
+	"frame": {"x":2,"y":2,"w":35,"h":78},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":6,"y":1,"w":35,"h":78},
+	"sourceSize": {"w":45,"h":80}
+},
+{
+	"filename": "lilaidle2.png",
+	"frame": {"x":39,"y":2,"w":43,"h":76},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":3,"w":43,"h":76},
+	"sourceSize": {"w":45,"h":80}
+},
+{
+	"filename": "lilascamper1.png",
+	"frame": {"x":2,"y":82,"w":45,"h":76},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":2,"w":45,"h":76},
+	"sourceSize": {"w":45,"h":80}
+},
+{
+	"filename": "lilascamper2.png",
+	"frame": {"x":49,"y":82,"w":43,"h":76},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":3,"w":43,"h":76},
+	"sourceSize": {"w":45,"h":80}
+},
+{
+	"filename": "lilascamper3.png",
+	"frame": {"x":2,"y":160,"w":33,"h":76},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":6,"y":3,"w":33,"h":76},
+	"sourceSize": {"w":45,"h":80}
+},
+{
+	"filename": "lilascamper4.png",
+	"frame": {"x":37,"y":160,"w":39,"h":76},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":2,"y":2,"w":39,"h":76},
+	"sourceSize": {"w":45,"h":80}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker ",
+	"version": "1.0",
+	"image": "lila.png",
+	"format": "RGBA8888",
+	"size": {"w":128,"h":256},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:26362fac3f9ac39c19361c41bf2315af:0bf148895a88240a4a3e14f5cd351517:d78bbf38dbd5b245d47da2fe24b7b736$"
+}
+}

@@ -50,6 +50,23 @@ pausetext.anchor = PP 1/2, 0
 
 pausescreen.addChild pausetext
 
+
+bogglescreen = new PIXI.Graphics()
+bogglescreen.beginFill 0xFF00FF
+bogglescreen.drawRect 0, 0, screensize.x, screensize.y
+bogglescreen.alpha = 0.5
+tex = PIXI.Texture.fromImage sourcebaseurl+'bugboggle.png'
+bogsprite = new PIXI.Sprite tex
+bogsprite.anchor = PP 1/2, 1/2
+bogsprite.position = VTOPP screensize.ndiv 2
+bogsprite.scale = PP 2, 2
+text = new PIXI.Text "conglaturation you found a SECRET SAPPHIC SMOOCHING SCE-\nwait a minute i've been lied to\nthere are zero smooches happening", { font: "16px Arial", fill:"white"}
+text.position = VTOPP screensize.ndiv(2).vadd(V(0,-128))
+text.anchor = PP 1/2, 0
+bogglescreen.addChild text
+bogglescreen.addChild bogsprite
+
+
 tex = PIXI.Texture.fromImage sourcebaseurl+'titleplaceholder.png'
 titlescreen = new PIXI.Sprite tex
 
@@ -227,25 +244,42 @@ GenericSprite::gravitate = () ->
   if not @touchingground()
     @vel.y++
 
+class Energy extends Jelly
+  constructor: ( @pos ) ->
+    @vel=V()
+    @src="energy1.png"
+
+Energy::getsprite = ->
+  framelist = [1..6].map (n) -> "energy#{n}.png"
+  totalframes = framelist.length
+  framewait = 4
+  framechoice = Math.floor(tickno/framewait)%totalframes
+  @src = framelist[framechoice]
+Energy::tick = () ->
+  super()
+  @getsprite()
+Energy::jiggle = () -> #noop
+
 relativetobox = ( box, anchor ) ->
   pos = V box.x, box.y
   size = V box.w, box.h
   pos = pos.vadd size.vmul anchor
   return pos
 
+
 class Thug extends GenericSprite
   constructor: ( @pos ) ->
     @lifetime=-1
     @vel = V()
     @src='bugthug.png'
-    @facingleft = false
+    @facingleft = true
   render: ->
     flip = not @facingleft
     box = @gethitbox()
     anchor = V 1/2, 1
     pos = relativetobox box, anchor
-    sprit=drawsprite @, @src, pos, flip
-    sprit.anchor = VTOPP anchor
+    sprit=drawsprite @, @src, pos, flip, anchor
+    #sprit.anchor = VTOPP anchor
 bottomcenter = V 1/2, 1
 Thug::gethitbox = ->
   return makebox @pos, V(24,64), bottomcenter
@@ -266,6 +300,7 @@ Thug::getsprite = ->
   if @lifetime > 0
     @lifetime--
     @src="bugthugoof.png"
+
 Thug::collide = ( otherent ) ->
     if otherent instanceof BoggleParticle
       @vel = @vel.vadd otherent.vel.nmul 1/8
@@ -276,6 +311,34 @@ Thug::gethitby = ( otherent ) ->
     dir=if otherent.facingleft then -1 else 1
     @vel.x += dir*1
     @lifetime = 10
+
+class Lila extends Thug
+Lila::tick = () ->
+  super()
+  if not @scampering and Math.random()<1/10
+    @scampering=true
+  if @scampering and Math.random()<1/10
+    @scampering=false
+  if @scampering
+    vel = if @facingleft then -1 else 1
+    @pos.x += vel
+  if not @scampering and Math.random()<1/20
+    @facingleft = not @facingleft
+Lila::getsprite = ->
+  idlecycle = [ 'lilaidle1.png', 'lilaidle2.png' ]
+  scampercycle = [1..4].map (n) -> "lilascamper#{n}.png"
+  framelist=idlecycle
+  if @scampering then framelist=scampercycle
+  totalframes = framelist.length
+  framewait = 4
+  framechoice = Math.floor(tickno/framewait)%totalframes
+  @src = framelist[framechoice]
+Lila::collide = ( otherent ) ->
+  if otherent instanceof BoggleParticle
+    parentstage.addChild bogglescreen
+    #if not settings.paused then parentstage.removeChild pausescreen
+
+
 GenericSprite::blockcollisions = ->
   box=@gethitbox()
   spriteheight=box.h
@@ -607,6 +670,7 @@ class ControlObj
     @bindingnames={}
 
 control = new ControlObj
+@control = control
 
 normalizekey = (key) -> key.toUpperCase().charCodeAt 0
 
@@ -870,7 +934,6 @@ BugMeter::render = () ->
   sprit.position = VTOPP pos
   #sprit.tilePosition = VTOPP offset
 BugMeter::tick = () ->
-  console.log ladybug.health
   @update ladybug.health
 BugMeter::update = (value) ->
   @value = value
@@ -880,15 +943,21 @@ WORLD_ONE_INIT = ->
     new Target randpos()
   spritelayer=spritelayer.concat [0..10].map ->
     new Jelly randpos()
+  spritelayer=spritelayer.concat [0..10].map ->
+    new Energy randpos()
   spritelayer=spritelayer.concat [0..3].map ->
     new Thug randpos()
+  spritelayer=spritelayer.concat [0].map ->
+    new Lila randpos()
   spritelayer.push new PowerSuit V(128,32)
   bglayer.push new Block 128+8, 64+20, 64, 32
   bglayer.push new Block 128+8+64, 64+20+32, 32, 32
   placeshrub V 64*8, 64*5-4
   placeshrub V 64*7-48, 64*5-4
   placeshrub V 64*9, 64*5-4
-  WORLD.entities.push new BugMeter
+  bugmeter= new BugMeter
+  WORLD.entities.push bugmeter
+  @bugmeter = bugmeter
   if settings.decemberween
     WORLD.entities.push new Hat()
 
@@ -985,7 +1054,7 @@ maketablerow = ( values ) ->
 
 bindingsDOM = $ "<table>"
 for k,v of control.bindings
-  bindingsDOM.append maketablerow [String.fromCharCode(k),control.bindingnames[k] or "??"]
+  bindingsDOM.append maketablerow [keyCodeToChar[k],control.bindingnames[k] or "??"]
 
 settingsDOM = $ "<table>"
 updatesettingstable = () ->
