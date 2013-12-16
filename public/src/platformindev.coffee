@@ -1,5 +1,13 @@
 # video gem
 
+#dependencies:
+#jQuery
+#Underscore.js
+#pixi.js
+
+THISFILE = "src/platformindev.coffee"
+
+
 settings={}
 settings.drawsprites = true
 settings.slowmo = false
@@ -8,100 +16,11 @@ settings.beanmode = false
 settings.muted = true
 settings.paused = false
 settings.volume = 0.2
-settings.decemberween = true
+settings.decemberween = false
+screensize = new V2d 64*10, 64*6
 
 sourcebaseurl = "./sprites/"
 audiobaseurl="./audio/"
-
-body = $ "body"
-
-V = (x=0,y=0) -> new V2d x,y
-PP = (x,y) -> new PIXI.Point x,y
-VTOPP = (v) -> PP v.x, v.y
-
-screensize = V 64*10, 64*6
-
-playsound = ( src ) ->
-  if settings.muted then return
-  snd = new Audio audiobaseurl+src
-  snd.volume = settings.volume
-  snd.play()
-
-parentstage = new PIXI.Stage 0x66FF99
-stage = new PIXI.DisplayObjectContainer
-parentstage.addChild stage
-hitboxlayer = new PIXI.DisplayObjectContainer
-stage.addChild hitboxlayer
-renderer = PIXI.autoDetectRenderer screensize.x, screensize.y
-
-pausescreen = new PIXI.Graphics()
-pausescreen.beginFill 0x000000
-pausescreen.drawRect 0, 0, screensize.x, screensize.y
-pausescreen.alpha = 0.5
-
-pausetext = new PIXI.Text "PAUSED", { font: "32px Arial", fill:"white", strokeThickness: 8, stroke:'red'}
-pausetext.position = VTOPP screensize.ndiv 2
-pausetext.anchor = PP 1/2, 1
-
-pausescreen.addChild pausetext
-pausetext = new PIXI.Text "GO GET SOME SNACKS\nPERHAPS A CARBONATED SODA", { font: "16px Arial", fill:"white"}
-pausetext.position = VTOPP screensize.ndiv(2).vadd(V(0,64))
-pausetext.anchor = PP 1/2, 0
-
-pausescreen.addChild pausetext
-
-
-bogglescreen = new PIXI.Graphics()
-bogglescreen.beginFill 0xFF00FF
-bogglescreen.drawRect 0, 0, screensize.x, screensize.y
-bogglescreen.alpha = 0.5
-tex = PIXI.Texture.fromImage sourcebaseurl+'bugboggle.png'
-bogsprite = new PIXI.Sprite tex
-bogsprite.anchor = PP 1/2, 1/2
-bogsprite.position = VTOPP screensize.ndiv 2
-bogsprite.scale = PP 2, 2
-text = new PIXI.Text "conglaturation you found a SECRET SAPPHIC SMOOCHING SCE-\nwait a minute i've been lied to\nthere are zero smooches happening", { font: "16px Arial", fill:"white"}
-text.position = VTOPP screensize.ndiv(2).vadd(V(0,-128))
-text.anchor = PP 1/2, 0
-bogglescreen.addChild text
-bogglescreen.addChild bogsprite
-
-
-tex = PIXI.Texture.fromImage sourcebaseurl+'titleplaceholder.png'
-titlescreen = new PIXI.Sprite tex
-
-
-body.append renderer.view
-
-scale = 1
-animate = ->
-  cam=cameraoffset().nmul -scale
-  stage.position = VTOPP cam
-  stage.scale = PP scale, scale
-  renderer.render parentstage
-  requestAnimFrame animate
-
-chievs={}
-
-achieve = (title) ->
-  if chievs[title].gotten? then return
-  chievs[title].gotten = true
-  console.log chievs
-  makechievbox chievs[title].pic, randelem chievs[title].text
-
-bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
-
-murdertitles = [ "This isn't brave, it's murder", "Jellycide" ]
-fieldgoaltitles = [ "3 points field goal", "Into the dunklesphere", "Blasting off again", "pow zoom straight to the moon" ]
-falltitles = [ "Fractured spine", "Faceplant", "Dats gotta hoit", "OW FUCK", "pomf =3", "Broken legs", "Have a nice trip", "Ow my organs", "Shattered pelvis", "Bugsplat" ]
-boggletitles = [ "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush", "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle", "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora", "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat", "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools", "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
-targettitles = [ "there's no achievement for this", "\"Pow, motherfucker, pow\" -socrates", "Expect more. Pay less.", "You're supposed to use arrows you dingus" ]
-
-chievs.fall = pic: "lovelyfall.png", text: falltitles
-chievs.kick = pic: "jelly.png", text: fieldgoaltitles
-chievs.boggle = pic: "boggle.png", text: boggletitles
-chievs.murder = pic: "lovelyshorter.png", text: murdertitles
-chievs.target = pic: "target.png", text: targettitles
 
 #ARRAY HELPER FUNCS
 arrclone = (arr) -> arr.slice 0
@@ -116,15 +35,125 @@ arrsansval = (arr,val) ->
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
-
 randvec = () -> V randfloat(), randfloat()
-
 randint = (max) -> Math.floor Math.random()*max
 randelem = (arr) -> arr[randint(arr.length)]
 
+degstorads = (degs) -> degs*Math.PI/180
+
+body = $ "body"
+
+V = (x=0,y=0) -> new V2d x,y
+PP = (x,y) -> new PIXI.Point x,y
+VTOPP = (v) -> PP v.x, v.y
+
+playsound = ( src ) ->
+  if settings.muted then return
+  snd = new Audio audiobaseurl+src
+  snd.volume = settings.volume
+  snd.play()
+
+parentstage = new PIXI.Stage 0x66FF99
+
+stage = new PIXI.DisplayObjectContainer
+parentstage.addChild stage
+hitboxlayer = new PIXI.DisplayObjectContainer
+stage.addChild hitboxlayer
+renderer = PIXI.autoDetectRenderer screensize.x, screensize.y
+
+pausescreen = new PIXI.Graphics()
+pausescreen.beginFill 0x000000
+pausescreen.drawRect 0, 0, screensize.x, screensize.y
+pausescreen.alpha = 0.5
+
+pausetext = new PIXI.Text "PAUSED",
+  { font: "32px Arial", fill:"white", strokeThickness: 8, stroke:'red'}
+pausetext.position = VTOPP screensize.ndiv 2
+pausetext.anchor = PP 1/2, 1
+pausescreen.addChild pausetext
+
+pausetext = new PIXI.Text "GO GET SOME SNACKS\nPERHAPS A CARBONATED SODA",
+  { font: "16px Arial", fill:"white"}
+pausetext.position = VTOPP screensize.ndiv(2).vadd(V(0,64))
+pausetext.anchor = PP 1/2, 0
+pausescreen.addChild pausetext
+
+
+bogglescreen = new PIXI.Graphics()
+bogglescreen.beginFill 0xFF00FF
+bogglescreen.drawRect 0, 0, screensize.x, screensize.y
+bogglescreen.alpha = 0.5
+tex = PIXI.Texture.fromImage sourcebaseurl+'smooch.png'
+bogsprite = new PIXI.Sprite tex
+bogsprite.anchor = PP 1/2, 1/2
+bogsprite.position = VTOPP screensize.ndiv 2
+bogsprite.scale = PP 2, 2
+text = new PIXI.Text """
+  wow a secret
+  warning, the following sprite is EXTREMELY CANON and EXTREMELY SEXY,
+  childrens avert your eyes
+  """,
+  { font: "16px Arial", fill:"white"}
+text.position = VTOPP screensize.ndiv(2).vadd(V(0,-128))
+text.anchor = PP 1/2, 0
+bogglescreen.addChild text
+bogglescreen.addChild bogsprite
+
+tex = PIXI.Texture.fromImage sourcebaseurl+'titleplaceholder.png'
+titlescreen = new PIXI.Sprite tex
+
+body.append renderer.view
+
+scale = 1
+animate = ->
+  cam=cameraoffset().nmul -scale
+  stage.position = VTOPP cam
+  stage.scale = PP scale, scale
+  renderer.render parentstage
+
+chievs={}
+
+achieve = (title) ->
+  if chievs[title].gotten? then return
+  chievs[title].gotten = true
+  console.log chievs
+  makechievbox chievs[title].pic, randelem chievs[title].text
+
+bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
+
+chievs.fall = pic: "lovelyfall.png"
+chievs.kick = pic: "jelly.png"
+chievs.boggle = pic: "boggle.png"
+chievs.murder = pic: "lovelyshorter.png"
+chievs.target = pic: "target.png"
+chievs.start = pic: "crown.png"
+
+chievs.start.text = [
+  "wow u started playin the game, congrats", "walking to the right",
+  "chievo modern gaming edition", "baby's first achievement" ]
+chievs.murder.text = [ "This isn't brave, it's murder", "Jellycide" ]
+chievs.kick.text = [
+  "3 points field goal", "Into the dunklesphere",
+  "Blasting off again", "pow zoom straight to the moon" ]
+chievs.fall.text = [
+  "Fractured spine", "Faceplant", "Dats gotta hoit", "OW FUCK",
+  "pomf =3", "Broken legs", "Have a nice trip", "Ow my organs", "Shattered pelvis", "Bugsplat" ]
+chievs.boggle.text = [
+  "Buggy the boggle champ", "Bushboggler 2013", "Boggle that bush",
+  "Collosal waste of time", "Boggle 2: Electric boggleoo", "Buggy bushboggle",
+  "excuse me wtf are you doing", "Bush it, bush it real good", "Fondly regard flora",
+  "&lt;chievo title unavailable due to trademark infringement&gt;", "Returning a bug to its natural habitat",
+  "Bush it to the limit", "Live Free or Boggle Hard", "Identifying bushes, accurate results with simple tools",
+  "Bugtester", "A proper lady (bug)", "Stupid achievement title", "The daily boggle", bogimg+bogimg+bogimg ]
+chievs.target.text = [
+  "there's no achievement for this", "\"Pow, motherfucker, pow\" -socrates",
+  "Expect more. Pay less.", "You're supposed to use arrows you dingus" ]
+
 
 makechievbox = ( src, text ) ->
-  body.append chievbox = $ "<div class=chievbox><span style='display: inline-block; margin-left: 16px'><b>ACHIEVEMENT UNLOCKED</b><br/>#{text}</span></div>"
+  style="style='display: inline-block; margin-left: 16px'"
+  body.append chievbox = $(
+    "<div class=chievbox><span #{style}><b>ACHIEVEMENT UNLOCKED</b><br/>#{text}</span></div>")
   chievbox.prepend pic=$ xmltag 'img', src: sourcebaseurl+src
   chievbox.animate( top: '32px' ).delay 4000
   chievbox.animate( { top: '-100px'}, { queue: true } ).delay 2000
@@ -203,10 +232,9 @@ class Jelly extends GenericSprite
     pos=relativetobox(@gethitbox(),anchor)
     drawsprite @, @src, pos, flip, anchor
 
+
 Jelly::gethitbox = ->
   return makebox @pos, V(32,16), bottomcenter
-
-degstorads = (degs) -> degs*Math.PI/180
 
 GenericSprite::touchingground = () ->
   touch=false
@@ -235,6 +263,8 @@ Jelly::tick = () ->
     @jiggle()
   @gravitate()
   @pos=@pos.vadd @vel
+
+
 Jelly::jiggle = () ->
   @vel.x*=9/10
   if Math.random()*100<50
@@ -244,6 +274,7 @@ GenericSprite::gravitate = () ->
   if not @touchingground()
     @vel.y++
 
+
 class Energy extends Jelly
   constructor: ( @pos ) ->
     @vel=V()
@@ -251,10 +282,7 @@ class Energy extends Jelly
 
 Energy::getsprite = ->
   framelist = [1..6].map (n) -> "energy#{n}.png"
-  totalframes = framelist.length
-  framewait = 4
-  framechoice = Math.floor(tickno/framewait)%totalframes
-  @src = framelist[framechoice]
+  @src = selectframe framelist, 4
 Energy::tick = () ->
   super()
   @getsprite()
@@ -313,31 +341,73 @@ Thug::gethitby = ( otherent ) ->
     @lifetime = 10
 
 class Lila extends Thug
-Lila::tick = () ->
+class Robo extends Thug
+Lila::tick = Robo::tick = () ->
   super()
   if not @scampering and Math.random()<1/10
     @scampering=true
   if @scampering and Math.random()<1/10
     @scampering=false
-  if @scampering
-    vel = if @facingleft then -1 else 1
-    @pos.x += vel
+  if @scampering and Math.abs(@vel.x)<3
+    @vel.x += if @facingleft then -1 else 1
+    #@pos.x += vel
   if not @scampering and Math.random()<1/20
     @facingleft = not @facingleft
+
+selectframe = ( framelist, framewait ) ->
+  totalframes = framelist.length
+  framechoice = Math.floor(tickno/framewait)%totalframes
+  framelist[framechoice]
+
 Lila::getsprite = ->
   idlecycle = [ 'lilaidle1.png', 'lilaidle2.png' ]
   scampercycle = [1..4].map (n) -> "lilascamper#{n}.png"
+  framewait = 4
+  framelist=idlecycle
+  if not @scampering then framewait = 20
+  if @scampering then framelist=scampercycle
+  @src = selectframe framelist, framewait
+Robo::getsprite = ->
+  idlecycle = [ 'roboroll1.png' ]
+  scampercycle = [1..2].map (n) -> "roboroll#{n}.png"
   framelist=idlecycle
   if @scampering then framelist=scampercycle
-  totalframes = framelist.length
+  if @lifetime > 0
+    @lifetime--
+    framelist=["robohurt.png"]
   framewait = 4
-  framechoice = Math.floor(tickno/framewait)%totalframes
-  @src = framelist[framechoice]
+  @src = selectframe framelist, framewait
+
 Lila::collide = ( otherent ) ->
   if otherent instanceof BoggleParticle
     parentstage.addChild bogglescreen
-    #if not settings.paused then parentstage.removeChild pausescreen
 
+class Burd extends GenericSprite
+  constructor: ( @pos=V() ) ->
+    @vel = V 0,0
+    @anchor = V 1/2, 1/2
+    @src='burd.png'
+Burd::tick = () ->
+  @getsprite()
+  #console.log @
+  #@avoidwalls()
+  @pos=@pos.vadd @vel
+  lpos = ladybug.pos or V()
+  dir=lpos.vsub(@pos).norm()
+  @vel=@vel.vadd dir
+  if @vel.mag() > 10
+    @vel = @vel.norm().nmul 10
+Burd::render = ->
+  anchor = @anchor or V(0,0)
+  flip=false
+  pos=relativetobox(@gethitbox(),anchor)
+  drawsprite @, @src, pos, flip, anchor
+  @_pixisprite.scale.x = 1/3
+  @_pixisprite.scale.y = 1/3
+Burd::getsprite = ->
+  framelist = [ 'burd.png', 'burdflap.png' ]
+  @src = randelem framelist
+  #@src = selectframe framelist, 2
 
 GenericSprite::blockcollisions = ->
   box=@gethitbox()
@@ -372,7 +442,6 @@ class PchooParticle extends GenericSprite
     @life = 20
     @src = 'bughealth.png'
     @anchor = V 1/2, 1/2
-#randelem [ 'huh.png', 'bughealth.png' ]
   tick: () ->
     @life--
     if @life<=0 then @KILLME=true
@@ -383,7 +452,6 @@ class PchooParticle extends GenericSprite
     @_pixisprite.alpha = 0.25
 
 Target::tick = ->
-  @vel = @vel or V 0,0
   @vel = @vel.nmul 7/10
   @pos = @pos.vadd @vel
   if @lifetime is 0 then @KILLME=true
@@ -441,10 +509,13 @@ BugLady::cancelattack = ->
 BugLady::outofbounds = ->
   @pos.y > 640
 
+$deathmsg=$("<p id=deathmsg></p>").html(
+  "<b>YOU'RE DEAD</b> now don't let me catch you doing that again young lady")
+
 BugLady::kill = ->
   if @ded then $('#deathmsg').html "<b>WHAT DID I JUST TELL YOU</b>"
   if not @ded
-    body.prepend "<p id=deathmsg><b>YOU'RE DEAD</b> now don't let me catch you doing that again young lady</p>"
+    body.prepend $deathmsg
     @ded=true
   @respawn()
 
@@ -498,14 +569,11 @@ BugLady::gravitate = () ->
   @vel.y += 1
 GenericSprite::friction = () ->
   @vel.x = @vel.x*0.5
-  if Math.abs(@vel.x)<0.0001
-    @vel.x = 0
 
 BugLady::boggle = () ->
   spritelayer.push new BoggleParticle entcenter @
   hit=ladybug.gethitbox()
   boxes = fglayer.map (obj) -> obj.gethitbox()
-  #  new Block obj.pos.x, obj.pos.y, 64, 64
   cand=hitboxfilter hit, boxes
   if cand.length > 0
     achieve "boggle"
@@ -516,7 +584,7 @@ BugLady::getsprite = ->
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
   if walking
-    src = if (tickno%12>6) then 'lovelyrun1.png' else 'lovelyrun2.png'
+    src = selectframe [ 'lovelyrun1.png', 'lovelyrun2.png' ], 6
   if not @touchingground()
     src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
   if not walking and isholdingkey 's'
@@ -536,6 +604,7 @@ BugLady::getsprite = ->
   if @poweruptimeout > 32 then src = 'marl/boggle.png'
   if settings.altcostume then src = "marl/" + src
   if @climbing then src = 'bugclimb1.png'
+  if @climbing and settings.altcostume then src = 'marl/boggle.png'
   return src
 
 BugLady::render = ->
@@ -557,6 +626,7 @@ BugLady::render = ->
 removesprite = ( ent ) ->
   if not ent._pixisprite then return
   stage.removeChild ent._pixisprite
+  ent._pixisprite=undefined
 
 initsprite = (ent,tex) ->
   sprit = new PIXI.Sprite tex
@@ -571,13 +641,47 @@ drawsprite = (ent, src, pos, flip, anchor=V()) ->
   sprit = ent._pixisprite
   sprit.position = VTOPP pos
   sprit.anchor = VTOPP anchor
-  sprit.setTexture tex 
+  sprit.setTexture tex
   sprit.scale.x = if flip then -1 else 1
   return sprit
 
 
-class Block
+class Renderable
+  constructor: () ->
+Renderable::hassprite = -> typeof @._pixisprite isnt "undefined"
+Renderable::removesprite = ->
+  removesprite @
+
+class Poly extends Renderable
+  constructor: (@points=[]) ->
+Poly::initsprite = () ->
+  #src = @src or "groundtile.png"
+  #tex = PIXI.Texture.fromImage sourcebaseurl+src
+  #sprit = new PIXI.TilingSprite tex, @w, @h
+  sprit=new PIXI.Graphics()
+  sprit.beginFill 0xcc0000
+  sprit.lineStyle 1, 0x000000
+  firstpoint = @points[0]
+  @points.forEach (point) ->
+    sprit.lineTo point.x, point.y
+  sprit.lineTo firstpoint.x, firstpoint.y
+  sprit.endFill()
+  @_pixisprite=sprit
+  stage.addChild sprit
+Poly::render = ->
+  if not @hassprite() then @initsprite()
+Poly::gethitbox = ->
+  makebox V(0,0), V(0,0), V(0,0)
+
+
+class Block extends Renderable
   constructor: (@x,@y,@w,@h) -> @pos = V @x, @y
+
+Block::tostone = () ->
+  @src="groundstone.png"
+  @removesprite()
+
+
 Block::overlaps = ( rectb ) ->
   recta=@
   if recta.x > rectb.x+rectb.w or
@@ -587,6 +691,16 @@ Block::overlaps = ( rectb ) ->
     return false
   else
     return true
+Block::fixnegative = () ->
+  if @w<0
+    @x+=@w
+    @w*=-1
+  if @h<0
+    @y+=@h
+    @h*=-1
+  @pos = V @x, @y
+  @removesprite()
+
 hitboxfilter = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
     hitbox.overlaps box
@@ -760,6 +874,8 @@ left = ->
   amt = if ladybug.touchingground() then 3 else 1
   ladybug.vel.x-=amt
 right = ->
+  achieve "start"
+  console.log "woo"
   ladybug.facingleft = false
   amt = if ladybug.touchingground() then 3 else 1
   ladybug.vel.x+=amt
@@ -813,19 +929,18 @@ tmpcanvas = tmpcanvasjq[0]
 
 tickno = 0
 
-Block::gethitbox = () ->
-  return @
+Block::gethitbox = () -> @
+
+Block::initsprite = () ->
+  src = @src or "groundtile.png"
+  tex = PIXI.Texture.fromImage sourcebaseurl+src
+  sprit = new PIXI.TilingSprite tex, @w, @h
+  @_pixisprite=sprit
+  stage.addChild sprit
 
 Block::render = ->
-  ent = @
-  src = "groundtile.png"
-  pos = @pos
-  tex = PIXI.Texture.fromImage sourcebaseurl+src
-  if not ent._pixisprite
-    sprit = new PIXI.TilingSprite tex, @w, @h
-    ent._pixisprite=sprit
-    stage.addChild sprit
-  sprit = ent._pixisprite
+  if not @hassprite() then @initsprite()
+  sprit = @_pixisprite
   sprit.tilePosition.x = -@x
   sprit.tilePosition.y = -@y
   sprit.position.x = @x
@@ -836,14 +951,7 @@ ladybug.facingleft = false
 ladybug.jumping=false
 ladybug.pos = V 64, 128+64
 
-
 bglayer = []
-bglayer.push new Block -64, 64*5-4, 64*12, 100
-bglayer.push new Block 64*4, 64*2, 32, 32
-bglayer.push new Block 64*5, 64*4, 32, 32
-bglayer.push new Block 64*6, 64*3, 32, 32
-bglayer.push new Block 32, 64*4, 64*2, 64*2
-bglayer.push new Block 64*12, 64*4, 64*12, 200
 
 fglayer = []
 spritelayer=[]
@@ -890,7 +998,7 @@ Grid::render = () ->
   sprit.position = new PIXI.Point pos.x, pos.y
   offset = camera.pos.nmul -1
   sprit.tilePosition = new PIXI.Point offset.x, offset.y
-  sprit.setTexture tex 
+  sprit.setTexture tex
   if not settings.grid and @_pixisprite
     stage.removeChild @_pixisprite
     @_pixisprite=undefined
@@ -938,30 +1046,67 @@ BugMeter::tick = () ->
 BugMeter::update = (value) ->
   @value = value
 
+blockdata=[]
+blockdata.push [ -64, 64*5-4, 64*12, 100 ]
+blockdata.push [ 64*4, 64*2, 32, 32 ]
+blockdata.push [ 64*5, 64*4, 32, 32 ]
+blockdata.push [ 64*6, 64*3, 32, 32 ]
+blockdata.push [ 0, 64*4, 32, 32 ]
+blockdata.push [ 32, 64*4, 64*2, 64*2 ]
+blockdata.push [ 64*12, 64*4, 64*12, 200 ]
+
+loadblocks = (blockdata) ->
+  blockdata.forEach (blockdatum) ->
+    [x,y,w,h]=blockdatum
+    bglayer.push new Block x, y, w, h
+
+
+scatterents = ( classproto, num ) ->
+  spritelayer=spritelayer.concat [0...num].map ->
+    new classproto randpos()
+
 WORLD_ONE_INIT = ->
-  spritelayer=spritelayer.concat [0..10].map ->
-    new Target randpos()
-  spritelayer=spritelayer.concat [0..10].map ->
-    new Jelly randpos()
-  spritelayer=spritelayer.concat [0..10].map ->
-    new Energy randpos()
-  spritelayer=spritelayer.concat [0..3].map ->
-    new Thug randpos()
-  spritelayer=spritelayer.concat [0].map ->
-    new Lila randpos()
+  scatterents Target, 10
+  scatterents Jelly, 10
+  scatterents Burd, 42
+  scatterents Energy, 10
+  scatterents Thug, 3
+  scatterents Lila, 1
   spritelayer.push new PowerSuit V(128,32)
-  bglayer.push new Block 128+8, 64+20, 64, 32
-  bglayer.push new Block 128+8+64, 64+20+32, 32, 32
+  blockdata.push [ 128+8, 64+20, 64, 32 ]
+  blockdata.push [ 128+8+64, 64+20+32, 32, 32 ]
+  loadblocks(blockdata)
+
   placeshrub V 64*8, 64*5-4
   placeshrub V 64*7-48, 64*5-4
   placeshrub V 64*9, 64*5-4
+
+WORLDINIT = () ->
   bugmeter= new BugMeter
   WORLD.entities.push bugmeter
   @bugmeter = bugmeter
   if settings.decemberween
     WORLD.entities.push new Hat()
 
-WORLD_ONE_INIT()
+randtri = ->
+  new Poly [ randpos(), randpos(), randpos() ]
+
+ROBOWORLD_INIT = ->
+  blockdata=[]
+  blockdata.push [ -64, 64*4, 64*12, 100 ]
+  blockdata.push [ 64*12, 64*5, 64*12, 100 ]
+  loadblocks blockdata
+  spritelayer=spritelayer.concat [0..3].map ->
+    new Robo randpos()
+  spritelayer.push randtri()
+
+worldchoice = randint 2
+console.log worldchoice
+if worldchoice == 0
+  WORLD_ONE_INIT()
+if worldchoice == 1
+  ROBOWORLD_INIT()
+WORLDINIT()
 
 camera={}
 camera.offset=V()
@@ -1015,9 +1160,8 @@ checkcolls = ( ent, otherents ) ->
 #remove entities that requested death
 WORLD.euthanasia = ->
   doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
-  doomedsprites.forEach (sprite) ->
-    sprite.cleanup?()
-    spritelayer = arrsansval spritelayer, sprite
+  doomedsprites.forEach (sprite) -> sprite.cleanup?()
+  spritelayer = _.difference spritelayer, doomedsprites
 
 WORLD.tick = () ->
   for key in control.heldkeys
@@ -1025,7 +1169,7 @@ WORLD.tick = () ->
   checkcolls ladybug, spritelayer
   spritelayer.forEach (sprite) ->
     checkcolls sprite, arrsansval spritelayer, sprite
-  WORLD.euthanasia() 
+  WORLD.euthanasia()
   spritelayer.forEach (sprite) -> sprite.tick?()
   ladybug.tick()
   WORLD.entities.forEach (ent) -> ent.tick?()
@@ -1042,10 +1186,12 @@ mainloop = ->
     fps=Math.round 1000/Math.max(tickwaitms,ticktime)
     idealfps=Math.round 1000/tickwaitms
     fpscounter.html "tick time: #{tt}ms, running at approx #{fps} fps (aiming for #{idealfps} fps)"
-  tickwaitms = if settings.slowmo then 1000/4 else 1000/50
+  fpsgoal = if settings.slowmo then 4 else 60
+  tickwaitms = 1000/fpsgoal
   setTimeout mainloop, Math.max tickwaitms-ticktime, 1
+  requestAnimFrame animate
 
-xmlwrap = (tagname,body) -> 
+xmlwrap = (tagname,body) ->
   xmltag tagname, undefined, body
 
 maketablerow = ( values ) ->
@@ -1063,7 +1209,11 @@ updatesettingstable = () ->
     settingsDOM.append maketablerow [k,v]
 
 INIT = ->
-  body.append "<br/><em>there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around,<br/>X to boggle vacantly and JKL to do some wicked sick totally radical moves</em><br/><p>G and T for some debug dev mode shit, Y for fullscreen, P to pause</p>"
+  #body.append "<p>oh my goodness look at all these crimes!</p>"
+  #use <em>WASD</em> to wiggle around,
+  #<br/><em>X</em> to boggle vacantly and
+  #<em>JKL</em> to beat the shit out of your enemies in a lovely manner</p>
+  #<p>G and T for some debug dev mode shit, Y for fullscreen, P to pause</p>"
   body.append fpscounter
   body.append "<b>bindings:</b>"
   body.append bindingsDOM
@@ -1082,19 +1232,19 @@ adjustmouseevent = (e) ->
   adjusted = adjusted.op Math.round
   return adjusted
 
-creatingblock = false
-
 BLOCKCREATIONTOOL = {}
+BLOCKCREATIONTOOL.creatingblock = false
 BLOCKCREATIONTOOL.mousedown = (e) ->
   #ADD BLOCK, LEFT MBUTTON
   #HOLD Z TO SNAP TO GRID
   if e.button != 0 then return
   adjusted = adjustmouseevent e
   adjusted=snapmouseadjust adjusted
-  creatingblock=new Block adjusted.x, adjusted.y, 32, 32
-  bglayer.push creatingblock
+  BLOCKCREATIONTOOL.creatingblock=new Block adjusted.x, adjusted.y, 32, 32
+  bglayer.push BLOCKCREATIONTOOL.creatingblock
 BLOCKCREATIONTOOL.mouseup = (e) ->
-  creatingblock = false
+  BLOCKCREATIONTOOL.creatingblock.fixnegative()
+  BLOCKCREATIONTOOL.creatingblock = false
 
 snapmouseadjust = (mpos) ->
   snaptogrid = isholdingkey 'z'
@@ -1117,11 +1267,12 @@ mousemiddleuphandler = (e) ->
   camera.offset = V()
 mousemovehandler = (e) ->
   mpos = snapmouseadjust adjustmouseevent e
+  creatingblock = BLOCKCREATIONTOOL.creatingblock
   if creatingblock
     creatingblock.w = mpos.x-creatingblock.x
     creatingblock.h = mpos.y-creatingblock.y
-    stage.removeChild creatingblock._pixisprite
-    creatingblock._pixisprite = undefined
+    creatingblock.removesprite()
+    creatingblock.tostone()
   if ORIGCLICKPOS
     currclickpos=V e.pageX, e.pageY
     offset=currclickpos.vsub ORIGCLICKPOS
@@ -1129,7 +1280,6 @@ mousemovehandler = (e) ->
     console.log offset
 
 $(renderer.view).mousemove mousemovehandler
-
 $(renderer.view).mousedown mousemiddledownhandler
 $(renderer.view).mouseup mousemiddleuphandler
 
@@ -1156,4 +1306,10 @@ $(renderer.view).bind 'wheel', (e) ->
   console.log delta
   if up then scale-=0.1
   if not up then scale+=0.1
+
+lastmodified = (date) ->
+  body.prepend "<p>last modified #{jQuery.timeago(date)}</p>"
+
+$.ajax THISFILE, type: "HEAD", success: (data,satus,xhr) ->
+  lastmodified xhr.getResponseHeader "Last-Modified"
 
