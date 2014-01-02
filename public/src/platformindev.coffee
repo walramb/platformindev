@@ -17,21 +17,14 @@ settings.muted = true
 settings.paused = false
 settings.volume = 0.2
 settings.decemberween = false
-screensize = new V2d 64*10, 64*6
+settings.hat = false
+
+
+settings.scale=2/3
+screensize = new V2d 64*16*settings.scale, 64*9*settings.scale
 
 sourcebaseurl = "./sprites/"
 audiobaseurl="./audio/"
-
-#ARRAY HELPER FUNCS
-arrclone = (arr) -> arr.slice 0
-arrsansval = (arr,val) ->
-  #DEVNOTE: unsure whether i should always return a clone,
-  # or just the original if there's nothing removed
-  newarr=arrclone arr
-  if not val in arr then return newarr
-  i=newarr.indexOf val
-  newarr.splice i, 1
-  return newarr
 
 #random float between -1 and 1
 randfloat = () -> -1+Math.random()*2
@@ -158,7 +151,13 @@ makechievbox = ( src, text ) ->
   chievbox.animate( top: '32px' ).delay 4000
   chievbox.animate( { top: '-100px'}, { queue: true } ).delay 2000
 
-class GenericSprite
+
+class Renderable
+  constructor: () ->
+Renderable::hassprite = -> typeof @._pixisprite isnt "undefined"
+Renderable::removesprite = ->
+  removesprite @
+class GenericSprite extends Renderable
   constructor: ( @pos=V(), @src ) ->
     @vel=V()
   render: ->
@@ -218,8 +217,9 @@ class Jelly extends GenericSprite
     if otherent instanceof BoggleParticle
       @vel = @vel.vadd otherent.vel.nmul 1/8
     if otherent instanceof BugLady and otherent.vel.y > 0
-      otherent.vel.y *= -0.9
-    if otherent.attacktimeout? and otherent.attacktimeout > 0 and topof(otherent.gethitbox()) < topof(@.gethitbox())
+      otherent.vel.y *= -2
+    timeout=otherent.attacktimeout
+    if timeout? and timeout > 0 and topof(otherent.gethitbox()) < topof(@.gethitbox())
       @gethitby otherent
   gethitby: ( otherent ) ->
     @vel.y += otherent.vel.y
@@ -247,7 +247,7 @@ GenericSprite::touchingground = () ->
   return touch
 
 entitycount = ( classtype ) ->
-  ents = spritelayer.filter (sprite) -> sprite instanceof classtype
+  ents = WORLD.spritelayer.filter (sprite) -> sprite instanceof classtype
   return ents.length
 
 Jelly::tick = () ->
@@ -274,11 +274,28 @@ GenericSprite::gravitate = () ->
   if not @touchingground()
     @vel.y++
 
+class Fence extends GenericSprite
+  constructor: () ->
+    @pos=V()
+    @vel=V()
+    @src="hat.png"
+    @anchor=V 1/2,1
 
 class Energy extends Jelly
   constructor: ( @pos ) ->
     @vel=V()
     @src="energy1.png"
+
+class Gold extends Energy
+  constructor: ( @pos ) ->
+    @vel=V()
+    @src="crown.png"
+Gold::getsprite = ->
+Gold::collide = ( otherent ) ->
+  if otherent instanceof BugLady
+    playsound 'boip.wav'
+    @KILLME=true
+    otherent.score += 1
 
 Energy::getsprite = ->
   framelist = [1..6].map (n) -> "energy#{n}.png"
@@ -287,6 +304,12 @@ Energy::tick = () ->
   super()
   @getsprite()
 Energy::jiggle = () -> #noop
+
+Energy::collide = ( otherent ) ->
+  if otherent instanceof BugLady
+    playsound 'boip.wav'
+    @KILLME=true
+    otherent.energy += 1
 
 relativetobox = ( box, anchor ) ->
   pos = V box.x, box.y
@@ -344,12 +367,13 @@ class Lila extends Thug
 class Robo extends Thug
 Lila::tick = Robo::tick = () ->
   super()
+  scamperspeed = 3
   if not @scampering and Math.random()<1/10
     @scampering=true
   if @scampering and Math.random()<1/10
     @scampering=false
   if @scampering and Math.abs(@vel.x)<3
-    @vel.x += if @facingleft then -1 else 1
+    @vel.x += if @facingleft then -scamperspeed else scamperspeed
     #@pos.x += vel
   if not @scampering and Math.random()<1/20
     @facingleft = not @facingleft
@@ -381,6 +405,11 @@ Robo::getsprite = ->
 Lila::collide = ( otherent ) ->
   if otherent instanceof BoggleParticle
     parentstage.addChild bogglescreen
+  if otherent instanceof Fence
+    console.log "LEDGE"
+    @vel.x = 0
+    offs = if otherent.pos.x < @pos.x then 1 else -1
+    @pos.x += offs
 
 class Burd extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -462,14 +491,19 @@ isholdingkey = (key) ->
   key = key.toUpperCase().charCodeAt 0
   key in control.heldkeys
 
-class BugLady extends GenericSprite
+
+class Hero extends GenericSprite
+
+class BugLady extends Hero
   constructor: () ->
-    super
+    super()
     @jumping = false
     @attacking = false
     @attacktimeout = 0
     @stuntimeout = 0
     @health=3
+    @energy=0
+    @score=0
 
 BugLady::respawn = ->
   @pos = V()
@@ -479,6 +513,7 @@ BugLady::respawn = ->
 BugLady::takedamage = ->
   @health-=1
   if @health <= 0 then @kill()
+
 
 entcenter = ( ent ) ->
   hb=ent.gethitbox()
@@ -498,6 +533,8 @@ BugLady::blockcollisions = ->
   if candidates.length > 0 and @vel.y < 0
     @vel.y = 0
 
+Hero::checkcontrols = ->
+  #noop
 BugLady::checkcontrols = ->
   @holdingboggle = isholdingkey 'x'
   @holdingjump = isholdingkey 'w'
@@ -506,7 +543,7 @@ BugLady::cancelattack = ->
   @attacktimeout = 0
   @attacking=false
 
-BugLady::outofbounds = ->
+Hero::outofbounds = ->
   @pos.y > 640
 
 $deathmsg=$("<p id=deathmsg></p>").html(
@@ -519,6 +556,26 @@ BugLady::kill = ->
     @ded=true
   @respawn()
 
+BugLady::timeoutcheck = ->
+  if @poweruptimeout > 0
+    @poweruptimeout--
+    @vel = V2d.zero()
+  if @stuntimeout > 0
+    @stuntimeout--
+    achieve "fall"
+    @vel = V2d.zero()
+
+BugLady::attackchecks = ->
+  @attacking=@attacktimeout > 0
+  heading = if @facingleft then -1 else 1
+  if @attacking
+    @vel.y *= 0.7
+    @attacktimeout-=1
+    @vel.x += heading*0.3
+    WORLD.spritelayer.push new PchooParticle entcenter @
+  if @attacking and @punching and @touchingground()
+    @vel.x = @vel.x*0.1
+
 BugLady::tick = ->
   unpowered = settings.altcostume
   if unpowered then @cancelattack()
@@ -528,28 +585,14 @@ BugLady::tick = ->
   walking = vel > 0.2
   boggling = not walking and @touchingground() and @holdingboggle
   if boggling and Math.random()<0.3 then @boggle()
-  if @poweruptimeout > 0
-    @poweruptimeout--
-    @vel = V2d.zero()
-  if @stuntimeout > 0
-    @stuntimeout--
-    achieve "fall"
-    @vel = V2d.zero()
+  @timeoutcheck()
   #LIMIT VELOCITY
   vellimit = if @touchingground() then 4 else 5
   @vel.x = mafs.clamp @vel.x, -vellimit, vellimit
   #BLOCK COLLISIONS
   @blockcollisions()
   @avoidwalls()
-  @attacking=@attacktimeout > 0
-  heading = if @facingleft then -1 else 1
-  if @attacking
-    @vel.y *= 0.7
-    @attacktimeout-=1
-    @vel.x += heading*0.3
-    spritelayer.push new PchooParticle entcenter @
-  if @attacking and @punching and @touchingground()
-    @vel.x = @vel.x*0.1
+  @attackchecks()
   @pos = @pos.vadd @vel
   if not @touchingground()
     @gravitate()
@@ -571,7 +614,7 @@ GenericSprite::friction = () ->
   @vel.x = @vel.x*0.5
 
 BugLady::boggle = () ->
-  spritelayer.push new BoggleParticle entcenter @
+  WORLD.spritelayer.push new BoggleParticle entcenter @
   hit=ladybug.gethitbox()
   boxes = fglayer.map (obj) -> obj.gethitbox()
   cand=hitboxfilter hit, boxes
@@ -623,6 +666,43 @@ BugLady::render = ->
   else
     sprit.rotation=0
 
+class PlayerBurd extends Hero
+  constructor: () ->
+    super()
+    @jumping = false
+    @attacking = false
+    @attacktimeout = 0
+    @stuntimeout = 0
+    @health=3
+    @energy=0
+    @score=0
+    @src='burd.png'
+    @facingleft=false
+    @anchor = V 1/2, 1
+PlayerBurd::takedamage = BugLady::takedamage
+PlayerBurd::getsprite = ->
+  return 'burd.png'
+PlayerBurd::render = ->
+  console.log @src
+  src=@src
+  anchor = @anchor or V(0,0)
+  flip=false
+  #pos=relativetobox(@gethitbox(),anchor)
+  pos=@pos
+  sprit=drawsprite @, src, pos, flip, anchor
+  return
+PlayerBurd::tick = ->
+  @checkcontrols()
+  if @outofbounds() then @kill()
+  vel = Math.abs( @vel.x )
+  #BLOCK COLLISIONS
+  @blockcollisions()
+  @avoidwalls()
+  heading = if @facingleft then -1 else 1
+  @pos = @pos.vadd @vel
+  if not @touchingground()
+    @gravitate()
+
 removesprite = ( ent ) ->
   if not ent._pixisprite then return
   stage.removeChild ent._pixisprite
@@ -646,18 +726,9 @@ drawsprite = (ent, src, pos, flip, anchor=V()) ->
   return sprit
 
 
-class Renderable
-  constructor: () ->
-Renderable::hassprite = -> typeof @._pixisprite isnt "undefined"
-Renderable::removesprite = ->
-  removesprite @
-
 class Poly extends Renderable
   constructor: (@points=[]) ->
 Poly::initsprite = () ->
-  #src = @src or "groundtile.png"
-  #tex = PIXI.Texture.fromImage sourcebaseurl+src
-  #sprit = new PIXI.TilingSprite tex, @w, @h
   sprit=new PIXI.Graphics()
   sprit.beginFill 0xcc0000
   sprit.lineStyle 1, 0x000000
@@ -809,6 +880,9 @@ ControlObj::keyholdbind = ( key, func ) ->
 control.keytapbindname '9', 'zoom out', -> scale-=0.1
 control.keytapbindname '0', 'zoom in', -> scale+=0.1
 
+control.keytapbindname 'v', 'spawn burd', -> jame.spawn 'burd'
+control.keytapbindname 'z', 'become burd', -> jame.burdme()
+
 
 launchFullScreen = (elm) ->
   elm.requestFullScreen?()
@@ -875,7 +949,6 @@ left = ->
   ladybug.vel.x-=amt
 right = ->
   achieve "start"
-  console.log "woo"
   ladybug.facingleft = false
   amt = if ladybug.touchingground() then 3 else 1
   ladybug.vel.x+=amt
@@ -912,6 +985,12 @@ load = ->
 control.keytapbindname '6', 'save', save
 control.keytapbindname '7', 'load', load
 
+nextlevel = ->
+  clearworld()
+  ROBOWORLD_INIT()
+  WORLDINIT()
+
+control.keytapbindname 'n', 'change level', nextlevel
 
 @CONTROL = control
 
@@ -922,7 +1001,7 @@ $(document).bind 'keydown', (e) ->
     control.heldkeys.push key
 $(document).bind 'keyup', (e) ->
   key = e.which
-  control.heldkeys = arrsansval control.heldkeys, key
+  control.heldkeys = _.without control.heldkeys, key
 
 tmpcanvasjq = $ "<canvas>"
 tmpcanvas = tmpcanvasjq[0]
@@ -954,7 +1033,7 @@ ladybug.pos = V 64, 128+64
 bglayer = []
 
 fglayer = []
-spritelayer=[]
+#spritelayer=[]
 
 class Sky
   constructor: () ->
@@ -1010,7 +1089,7 @@ WORLD.entities.push new Grid()
 
 WORLD.bglayer = bglayer
 WORLD.fglayer=fglayer
-WORLD.spritelayer=spritelayer
+WORLD.spritelayer=[]
 
 randpos = -> V(640*1.5,64*2).vadd randvec().vmul V 640, 100
 
@@ -1027,7 +1106,7 @@ class BugMeter extends GenericSprite
 BugMeter::spriteinit = () ->
   tex = PIXI.Texture.fromImage sourcebaseurl+@src
   @spritesize = V 32, 32
-  sprit = new PIXI.TilingSprite tex, @spritesize.x, @spritesize.y
+  sprit = new PIXI.TilingSprite tex, @spritesize.x*@value, @spritesize.y
   @_pixisprite=sprit
   stage.addChild sprit
   return sprit
@@ -1037,14 +1116,29 @@ BugMeter::render = () ->
   flip = false
   if not @_pixisprite then @spriteinit()
   sprit = @_pixisprite
-  #offset=V tickno*-0.2, Math.sin(tickno/200)*64
   sprit.width = @spritesize.x*@value
   sprit.position = VTOPP pos
-  #sprit.tilePosition = VTOPP offset
 BugMeter::tick = () ->
   @update ladybug.health
 BugMeter::update = (value) ->
+  @removesprite()
   @value = value
+
+class EnergyMeter extends BugMeter
+  constructor: () ->
+    super()
+    @src='energy1.png'
+EnergyMeter::render = () ->
+  pos = cameraoffset()
+  pos = pos.vadd V 0, 16
+  flip = false
+  if not @_pixisprite then @spriteinit()
+  sprit = @_pixisprite
+  sprit.width = @spritesize.x*@value
+  sprit.position = VTOPP pos
+EnergyMeter::tick = () ->
+  @update ladybug.energy
+
 
 blockdata=[]
 blockdata.push [ -64, 64*5-4, 64*12, 100 ]
@@ -1062,17 +1156,17 @@ loadblocks = (blockdata) ->
 
 
 scatterents = ( classproto, num ) ->
-  spritelayer=spritelayer.concat [0...num].map ->
+  WORLD.spritelayer=WORLD.spritelayer.concat [0...num].map ->
     new classproto randpos()
 
 WORLD_ONE_INIT = ->
   scatterents Target, 10
   scatterents Jelly, 10
-  scatterents Burd, 42
   scatterents Energy, 10
+  scatterents Gold, 10
   scatterents Thug, 3
   scatterents Lila, 1
-  spritelayer.push new PowerSuit V(128,32)
+  WORLD.spritelayer.push new PowerSuit V(128,32)
   blockdata.push [ 128+8, 64+20, 64, 32 ]
   blockdata.push [ 128+8+64, 64+20+32, 32, 32 ]
   loadblocks(blockdata)
@@ -1084,28 +1178,56 @@ WORLD_ONE_INIT = ->
 WORLDINIT = () ->
   bugmeter= new BugMeter
   WORLD.entities.push bugmeter
+  energymeter= new EnergyMeter
+  WORLD.entities.push energymeter
   @bugmeter = bugmeter
-  if settings.decemberween
+  if settings.hat
     WORLD.entities.push new Hat()
+  bglayer.forEach (block) ->
+    fence=new Fence
+    fence.pos = relativetobox block, V(0,0)
+    WORLD.spritelayer.push fence
+    fence=new Fence
+    fence.pos = relativetobox block, V(1,0)
+    WORLD.spritelayer.push fence
 
 randtri = ->
   new Poly [ randpos(), randpos(), randpos() ]
 
+omnicide = ->
+  WORLD.spritelayer.forEach (sprite) -> sprite.KILLME=true
+  WORLD.euthanasia()
+
+clearworld = ->
+  WORLD.entities.forEach (sprite) -> removesprite sprite
+  WORLD.entities=[]
+  WORLD.spritelayer.forEach (sprite) -> removesprite sprite
+  WORLD.spritelayer=[]
+  WORLD.spritelayer=[]
+  bglayer.forEach (sprite) -> removesprite sprite
+  bglayer=[]
+  WORLD.bglayer=[]
+  fglayer.forEach (sprite) -> removesprite sprite
+  fglayer=[]
+  WORLD.fglayer=[]
+
 ROBOWORLD_INIT = ->
+  scatterents Burd, 8
   blockdata=[]
   blockdata.push [ -64, 64*4, 64*12, 100 ]
   blockdata.push [ 64*12, 64*5, 64*12, 100 ]
   loadblocks blockdata
-  spritelayer=spritelayer.concat [0..3].map ->
+  WORLD.spritelayer=WORLD.spritelayer.concat [0..3].map ->
     new Robo randpos()
-  spritelayer.push randtri()
+  WORLD.spritelayer.push randtri()
 
-worldchoice = randint 2
-console.log worldchoice
-if worldchoice == 0
-  WORLD_ONE_INIT()
-if worldchoice == 1
-  ROBOWORLD_INIT()
+#worldchoice = randint 2
+#console.log worldchoice
+#if worldchoice == 0
+#  WORLD_ONE_INIT()
+#if worldchoice == 1
+#  ROBOWORLD_INIT()
+WORLD_ONE_INIT()
 WORLDINIT()
 
 camera={}
@@ -1114,15 +1236,17 @@ camera.pos=V()
 
 PIXI.DisplayObjectContainer
 cameraoffset = ->
-  tmppos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
-  tmppos.y = mafs.clamp tmppos.y, -screensize.y, 0
+  #tmppos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
+  tmppos = ladybug.pos.vsub screensize.ndiv 2
+  #tmppos.y = mafs.clamp tmppos.y, -screensize.y, 0
+  tmppos.y = 0
   return tmppos.vsub camera.offset.ndiv scale
 
 render = ->
   camera.pos = cameraoffset()
-  renderables = [].concat WORLD.bglayer, spritelayer, [ladybug], fglayer
+  renderables = [].concat WORLD.bglayer, WORLD.spritelayer, [ladybug], fglayer, WORLD.entities
   renderables.forEach (sprite) -> sprite.render?()
-  WORLD.entities.forEach (ent) -> ent.render?()
+  #WORLD.entities.forEach (ent) -> ent.render?()
   drawhitboxes renderables
 
 drawhitboxes = ( ents ) ->
@@ -1136,6 +1260,7 @@ drawhitboxes = ( ents ) ->
   ents.forEach (ent) ->
     graf.drawCircle ent.pos.x, ent.pos.y, 4
     box = ent.gethitbox?()
+    if not box then return
     graf.drawRect box.x, box.y, box.w, box.h
   hitboxlayer.addChild graf
 
@@ -1159,18 +1284,18 @@ checkcolls = ( ent, otherents ) ->
 
 #remove entities that requested death
 WORLD.euthanasia = ->
-  doomedsprites = spritelayer.filter (sprite) -> sprite.KILLME?
+  doomedsprites = WORLD.spritelayer.filter (sprite) -> sprite.KILLME?
   doomedsprites.forEach (sprite) -> sprite.cleanup?()
-  spritelayer = _.difference spritelayer, doomedsprites
+  WORLD.spritelayer = _.difference WORLD.spritelayer, doomedsprites
 
 WORLD.tick = () ->
   for key in control.heldkeys
     control.holdbindings[key]?()
-  checkcolls ladybug, spritelayer
-  spritelayer.forEach (sprite) ->
-    checkcolls sprite, arrsansval spritelayer, sprite
+  checkcolls ladybug, WORLD.spritelayer
+  WORLD.spritelayer.forEach (sprite) ->
+    checkcolls sprite, _.without WORLD.spritelayer, sprite
   WORLD.euthanasia()
-  spritelayer.forEach (sprite) -> sprite.tick?()
+  WORLD.spritelayer.forEach (sprite) -> sprite.tick?()
   ladybug.tick()
   WORLD.entities.forEach (ent) -> ent.tick?()
   render()
@@ -1291,9 +1416,10 @@ mouserightdownhandler = (e) ->
   console.log blox
   if blox.length > 0
     ent=blox[0]
-    bglayer = arrsansval bglayer, ent
+    bglayer = _.without bglayer, ent
     WORLD.bglayer=bglayer
-    stage.removeChild ent._pixisprite
+    #stage.removeChild ent._pixisprite
+    removesprite ent
 
 $(renderer.view).mousedown mouserightdownhandler
 
@@ -1308,8 +1434,32 @@ $(renderer.view).bind 'wheel', (e) ->
   if not up then scale+=0.1
 
 lastmodified = (date) ->
-  body.prepend "<p>last modified #{jQuery.timeago(date)}</p>"
+  body.prepend "<p>last modified #{jQuery.timeago(new Date(date))}, #{date}</p>"
 
 $.ajax THISFILE, type: "HEAD", success: (data,satus,xhr) ->
   lastmodified xhr.getResponseHeader "Last-Modified"
+
+root = exports ? this
+
+spawnables = {}
+spawnables.burd = Burd
+
+jame={}
+jame.spawn = (classname) ->
+  if not spawnables[classname]
+    return
+  ent=new spawnables[classname]?()
+  WORLD.entities.push ent
+
+
+jame.burdme = ->
+  ladybug = new PlayerBurd()
+  WORLD.entities.push ladybug
+  console.log ladybug
+
+jame.WORLD = WORLD
+
+
+root.jame = jame
+root.stage = stage
 
