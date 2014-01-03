@@ -239,7 +239,7 @@ Jelly::gethitbox = ->
 GenericSprite::touchingground = () ->
   touch=false
   collidebox = @gethitbox()
-  blockcandidates=bglayer.filter (block) ->
+  blockcandidates=WORLD.bglayer.filter (block) ->
     collidebox.overlaps block
   for block in blockcandidates
     if collidebox.y+collidebox.h < block.y+block.h
@@ -406,7 +406,6 @@ Lila::collide = ( otherent ) ->
   if otherent instanceof BoggleParticle
     parentstage.addChild bogglescreen
   if otherent instanceof Fence
-    console.log "LEDGE"
     @vel.x = 0
     offs = if otherent.pos.x < @pos.x then 1 else -1
     @pos.x += offs
@@ -441,7 +440,7 @@ Burd::getsprite = ->
 GenericSprite::blockcollisions = ->
   box=@gethitbox()
   spriteheight=box.h
-  candidates = hitboxfilter box, bglayer
+  candidates = hitboxfilter box, WORLD.bglayer
   candidates.forEach (candidate) =>
     if bottomof(@.gethitbox()) >= topof( candidate )
       @pos.y = candidate.y
@@ -522,7 +521,7 @@ entcenter = ( ent ) ->
 BugLady::blockcollisions = ->
   spriteheight=64
   box=@fallbox()
-  candidates = hitboxfilter box, bglayer
+  candidates = hitboxfilter box, WORLD.bglayer
   candidates.forEach (candidate) =>
     if bottomof(@.gethitbox()) <= topof( candidate )
       if @vel.y > 20
@@ -806,7 +805,7 @@ blocksatpoint = (blocks, p) ->
 
 GenericSprite::touchingwall = Sprite::touchingwall = () ->
   collidebox = @gethitbox()
-  blockcandidates=hitboxfilter collidebox, bglayer
+  blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
     notontop = bottomof(collidebox)>topof(block)
     if notontop and collidebox.left() < block.left()
@@ -817,7 +816,7 @@ GenericSprite::touchingwall = Sprite::touchingwall = () ->
 
 GenericSprite::avoidwalls = Sprite::avoidwalls = () ->
   collidebox = @gethitbox()
-  blockcandidates=hitboxfilter collidebox, bglayer
+  blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
     notontop = bottomof(collidebox)>topof(block)
     ofs=1
@@ -831,7 +830,7 @@ GenericSprite::avoidwalls = Sprite::avoidwalls = () ->
 BugLady::touchingground = () ->
   touch=false
   collidebox = @gethitbox()
-  blockcandidates=hitboxfilter collidebox, bglayer
+  blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
     if bottomof(collidebox) < bottomof(block)
       touch=true
@@ -989,6 +988,12 @@ nextlevel = ->
   clearworld()
   ROBOWORLD_INIT()
   WORLDINIT()
+restartlevel = ->
+  clearworld()
+  WORLD_ONE_INIT()
+  WORLDINIT()
+
+control.keytapbindname 'r', 'restart level', restartlevel
 
 control.keytapbindname 'n', 'change level', nextlevel
 
@@ -1031,7 +1036,6 @@ ladybug.jumping=false
 ladybug.pos = V 64, 128+64
 
 bglayer = []
-
 fglayer = []
 #spritelayer=[]
 
@@ -1087,7 +1091,7 @@ WORLD.entities = []
 WORLD.entities.push new Cloud()
 WORLD.entities.push new Grid()
 
-WORLD.bglayer = bglayer
+WORLD.bglayer =bglayer
 WORLD.fglayer=fglayer
 WORLD.spritelayer=[]
 
@@ -1152,7 +1156,7 @@ blockdata.push [ 64*12, 64*4, 64*12, 200 ]
 loadblocks = (blockdata) ->
   blockdata.forEach (blockdatum) ->
     [x,y,w,h]=blockdatum
-    bglayer.push new Block x, y, w, h
+    WORLD.bglayer.push new Block x, y, w, []
 
 
 scatterents = ( classproto, num ) ->
@@ -1183,7 +1187,7 @@ WORLDINIT = () ->
   @bugmeter = bugmeter
   if settings.hat
     WORLD.entities.push new Hat()
-  bglayer.forEach (block) ->
+  WORLD.bglayer.forEach (block) ->
     fence=new Fence
     fence.pos = relativetobox block, V(0,0)
     WORLD.spritelayer.push fence
@@ -1204,8 +1208,7 @@ clearworld = ->
   WORLD.spritelayer.forEach (sprite) -> removesprite sprite
   WORLD.spritelayer=[]
   WORLD.spritelayer=[]
-  bglayer.forEach (sprite) -> removesprite sprite
-  bglayer=[]
+  WORLD.bglayer.forEach (sprite) -> removesprite sprite
   WORLD.bglayer=[]
   fglayer.forEach (sprite) -> removesprite sprite
   fglayer=[]
@@ -1235,6 +1238,7 @@ camera.offset=V()
 camera.pos=V()
 
 PIXI.DisplayObjectContainer
+
 cameraoffset = ->
   #tmppos = ladybug.pos.nadd(64).vsub screensize.ndiv 2
   tmppos = ladybug.pos.vsub screensize.ndiv 2
@@ -1244,7 +1248,7 @@ cameraoffset = ->
 
 render = ->
   camera.pos = cameraoffset()
-  renderables = [].concat WORLD.bglayer, WORLD.spritelayer, [ladybug], fglayer, WORLD.entities
+  renderables = [].concat bglayer, WORLD.spritelayer, [ladybug], fglayer, WORLD.entities
   renderables.forEach (sprite) -> sprite.render?()
   #WORLD.entities.forEach (ent) -> ent.render?()
   drawhitboxes renderables
@@ -1366,7 +1370,7 @@ BLOCKCREATIONTOOL.mousedown = (e) ->
   adjusted = adjustmouseevent e
   adjusted=snapmouseadjust adjusted
   BLOCKCREATIONTOOL.creatingblock=new Block adjusted.x, adjusted.y, 32, 32
-  bglayer.push BLOCKCREATIONTOOL.creatingblock
+  WORLD.bglayer.push BLOCKCREATIONTOOL.creatingblock
 BLOCKCREATIONTOOL.mouseup = (e) ->
   BLOCKCREATIONTOOL.creatingblock.fixnegative()
   BLOCKCREATIONTOOL.creatingblock = false
@@ -1412,12 +1416,11 @@ mouserightdownhandler = (e) ->
   if e.button != 2 then return
   e.preventDefault()
   adjusted = adjustmouseevent e
-  blox=blocksatpoint bglayer, adjusted
+  blox=blocksatpoint WORLD.bglayer, adjusted
   console.log blox
   if blox.length > 0
     ent=blox[0]
-    bglayer = _.without bglayer, ent
-    WORLD.bglayer=bglayer
+    WORLD.bglayer = _.without WORLD.bglayer, ent
     #stage.removeChild ent._pixisprite
     removesprite ent
 
