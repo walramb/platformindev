@@ -947,7 +947,7 @@
       this.owner = void 0;
       this.vel = V(8, 0);
       this.life = 20;
-      this.src = 'energy4.png';
+      this.src = 'particlepunch.png';
       this.anchor = V(1 / 2, 1 / 2);
     }
 
@@ -961,12 +961,10 @@
     };
 
     Bullet.prototype.render = function() {
-      var flip, rot;
+      var flip;
       flip = this.vel.x < 0;
       drawsprite(this, this.src, this.pos, flip, this.anchor);
-      this._pixisprite.alpha = 0.8;
-      rot = flip ? 90 : -90;
-      return this._pixisprite.rotation = mafs.degstorads(rot);
+      return this._pixisprite.alpha = 0.8;
     };
 
     return Bullet;

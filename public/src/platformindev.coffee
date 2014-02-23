@@ -553,7 +553,7 @@ class Bullet extends GenericSprite
     @vel = V(8,0)
     #mafs.randvec().norm().ndiv 8
     @life = 20
-    @src = 'energy4.png'
+    @src = 'particlepunch.png'
     @anchor = V 1/2, 1/2
   tick: () ->
     @life--
@@ -564,8 +564,10 @@ class Bullet extends GenericSprite
     flip=@vel.x<0
     drawsprite @, @src, @pos, flip, @anchor
     @_pixisprite.alpha = 0.8
-    rot = if flip then 90 else -90
-    @_pixisprite.rotation = mafs.degstorads rot
+   # rot = if flip then 90 else -90
+   # @_pixisprite.rotation = mafs.degstorads rot
+    
+    
 
 Bullet::collide = ( otherent ) ->
   if otherent.health? and otherent isnt @owner
