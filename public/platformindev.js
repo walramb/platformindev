@@ -2458,15 +2458,21 @@
 
   ticktimes = [];
 
+  WORLD.resethitboxcache = function() {};
+
+  WORLD.gethitbox = function(sprite) {
+    return sprite.gethitbox();
+  };
+
   checkcolls = function(ent, otherents) {
     var bawks;
-    bawks = ent.gethitbox();
+    bawks = WORLD.gethitbox(ent);
     return otherents.forEach(function(target) {
       var targethitbox;
       if (target === ent) {
         return;
       }
-      targethitbox = target.gethitbox();
+      targethitbox = WORLD.gethitbox(target);
       if (bawks.overlaps(targethitbox)) {
         return typeof target.collide === "function" ? target.collide(ent) : void 0;
       }
@@ -2486,6 +2492,7 @@
 
   WORLD.tick = function() {
     var ACTIVEENTS, key, _base, _i, _len, _ref3;
+    WORLD.resethitboxcache();
     _ref3 = control.heldkeys;
     for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
       key = _ref3[_i];

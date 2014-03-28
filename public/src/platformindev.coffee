@@ -1478,11 +1478,18 @@ tickwaitms = 20
 skipframes = 0
 ticktimes = []
 
+WORLD.resethitboxcache = -> #noop
+#  WORLD.gethitbox = _.memoize (sprite) -> sprite.gethitbox()
+
+WORLD.gethitbox = (sprite) -> sprite.gethitbox()
+
 checkcolls = ( ent, otherents ) ->
-  bawks = ent.gethitbox()
+  #bawks = ent.gethitbox()
+  bawks = WORLD.gethitbox ent
   otherents.forEach (target) ->
     if target is ent then return
-    targethitbox = target.gethitbox()
+    #targethitbox = target.gethitbox()
+    targethitbox = WORLD.gethitbox target
     if bawks.overlaps targethitbox
       target.collide?(ent)
 
@@ -1493,6 +1500,7 @@ WORLD.euthanasia = ->
   WORLD.spritelayer = _.difference WORLD.spritelayer, doomedsprites
 
 WORLD.tick = () ->
+  WORLD.resethitboxcache()
   for key in control.heldkeys
     control.holdbindings[key]?()
   checkcolls ladybug, WORLD.spritelayer
