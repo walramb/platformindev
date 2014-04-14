@@ -6,5 +6,6 @@ task "build", "build the source in ./src/*.coffe to .", ->
     console.log stdout + stderr
 
 task "buildwatch", "build the files and watch for changes", (options) ->
-  exec "coffee -wc --output . ./src/*.coffee"
-
+  exec "coffee -wc --output . ./src/*.coffee", (err,stdout,stderr) ->
+    throw err if err
+    console.log stdout + stderr

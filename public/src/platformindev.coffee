@@ -485,16 +485,6 @@ Burd::gethitby = ( otherent ) ->
   @vel.x += dir*4
   @lifetime = 10
 
-GenericSprite::blockcollisions = ->
-  box=@gethitbox()
-  spriteheight=box.h
-  candidates = hitboxfilter box, WORLD.bglayer
-  candidates.forEach (candidate) =>
-    if bottomof(@.gethitbox()) >= topof( candidate )
-      @pos.y = candidate.y
-      @vel.y = 0
-  if candidates.length > 0 and @vel.y < 0
-    @vel.y = 0
 
 class BoggleParticle extends GenericSprite
   constructor: ( @pos=V() ) ->
@@ -602,6 +592,7 @@ class BugLady extends Hero
   constructor: () ->
     super()
     @invincibletimeout=0
+    @controls={}
 BugLady::heal = ->
   @health=3
 BugLady::respawn = ->
@@ -624,24 +615,41 @@ entcenter = ( ent ) ->
   hb=ent.gethitbox()
   return V hb.x+hb.w/2, hb.y+hb.h/2
 
-BugLady::blockcollisions = ->
-  spriteheight=64
-  box=@fallbox()
+BugLady::dmgvelocity = 20
+BugLady::falldamage = ->
+  if @vel.y > @dmgvelocity
+    @stuntimeout = 20
+    @takedamage()
+
+GenericSprite::blockcollisions = ->
+  box=@gethitbox()
   candidates = hitboxfilter box, WORLD.bglayer
   candidates.forEach (candidate) =>
-    if bottomof(@.gethitbox()) <= topof( candidate )
-      if @vel.y > 20
-        @stuntimeout = 20
-        @takedamage()
+    if bottomof(@.gethitbox()) >= topof( candidate )
+      @falldamage?()
       @pos.y = candidate.y
       @vel.y = 0
   if candidates.length > 0 and @vel.y < 0
     @vel.y = 0
 
+###
+BugLady::blockcollisions = ->
+  box=@fallbox()
+  candidates = hitboxfilter box, WORLD.bglayer
+  candidates.forEach (candidate) =>
+    if bottomof(@.gethitbox()) <= topof( candidate )
+      @pos.y = candidate.y
+      @vel.y = 0
+  if candidates.length > 0 and @vel.y < 0
+    @vel.y = 0
+###
+
 Hero::checkcontrols = -> #noop
 BugLady::checkcontrols = ->
   @holdingboggle = isholdingkey 'x'
   @holdingjump = isholdingkey 'w'
+  @controls.crouch = isholdingkey 's'
+
 
 BugLady::cancelattack = ->
   @attacktimeout = 0
@@ -659,6 +667,7 @@ BugLady::kill = ->
     body.prepend $deathmsg
     @ded=true
   @respawn()
+
 
 BugLady::timeoutcheck = ->
   if @invincibletimeout > 0
@@ -707,21 +716,21 @@ BugLady::tick = ->
   @timeoutcheck()
   @movetick()
 
-BugLady::movetick = ->
-  unpowered = settings.altcostume
-  vel = Math.abs( @vel.x )
-  walking = vel > 0.2
-  #LIMIT VELOCITY
+BugLady::limitvelocity = ->
   vellimit = if @touchingground() then 4 else 5
   @vel.x = mafs.clamp @vel.x, -vellimit, vellimit
-  #BLOCK COLLISIONS
+BugLady::gravitate = ->
+  if not @touchingground()
+    @vel.y += 1
+    #if not @holdingjump and @vel.y < 0 then @vel.y /= 2
+BugLady::movetick = ->
+  unpowered = settings.altcostume
+  @limitvelocity()
   @blockcollisions()
   @avoidwalls()
   @attackchecks()
   @pos = @pos.vadd @vel
-  if not @touchingground()
-    @gravitate()
-    if not @holdingjump and @vel.y < 0 then @vel.y /= 2
+  @gravitate()
   if @touchingground()
     @friction()
   jumpvel = if unpowered then 12 else 16
@@ -734,8 +743,6 @@ BugLady::jumpimpulse = (jumpvel) ->
   if @touchingground() and @jumping
     @vel.y = -jumpvel
 
-BugLady::gravitate = () ->
-  @vel.y += 1
 GenericSprite::friction = () ->
   @vel.x = @vel.x*0.5
 
@@ -759,7 +766,7 @@ BugLady::getsprite = ->
     src = selectframe [ 'lovelyrun1.png', 'lovelyrun2.png' ], 6
   if not @touchingground()
     src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
-  if not walking and isholdingkey 's'
+  if not walking and @controls.crouch
     src = 'lovelycrouch.png'
   if not walking and @touchingground() and @holdingboggle
     src = 'boggle.png'
@@ -950,19 +957,23 @@ GenericSprite::avoidwalls = () ->
   for block in blockcandidates
     notontop = bottomof(collidebox)>topof(block)
     ofs=1
-    if notontop and leftof(collidebox) < leftof(block)
+    if @touchingwall()
+      @vel.x = 0
+###
+    if notontop and leftof(collidebox) <= leftof(block)
       @vel.x=0
       @pos.x-=ofs
-    if notontop and rightof(collidebox) > rightof(block)
+    if notontop and rightof(collidebox) >= rightof(block)
       @vel.x=0
       @pos.x+=ofs
+###
 
 GenericSprite::touchingground = () ->
   touch=false
   collidebox = @gethitbox()
   blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
-    if bottomof(collidebox) < bottomof(block)
+    if bottomof(collidebox) <= bottomof(block)
       touch=true
   return touch
 
@@ -992,6 +1003,8 @@ ControlObj::keytapbindraw = ( key, func ) ->
   @bindings[key]=func
 ControlObj::keytapbind = ( key, func ) ->
   @bindings[normalizekey(key)]=func
+ControlObj::keytapbind = ( key, func ) ->
+  @bindings[normalizekey(key)]=func
 
 ControlObj::keytapbindname = ( key, name, func ) ->
   @bindingnames[normalizekey(key)]=name
@@ -1002,6 +1015,9 @@ ControlObj::keyBindRawNamed = ( key, name, func ) ->
   @keytapbindraw key, func
 
 ControlObj::keyholdbind = ( key, func ) ->
+  @holdbindings[normalizekey(key)]=func
+ControlObj::keyholdbindname = ( key, name, func ) ->
+  @bindingnames[normalizekey(key)]=name
   @holdbindings[normalizekey(key)]=func
 
 control.keytapbindname '9', 'zoom out', -> scale-=0.1
@@ -1082,12 +1098,13 @@ right = ->
 
 availableactions = [ up, down, left, right ]
 
-control.keyholdbind 'w', up
-control.keyholdbind 's', down
-control.keyholdbind 'a', left
-control.keyholdbind 'd', right
+control.keyholdbindname 'w', 'up', up
+control.keyholdbindname 's', 'down', down
+control.keyholdbindname 'a', 'left', left
+control.keyholdbindname 'd', 'right', right
 
 control.keyBindRawNamed keyCharToCode['Up'], 'jump', up
+control.keyBindRawNamed keyCharToCode['Left'], 'left', left
 
 save = ->
   console.log ladybug
@@ -1108,11 +1125,15 @@ load = ->
 control.keytapbindname '6', 'save', save
 control.keytapbindname '7', 'load', load
 
+
+
 nextlevel = ->
   WORLD.clear()
-  ROBOWORLD_INIT()
+  #ROBOWORLD_INIT()
+  COLLTEST_INIT()
   WORLDINIT()
   ladybug.respawn()
+
 restartlevel = ->
   WORLD.clear()
   WORLD_ONE_INIT()
@@ -1427,6 +1448,11 @@ ROBOWORLD_INIT = ->
     new Robo randpos()
   WORLD.spritelayer.push randtri()
 
+COLLTEST_INIT = ->
+  scatterents Jelly, 8
+  loadblocks roboblockdata
+  WORLD.spritelayer.push randtri()
+
 WORLD_ONE_INIT()
 WORLDINIT()
 
@@ -1548,8 +1574,11 @@ jame.listents = () ->
 
 
 bindingsDOM = $ "<table>"
-for k,v of control.bindings
-  bindingsDOM.append maketablerow [keyCodeToChar[k],control.bindingnames[k] or "??"]
+#for k,v of control.bindings
+#  bindingsDOM.append maketablerow [keyCodeToChar[k],control.bindingnames[k] or "??"]
+
+for k,v of control.bindingnames
+  bindingsDOM.append maketablerow [keyCodeToChar[k],v or "??"]
 
 settingsDOM = $ "<table>"
 updatesettingstable = () ->
