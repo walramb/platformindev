@@ -41,6 +41,8 @@ V2d.zero = (v) -> new V2d 0, 0
 vvop = (op) -> (v,u) -> V op(v.x,u.x), op(v.y,u.y)
 vnop = (op) -> (v,n) -> V op(v.x,n), op(v.y,n)
 
+# is poor opptimization of this bogging shit down?
+###
 V2d.vadd = vvop mafs.add
 V2d.vsub = vvop mafs.sub
 V2d.vmul = vvop mafs.mul
@@ -50,6 +52,18 @@ V2d.nadd = vnop mafs.add
 V2d.nsub = vnop mafs.sub
 V2d.nmul = vnop mafs.mul
 V2d.ndiv = vnop mafs.div
+###
+
+V2d.vadd = (v,u) -> V v.x+u.x, v.y+u.y
+V2d.vsub = (v,u) -> V v.x-u.x, v.y-u.y
+V2d.vmul = (v,u) -> V v.x*u.x, v.y*u.y
+V2d.vdiv = (v,u) -> V v.x/u.x, v.y/u.y
+
+V2d.nadd = (v,n) -> V v.x+n, v.y+n
+V2d.nsub = (v,n) -> V v.x-n, v.y-n
+V2d.nmul = (v,n) -> V v.x*n, v.y*n
+V2d.ndiv = (v,n) -> V v.x/n, v.y/n
+
 
 V2d.dist = (v,u) -> v.vsub(u).mag()
 V2d.dir = (v,u) -> u.sub(v).norm()
@@ -76,6 +90,8 @@ V2d::cross = (b) -> V2d.cross @,b
 V2d::toarr = () -> V2d.toarr @
 
 V2d::op = (op) -> new V2d op(@.x), op(@.y)
+
+V2d::cross2d = (b) -> @.x*b.y-@.y*b.x
 
 #alright fuck this
 #for key,value of V2d

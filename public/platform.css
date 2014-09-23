@@ -18,3 +18,35 @@
   border: 2px solid white;
   border-radius: 64px;
 }
+
+.toolbar
+{
+  width: 640px;
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+.keyboardlayout
+{
+  display: inline-block;
+  border: 0.2em outset #444;
+  background: #111;
+  color: white;
+  font-weight: bold;
+  padding: 0.5em;
+}
+.keyboardlayout div span
+{
+  cursor: default;
+  border: 0.2em outset #444;
+  width: 1em;
+  display: inline-block;
+  border-radius: 0.2em;
+}
+.keyboardlayout div span.highlight
+{
+  cursor: help;
+  border: 0.2em outset #1a0;
+  background-color: #1a0;
+}

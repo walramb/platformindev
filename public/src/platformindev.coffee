@@ -17,7 +17,7 @@ settings=
   decemberween : false
   hat : false
 
-settings.scale=2/3
+settings.scale=1
 screensize = new V2d 64*16*settings.scale, 64*9*settings.scale
 
 sourcebaseurl = "./sprites/"
@@ -28,6 +28,60 @@ mafs.randvec = -> V mafs.randfloat(), mafs.randfloat()
 mafs.randint = (max) -> Math.floor Math.random()*max
 mafs.randelem = (arr) -> arr[mafs.randint(arr.length)]
 mafs.degstorads = (degs) -> degs*Math.PI/180
+
+
+class Line2d
+  constructor: (@p1,@p2) ->
+
+Line2d::lineintersect = ( lineb ) ->
+  linea = @
+  p = linea.p1
+  r = linea.p2.vsub p
+  q = lineb.p1
+  s = lineb.p2.vsub q
+  t = q.vsub(p).cross2d(s) / r.cross2d s
+  u = q.vsub(p).cross2d(r) / r.cross2d s
+  if t <= 1 and t >= 0 and u <= 1 and u >= 0
+    return p.vadd r.nmul t
+  return null
+
+#based on an implementation by metamal on stackoverflow
+HitboxRayIntersect = ( rect, line ) ->
+  minx = line.p1.x
+  maxx = line.p2.x
+  if line.p1.x > line.p2.x
+    minx=line.p2.x
+    maxx=line.p1.x
+  maxx = Math.min maxx, rect.bottomright.x
+  minx = Math.max minx, rect.topleft.x
+  if minx > maxx
+    return false
+  miny = line.p1.y
+  maxy = line.p2.y
+  dx = line.p2.x-line.p1.x
+  #tiny wiggle room to account for floating point errors
+  if Math.abs(dx) > 0.0000001
+    a=(line.p2.y-line.p1.y)/dx
+    b=line.p1.y-a*line.p1.x
+  miny=a*minx+b
+  maxy=a*maxx+b
+  if miny > maxy
+    tmp=maxy
+    maxy = miny
+    miny = tmp
+  maxy=Math.min maxy, rect.bottomright.y
+  miny=Math.max miny, rect.topleft.y
+  if miny>maxy
+    return false
+  return true
+
+pointlisttoedges = ( parr ) ->
+  edges=[]
+  prev = parr[parr.length-1]
+  for curr,i in parr
+    edges.push new Line2d prev,curr
+    prev=curr
+  return edges
 
 body = $ "body"
 
@@ -99,19 +153,66 @@ titlescreen = new PIXI.Sprite tex
 
 body.append renderer.view
 
+
+B_MASKING = false
+
+OTHERCHAR_SUBSCREEN =
+  init: ->
+    @size= V 300, 200
+    @screenpos = V 64, 64
+    @subscreen= new PIXI.RenderTexture @size.x, @size.y
+    @subsprite= new PIXI.Sprite @subscreen
+    parentstage.addChild @subsprite
+    if B_MASKING
+      @mask = new PIXI.Graphics()
+      parentstage.addChild @mask
+  maskupdate: ->
+    @mask.clear()
+    @mask.beginFill( 0x000000, 0.9 )
+    @mask.moveTo @screenpos.x, @screenpos.y+32
+    @mask.lineTo @screenpos.x+@size.x, @screenpos.y
+    @mask.lineTo @screenpos.x+@size.x, @screenpos.y+@size.y-32
+    @mask.lineTo @screenpos.x, @screenpos.y+@size.y
+    @mask.endFill()
+OTHERCHAR_SUBSCREEN.init()
 scale = 1
+
+tmpstage = new PIXI.DisplayObjectContainer()
+tmpinnerstage = new PIXI.DisplayObjectContainer()
+tmpstage.addChild tmpinnerstage
+
+OTHERCHAR_SUBSCREEN.subscreenadjust = ->
+  @subsprite.position = VTOPP @screenpos
+  hero=getotherhero()
+  subscreencentercam = hero.pos.nmul -scale
+  subscreencentercam = subscreencentercam.vadd @size.ndiv 2
+  #hacky but remove the screen from the stage before rendering
+  #so it doesnt render on top of itself as a black screen
+  parentstage.removeChild @subsprite
+  #tmpinnerstage.position = VTOPP subscreencentercam
+  #tmpinnerstage.addChild stage
+  oldpos=stage.position
+  stage.position = VTOPP subscreencentercam
+  @subscreen.render parentstage
+  stage.position=oldpos
+  parentstage.addChild @subsprite
+  #parentstage.addChild @mask
+  if B_MASKING
+    @maskupdate()
+    @subsprite.mask = @mask
+
 animate = ->
   cam=cameraoffset().nmul -scale
   stage.position = VTOPP cam
   stage.scale = PP scale, scale
   renderer.render parentstage
+  OTHERCHAR_SUBSCREEN.subscreenadjust()
 
 chievs={}
 
 achieve = (title) ->
   if chievs[title].gotten? then return
   chievs[title].gotten = true
-  console.log chievs
   makechievbox chievs[title].pic, mafs.randelem chievs[title].text
 
 bogimg = xmltag 'img', src: sourcebaseurl+'boggle.png'
@@ -631,15 +732,34 @@ BugLady::blockcollisions = ->
     if @.gethitbox().bottom() <= candidate.top()
       @pos.y = candidate.y
       @vel.y = 0
-  if candidates.length > 0 and @vel.y < 0
-    @vel.y = 0
+  #if candidates.length > 0 and @vel.y < 0
+  #  @vel.y = 0
+
+closestpoint = (p, pointarr) ->
+  closest = pointarr[0]
+  for point in pointarr
+    if closest.dist(p) > point.dist(p)
+      closest = point
+  return closest
+
 BugLady::polygoncollisions = ->
   allpolygons = WORLD.spritelayer.filter (sprit) -> sprit instanceof Poly
   allpolygons.forEach (candidate) =>
-    p = new V2d @pos.x, @pos.y-1
+    p = new V2d @pos.x, @pos.y
+    trajectory = new Line2d @pos, @pos.vadd(@vel)
+    #if trajectory.lineintersect
+    edges = pointlisttoedges candidate.points
+    hits=edges.map (edg) -> trajectory.lineintersect edg
+    hits = _.compact hits #strip nulls
+    if hits.length > 0 #and @vel.y >= 0
+      closest = closestpoint p, hits
+      @pos = closest.vsub(@vel.norm())
+      @vel.y = 0 #-Math.abs(@vel.x)
+      #@vel.x = 0
     if geometry.pointInsidePoly p, candidate.points
-      @pos.y--
-      @vel.y = 0
+      @vel.y--
+    #  @vel.y = 0
+      
 
 Hero::checkcontrols = -> #noop
 BugLady::checkcontrols = ->
@@ -653,16 +773,9 @@ BugLady::cancelattack = ->
   @attacking=false
 
 Hero::outofbounds = ->
-  @pos.y > 640
-
-$deathmsg=$("<p id=deathmsg></p>").html(
-  "<b>YOU'RE DEAD</b> now don't let me catch you doing that again young lady")
+  @pos.y > 6400
 
 BugLady::kill = ->
-  if @ded then $('#deathmsg').html "<b>WHAT DID I JUST TELL YOU</b>"
-  if not @ded
-    body.prepend $deathmsg
-    @ded=true
   @respawn()
 
 
@@ -699,9 +812,24 @@ firebullet = (ent) ->
   bullet.pos = relativetobox ent.gethitbox(), CENTER
   WORLD.spritelayer.push bullet
   return bullet
-  
 
+get_sprites_of_class = (classtype) ->
+  ents = WORLD.spritelayer.filter (sprite) -> sprite instanceof classtype
+
+BugLady::submerged = () ->
+  waterblocks = get_sprites_of_class Water
+  collidebox = @gethitbox()
+  blockcandidates=hitboxfilter collidebox, waterblocks
+  if blockcandidates.length > 0
+    return true
+  return false
+
+BugLady::waterdrag = ->
+  @vel.y = @vel.y * 0.8
+  @vel.x = @vel.x * 0.95
 BugLady::tick = ->
+  if @submerged()
+    @waterdrag()
   unpowered = settings.altcostume
   if unpowered then @cancelattack()
   @checkcontrols()
@@ -749,11 +877,18 @@ BugLady::movetick = ->
   @attackchecks()
   jumpvel = if unpowered then 12 else 16
   @jumpimpulse jumpvel
+  if @vel.y>1 and @controls.crouch
+    @state = 'headfirst'
+    @vel.y += 0.1
+  if @touchingground() and @state == 'headfirst'
+    @state = ''
+    @stuntimeout=20
   @jumping = false #so we don't repeat by accident yo
   @climbing = @touchingwall()
 
 BugLady::jumpimpulse = (jumpvel) ->
-  if @touchingground() and @jumping
+  jumplegal = @touchingground() or @submerged()
+  if jumplegal and @jumping
     @vel.y = -jumpvel
 
 GenericSprite::friction = () ->
@@ -797,7 +932,12 @@ BugLady::getsprite = ->
   if settings.altcostume then src = "marl/" + src
   if @climbing then src = 'bugclimb1.png'
   if @climbing and settings.altcostume then src = 'marl/boggle.png'
+  if @state == 'headfirst' then src = 'bugheadfirst.png'
   return src
+
+class Claire extends BugLady
+Claire::getsprite = ->
+  return "orcbabb.png"
 
 BugLady::render = ->
   vel = Math.abs( @vel.x )
@@ -841,7 +981,7 @@ PlayerBurd::tick = ->
     @gravitate()
 
 removesprite = ( ent ) ->
-  if not ent._pixisprite then return
+  if not ent._pixisprite? then return
   stage.removeChild ent._pixisprite
   ent._pixisprite=undefined
 
@@ -900,6 +1040,7 @@ Poly::gethitbox = ->
 class Block extends Renderable
   constructor: (@x,@y,@w,@h) -> @pos = V @x, @y
 
+
 Block::intersection = (rectb) ->
   recta=@
   l=Math.max recta.left(), rectb.left()
@@ -910,6 +1051,18 @@ Block::intersection = (rectb) ->
   h=b-t
   return new Block l,t,w,h
 
+
+Block::strictoverlaps = ( rectb ) ->
+  recta=@
+  if recta.left() >= rectb.right() or
+  recta.top() >= rectb.bottom() or
+  recta.right() <= rectb.left() or
+  recta.bottom() <= rectb.top()
+    return false
+  else
+    return true
+
+#rename Block::touching ?
 Block::overlaps = ( rectb ) ->
   recta=@
   if recta.left() > rectb.right() or
@@ -1013,7 +1166,7 @@ GenericSprite::touchingground = () ->
   box=@gethitbox()
   box.y+=1
   allpolygons.forEach (candidate) =>
-    p = new V2d @pos.x, @pos.y
+    p = new V2d @pos.x, @pos.y+1
     if geometry.pointInsidePoly p, candidate.points
       touch = true
   return touch
@@ -1066,8 +1219,8 @@ ControlObj::keyHoldBindRawNamed = ( key, name, func ) ->
   @bindingnames[key]=name
   @holdbindings[key]=func
 
-control.keytapbindname '9', 'zoom out', -> scale-=0.1
-control.keytapbindname '0', 'zoom in', -> scale+=0.1
+control.keytapbindname '9', 'zoom out', -> camera.zoomout()
+control.keytapbindname '0', 'zoom in', -> camera.zoomin()
 
 control.keytapbindname 'c', 'become burd', -> jame.burdme()
 
@@ -1089,19 +1242,21 @@ toggleFullScreen = (elm) ->
 
 control.keytapbindname 'y', 'toggle fullscreen', ->
   toggleFullScreen renderer.view
-control.keytapbindname 'p', 'pause', ->
+pausefunc = ->
   playsound "pause.wav"
   settings.paused = not settings.paused
   if settings.paused then parentstage.addChild pausescreen
   if not settings.paused then parentstage.removeChild pausescreen
-  
+control.keytapbindname 'p', 'pause', pausefunc
+control.keyBindRawNamed keyCharToCode['Pause/Break'], 'pause', pausefunc
+
+
 control.keytapbindname 't', 'underclock/slowmo', ->
   settings.slowmo = not settings.slowmo
 
 control.keytapbindname 'g', 'toggle grid', ->
   settings.grid = not settings.grid
 
-control.keytapbindname 'b', 'toggle beanmode', -> settings.beanmode = not settings.beanmode
 
 control.keytapbindname 'l', 'WHAM!', ->
   ladybug.jumping=true
@@ -1186,7 +1341,8 @@ nextlevel = ->
 
 restartlevel = ->
   WORLD.clear()
-  WORLD_ONE_INIT()
+  loadlevelfile "levels/1.json"
+  #WORLD_ONE_INIT()
   WORLDINIT()
   ladybug.respawn()
 
@@ -1198,15 +1354,32 @@ control.keytapbindname 'n', 'change level', nextlevel
 eventelement = $ document
 # renderer.view
 
+keypushcache = []
+cheatcodecheck = ->
+  code=["Up","Up","Down","Down","Left","Right","Left","Right","B","A","Enter"]
+  input=_.last keypushcache, code.length
+  if _.isEqual input, code
+    alert "conglaturation"
+    keypushcache=[]
+  code=["Right","Up","Right","A","Down","Down","Enter"]
+  input=_.last keypushcache, code.length
+  if _.isEqual input, code
+    alert "you'r a radical kid!! you have prooved the justice of our culture. god bless a merica. bean mode unlock!"
+    settings.beanmode = not settings.beanmode
+    keypushcache=[]
 
 eventelement.bind 'keydown', (e) ->
   key = e.which
   control.bindings[key]?()
   if not (key in control.heldkeys)
     control.heldkeys.push key
+    keypushcache.push keyCodeToChar[key]
+    cheatcodecheck()
+  return false
 eventelement.bind 'keyup', (e) ->
   key = e.which
   control.heldkeys = _.without control.heldkeys, key
+  return false
 
 tmpcanvasjq = $ "<canvas>"
 tmpcanvas = tmpcanvasjq[0]
@@ -1230,6 +1403,14 @@ Block::render = ->
   sprit.position.x = @x
   sprit.position.y = @y
 
+class Water extends Block
+  constructor: (@x,@y,@w,@h) ->
+    super @x, @y, @w, @h
+    @src = "snow.png"
+Water::render = ->
+  super()
+  @_pixisprite.alpha=0.5
+
 ladybug = new BugLady
 
 class Cloud extends Renderable
@@ -1249,12 +1430,17 @@ class Grid extends Renderable
   constructor: () ->
     super()
     @src='square.png'
+
+adjustedscreensize = ->
+  return x: screensize.x*10, y: screensize.y*10
+
 Grid::PIXINIT = Cloud::PIXINIT = ->
   if not @_pixisprite
     tex = PIXI.Texture.fromImage sourcebaseurl+@src
-    sprit = new PIXI.TilingSprite tex, screensize.x, screensize.y
+    {x,y}=adjustedscreensize()
+    sprit = new PIXI.TilingSprite tex, x,y
     @_pixisprite=sprit
-    stage.addChildAt sprit, 1
+    stage.addChildAt sprit, 0
 
 Grid::PIXREMOVE = ->
   if not settings.grid and @_pixisprite
@@ -1269,6 +1455,9 @@ Cloud::render = () ->
   offset=V tickno*-0.2, Math.sin(tickno/200)*64
   sprit.position = VTOPP pos
   sprit.tilePosition = VTOPP offset
+  if settings.grid and @_pixisprite
+    stage.removeChild @_pixisprite
+    @_pixisprite=undefined
 
 Grid::render = () ->
   pos = cameraoffset()
@@ -1304,10 +1493,15 @@ class PlaceholderSprite extends GenericSprite
     super @pos
     @label='a thing'
 PlaceholderSprite::render = ->
-  if @_pixisprite? then return
+  if @_pixisprite?
+    sprit=@_pixisprite
+    sprit.position = VTOPP @pos
+    sprit.anchor = VTOPP V 0, 0
+    return
   txt = new PIXI.Text @label,
     { font: "12px Arial", fill:"black" }
   txt.anchor = PP @anchor
+  console.log @anchor
   sprit = new PIXI.Graphics()
   sprit.beginFill 0xFF00FF
   box=@gethitbox()
@@ -1380,6 +1574,10 @@ loadblocks = (blockdata) ->
   blockdata.forEach (blockdatum) ->
     [x,y,w,h]=blockdatum
     WORLD.bglayer.push new Block x, y, w, h
+loadspawners = (entdata) ->
+  entdata.forEach (entdatum) ->
+    WORLD.spritelayer.push spawner=new Spawner entdatum.pos
+    spawner.entdata = entdatum
 
 scatterents = ( classproto, num ) ->
   WORLD.spritelayer=WORLD.spritelayer.concat [0...num].map ->
@@ -1393,37 +1591,60 @@ Goal::collide = ( otherent ) ->
   if otherent instanceof Hero
     nextlevel()
 
+class Platform extends PlaceholderSprite
+  constructor: (@pos) ->
+    super @pos
+    @label="platform"
+Platform::collide = ( otherent ) ->
+  if otherent instanceof Hero
+    otherent.vel.y = 0
+
 
 class HurtWire extends GenericSprite
 HurtWire::size = V 8, 32
 HurtWire::anchor = V 1/2, 0
 HurtWire::getsprite = ->
   framewait = 1
-  framelist = [1..4].map (n) -> "wirespark#{n}.png"
+  framelist = [ "wire.png" ]
+  if @state=="sparking"
+    framelist = [1..4].map (n) -> "wirespark#{n}.png"
   return selectframe framelist, framewait
+HurtWire::tick = ->
+  @age = @age or 0
+  @age = (@age+1)%100
+  if @age < 30
+    @state="sparking"
+  else
+    @state="inert"
 HurtWire::collide = ( otherent ) ->
-  if otherent instanceof Hero
+  if @state=="sparking" and otherent instanceof Hero
     otherent.takedamage()
 HurtWire::render = ->
   @src=@getsprite()
   super()
 
 
-spawnables = burd: Burd, target: Target, jelly: Jelly, powersuit: PowerSuit, gold: Gold, energy:Energy, lila: Lila
+spawnables = burd: Burd, target: Target, jelly: Jelly, powersuit: PowerSuit, gold: Gold, energy:Energy, lila: Lila, claire: Claire, platform: Platform
 class Spawner extends PlaceholderSprite
   constructor: (@pos) ->
     super @pos
     @label="Entity spawner"
     @entdata=class: Jelly, pos: @pos
 Spawner::tick = ->
+  @entdata.pos = @pos
+  console.log @entdata.pos
   @label = @entdata.class
 Spawner::spawn = ->
   #ent=jame.spawn @classname
   #ent.load @entdata
   loadents [@entdata]
+Spawner::toJSON = ->
+  @entdata
 
 
-entdata = [ class: "lila", pos: {x: 64*4, y: 64*4 } ]
+entdata = [ class: "lila", pos: {x: 64*4, y: 64*4 }
+class: "claire", pos: {x: 64*2, y: 64*4}
+]
 
 
 jame={}
@@ -1441,6 +1662,7 @@ loadent = (entdatum) ->
 loadents = (entdata) ->
   entdata.forEach (entdatum) -> loadent entdatum
 
+
 WORLD_ONE_INIT = ->
   scatterents HurtWire, 4
   scatterents Target, 10
@@ -1449,8 +1671,7 @@ WORLD_ONE_INIT = ->
   scatterents Gold, 10
   scatterents Thug, 3
   WORLD.spritelayer.push new PowerSuit V(128,32)
-  loadblocks(blockdata)
-  loadents(entdata)
+  loadents entdata
 
   placeshrub V 64*8, 64*5-4
   placeshrub V 64*7-48, 64*5-4
@@ -1479,6 +1700,7 @@ WORLDINIT = () ->
     fence=new Fence
     fence.pos = relativetobox block, V(1,0)
     WORLD.spritelayer.push fence
+  WORLD.spritelayer.push ladybug
 
 randtri = ->
   new Poly [ randpos(), randpos(), randpos() ]
@@ -1511,7 +1733,22 @@ COLLTEST_INIT = ->
   loadblocks roboblockdata
   WORLD.spritelayer.push randtri()
 
-WORLD_ONE_INIT()
+###
+levelfilename = "levels/1.json"
+$.ajax levelfilename, success: (data,status,xhr) ->
+  jsondata=JSON.parse data
+  loadlevel jsondata
+  WORLD_ONE_INIT()
+###
+
+loadlevelfile = (levelfilename) ->
+  $.ajax levelfilename, success: (data,status,xhr) ->
+    jsondata=JSON.parse data
+    loadlevel jsondata
+    WORLD_ONE_INIT()
+loadlevelfile "levels/1.json"
+
+
 WORLDINIT()
 
 camera={}
@@ -1519,13 +1756,20 @@ jame.camera=camera
 camera.offset=V()
 camera.pos=V()
 camera.trackingent = ladybug
+camera.zoomout = ->
+  scale-=0.1
+  scale = mafs.clamp scale, 0.1, 1
+camera.zoomin = ->
+  scale+=0.1
+  scale = mafs.clamp scale, 0.1, 1
 
 cameraoffset = ->
   tmppos = camera.trackingent.pos.nadd 0
   tmppos.y -= 64
   tmppos = tmppos.vsub camera.offset.ndiv scale
   tmppos = tmppos.vsub screensize.ndiv 2*scale
-  return tmppos
+  #return tmppos
+  return camera.pos.vadd(tmppos).ndiv 2
 
 camera.tick = ->
   camera.pos = cameraoffset()
@@ -1606,7 +1850,7 @@ fpscounter=$ xmltag()
 tt=0
 
 updateinfobox = ->
-  text= control.heldkeys.map (key) -> "<span>#{key}</span>"
+  text= control.heldkeys.map (key) -> "<span>#{keyCodeToChar[key]}</span>"
   $(infobox).html text.join " "
 
 mainloop = ->
@@ -1618,7 +1862,7 @@ mainloop = ->
     fps=Math.round 1000/Math.max(tickwaitms,ticktime)
     idealfps=Math.round 1000/tickwaitms
     fpscounter.html "tick time: #{tt}ms, running at approx #{fps} fps (aiming for #{idealfps} fps)"
-  fpsgoal = if settings.slowmo then 1 else 60
+  fpsgoal = if settings.slowmo then 4 else 30
   tickwaitms = 1000/fpsgoal
   setTimeout mainloop, Math.max tickwaitms-ticktime, 1
   requestAnimFrame animate
@@ -1656,6 +1900,11 @@ bindingsDOM = $ "<table>"
 for k,v of control.bindingnames
   bindingsDOM.append maketablerow [keyCodeToChar[k],v or "??"]
 
+#tmp, fix this shit
+_CHARbindingnames = {}
+for k,v of control.bindingnames
+  _CHARbindingnames[keyCodeToChar[k]]=v
+
 settingsDOM = $ "<table>"
 updatesettingstable = () ->
   settingsDOM.html ""
@@ -1665,6 +1914,8 @@ updatesettingstable = () ->
 INIT = ->
   body.append fpscounter
   body.append "<b>bindings:</b>"
+  #DEPENDS ON  keyboarddisplay.js
+  body.append keyboardlayout.visualize _CHARbindingnames
   body.append bindingsDOM
   body.append "<b>settings:</b>"
   body.append settingsDOM
@@ -1701,12 +1952,24 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
     if e.button != 0 then return
     BLOCKCREATIONTOOL.creatingblock.fixnegative()
     BLOCKCREATIONTOOL.creatingblock = false
+  mousemove: (e) ->
+    mpos = snapmouseadjust adjustmouseevent e
+    creatingblock = BLOCKCREATIONTOOL.creatingblock
+    if creatingblock
+      creatingblock.w = mpos.x-creatingblock.x
+      creatingblock.h = mpos.y-creatingblock.y
+      creatingblock.removesprite()
+      creatingblock.tostone()
+    if ORIGCLICKPOS
+      currclickpos=V e.pageX, e.pageY
+      offset=currclickpos.vsub ORIGCLICKPOS
+      camera.offset = offset
 
 snapmouseadjust = (mpos) ->
   snaptogrid = isholdingkey 'z'
   if snaptogrid
     gridsize = 32
-    mpos = mpos.ndiv(gridsize).op(Math.floor).nmul(gridsize)
+    mpos = mpos.ndiv(gridsize).op(Math.round).nmul(gridsize)
   return mpos
 
 class MoveTool extends Tool
@@ -1735,7 +1998,27 @@ MoveTool::mousemove = (e) ->
   @selected.forEach (ent) ->
     ent.pos = p
     ent.vel = V()
-
+class MoveBlockTool extends Tool
+  name: 'move blocks'
+  constructor: ->
+    @selected = []
+  mouseup: (e) ->
+    @selected = []
+    setcursor 'auto'
+  mousemove: (e) ->
+    @selected = @selected or [] #jesus christ how horrifying
+    isSelecting = @selected.length > 0
+    p = adjustmouseevent e
+    p = snapmouseadjust p
+    @selected.forEach (ent) ->
+      ent.pos = p
+      ent.x = p.x
+      ent.y = p.y
+      ent.removesprite()
+MoveBlockTool::mousedown = (e) ->
+  p = adjustmouseevent e
+  blocksundercursor = blocksatpoint WORLD.bglayer, p
+  @selected=blocksundercursor
 
 getentsunderpoint = (p) ->
   WORLD.spritelayer.filter (ent) ->
@@ -1745,7 +2028,6 @@ getentsunderpoint = (p) ->
 MoveTool::mousedown = (e) ->
   p = adjustmouseevent e
   entsundercursor = getentsunderpoint p
-  console.log entsundercursor
   @selected=entsundercursor
 
 setcursor = (cursorname) ->
@@ -1753,6 +2035,7 @@ setcursor = (cursorname) ->
 
 MOVETOOL=new MoveTool()
 MOVETOOL.selected = []
+MOVEBLOCKTOOL=new MoveBlockTool()
   
 tool = MOVETOOL
 
@@ -1785,14 +2068,132 @@ SPAWNERTOOL=_.extend {}, NOOPTOOL,
   classname: 'burd'
   mousedown: (e) ->
     p = adjustmouseevent e
-    WORLD.spritelayer.push ent=new Spawner
+    WORLD.spritelayer.push ent=new Spawner p
     ent.pos = p
     ent.entdata.class = SPAWNTOOL.classname
     ent.spawn()
 
+TELEPORTTOOL=_.extend {}, NOOPTOOL,
+  name: "teleport"
+  mousedown: (e) ->
+    p = adjustmouseevent e
+    ladybug.pos = p
+    ladybug.vel = V 0,0
 
-alltools = [ BLOCKCREATIONTOOL , MOVETOOL, TRIANGLETOOL, SPAWNERTOOL ]
-toolbar = $ xmltag()
+
+# take a list of Block objects
+# return a bounding block
+boxesbounding = (boxlist) ->
+  ls=boxlist.map (b) -> b.left()
+  rs=boxlist.map (b) -> b.right()
+  ts=boxlist.map (b) -> b.top()
+  bs=boxlist.map (b) -> b.bottom()
+  l=ls.reduce (n,m) -> Math.min n,m
+  r=rs.reduce (n,m) -> Math.max n,m
+  t=ts.reduce (n,m) -> Math.min n,m
+  b=bs.reduce (n,m) -> Math.max n,m
+  return new Block l,t,r-l,b-t
+  
+# ughhhh
+blockcarve = ( aa, bb ) ->
+  b = boxesbounding [ aa, bb ]
+  a = aa.intersection(bb)
+  x1= b.left()
+  x2= a.left()
+  x3= a.right()
+  x4= b.right()
+  y1= b.top()
+  y2= a.top()
+  y3= a.bottom()
+  y4= b.bottom()
+  blokx=[ [ x1, y1, x2-x1, y2-y1 ]
+  [ x2, y1, x3-x2, y2-y1 ]
+  [ x3, y1, x4-x3, y2-y1 ]
+  [ x1, y2, x2-x1, y3-y2 ]
+  [ x2, y2, x3-x2, y3-y2 ]
+  [ x3, y2, x4-x3, y3-y2 ]
+  [ x1, y3, x2-x1, y4-y3 ]
+  [ x2, y3, x3-x2, y4-y3 ]
+  [ x3, y3, x4-x3, y4-y3 ]
+  ]
+  blokx=blokx.map (blok) ->
+    newthing=new Block blok[0], blok[1], blok[2], blok[3]
+    newthing.fixnegative()
+    return newthing
+  blokx=blokx.filter (blok) ->
+    blok.strictoverlaps(aa) or blok.strictoverlaps(bb)
+  #_.extend WORLD.bglayer, blokx
+  for blok in blokx
+    WORLD.bglayer.push blok
+
+UNIONTOOL=_.extend {}, NOOPTOOL,
+  name: "unfuck block overlaps"
+  mousedown: (e) ->
+    p = adjustmouseevent e
+    blocks = blocksatpoint WORLD.bglayer, p
+    if blocks.length == 2
+      a=blocks[0]
+      b=blocks[1]
+      blockcarve a,b
+      WORLD.bglayer = _.without WORLD.bglayer, a
+      WORLD.bglayer = _.without WORLD.bglayer, b
+      stage.removeChild a._pixisprite
+      stage.removeChild b._pixisprite
+
+carveoutblock = (b) ->
+  #copy because reasons
+  block = new Block b.x, b.y, b.w, b.h
+  tocarve=block.allstrictoverlaps()
+  for bloke in tocarve
+    blockcarve bloke,block
+  todelete=block.allstrictoverlaps()
+  for bloke in todelete
+    WORLD.bglayer = _.without WORLD.bglayer, bloke
+    if bloke._pixisprite?
+      stage.removeChild bloke._pixisprite
+
+
+CARVER=_.extend {}, NOOPTOOL,
+  name: "block carver"
+  mousedown: (e) ->
+    #ADD BLOCK, LEFT MBUTTON
+    #HOLD Z TO SNAP TO GRID
+    if e.button != 0 then return
+    adjusted = adjustmouseevent e
+    adjusted=snapmouseadjust adjusted
+    CARVER.creatingblock=new Block adjusted.x, adjusted.y, 32, 32
+    WORLD.bglayer.push CARVER.creatingblock
+  mouseup: (e) ->
+    if e.button != 0 then return
+    CARVER.creatingblock.fixnegative()
+    carveoutblock CARVER.creatingblock
+    CARVER.creatingblock = false
+  mousemove: (e) ->
+    mpos = snapmouseadjust adjustmouseevent e
+    creatingblock = CARVER.creatingblock
+    if creatingblock
+      creatingblock.w = mpos.x-creatingblock.x
+      creatingblock.h = mpos.y-creatingblock.y
+      creatingblock.src="lila.png"
+      creatingblock.removesprite()
+    if ORIGCLICKPOS
+      currclickpos=V e.pageX, e.pageY
+      offset=currclickpos.vsub ORIGCLICKPOS
+      camera.offset = offset
+
+WATERTOOL=_.extend {}, NOOPTOOL,
+  name: "turn block into water"
+  mousedown: (e) ->
+    if e.button != 0 then return
+    adjusted = adjustmouseevent e
+    adjusted=snapmouseadjust adjusted
+    blocksundercursor = blocksatpoint WORLD.bglayer, adjusted
+    for bl in blocksundercursor
+      WORLD.spritelayer.unshift new Water bl.x, bl.y, bl.w, bl.h
+      bglayer_remove_block bl
+
+alltools = [ BLOCKCREATIONTOOL, MOVEBLOCKTOOL, MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL, UNIONTOOL, CARVER, WATERTOOL ]
+toolbar = $ xmltag 'div', class: 'toolbar'
 toolbar.append $ xmltag 'em', undefined, 'tools:'
 toolbar.insertAfter $(renderer.view)
 
@@ -1802,6 +2203,11 @@ alltools.forEach (t) ->
   toolbar.append but
 
 allactions={}
+@allactions = allactions
+
+bindaction = ( key, actionname ) ->
+  control.keytapbindname key, actionname, allactions[actionname]
+@bindaction = bindaction
 
 readablebindings = ->
   ks=_.keys control.bindingnames
@@ -1809,31 +2215,82 @@ readablebindings = ->
   ks=ks.map (k) -> keyCodeToChar[Number(k)]
   return _.zip ks,vs
 
+allactions['spawn block under hero'] = ->
+  p = ladybug.pos.vadd V -32, 0
+  creatingblock=new Block p.x, p.y, 64, 64
+  WORLD.bglayer.push creatingblock
+
+getotherhero = ->
+  heroes = jame.WORLD.spritelayer.filter (ent) -> ent instanceof Hero
+  i = heroes.indexOf ladybug
+  i = (i+1)%heroes.length
+  return heroes[i]
+
+allactions['swap character'] = ->
+  ladybug = getotherhero()
+  camera.trackingent = ladybug
+
+bindaction("u","swap character")
+
+unzip = (data) ->
+  _.zip.apply _, data
+
 allactions['export keybindings'] = ->
   data=JSON.stringify readablebindings()
   window.open().document.write data
-  console.log data
+allactions['import keybindings'] = ->
+  rawdata=prompt 'paste data here'
+  newbinds=[]
+  newholdbinds=[]
+  if rawdata?
+    data=JSON.parse rawdata
+    for k,v of data
+      k = keyCharToCode[v[0]]
+      v = v[1]
+      console.log k,v
+      func=control.bindings[k]
+      if func?
+        newbinds.push k: k, name: v, f:func
+      func=control.holdbindings[k]
+      if func?
+        newholdbinds.push k: k, name: v, f:func
+    
+    console.log newbinds
+    console.log newholdbinds
+    control.bindings={}
+    control.holdbindings={}
+    control.bindingnames={}
+    newbinds.forEach (binding) ->
+      control.bindings[binding.k]=binding.f
+    newholdbinds.forEach (binding) ->
+      control.holdbindings[binding.k]=binding.f
+
 
 allactions['export level'] = ->
-  console.log WORLD.bglayer
-  data=JSON.stringify WORLD.bglayer
-  window.open().document.write data
-  console.log data
+  ents=WORLD.getallents()
+  spawners = ents.filter (ent) -> ent instanceof Spawner
+  data=ents: spawners, blockdata: WORLD.bglayer
+  window.open().document.write JSON.stringify data
 
+loadlevel = (data) ->
+  loadblocks data.blockdata
+  loadents data.ents
+  
 allactions['import level'] = ->
   rawdata=prompt 'paste data here'
-  data=JSON.parse rawdata
-  WORLD.clear()
-  loadblocks data
-  WORLDINIT()
-  ladybug.respawn()
+  if rawdata?
+    data=JSON.parse rawdata
+    WORLD.clear()
+    loadlevel data
+    WORLDINIT()
+    ladybug.respawn()
 
 allactions['load .json test level'] = ->
   levelfilename = "levels/2.json"
   $.ajax levelfilename, success: (data,status,xhr) ->
     jsondata=JSON.parse data
     WORLD.clear()
-    loadblocks jsondata
+    loadlevel jsondata
     WORLDINIT()
     ladybug.respawn()
 
@@ -1853,6 +2310,13 @@ highlightoverlaps = ->
 
 allactions['highlight overlapping blocks'] = highlightoverlaps
 
+objnames = (objs) ->
+  objs.map (obj) -> obj.constructor.name
+allactions['generate entity list'] = ->
+  entlist = $ "<div>"
+  body.append entlist
+  entlist.html objnames(WORLD.spritelayer).join()
+
 
 toolbar.append $ xmltag 'em', undefined, 'actions: '
 for k,v of allactions
@@ -1866,7 +2330,6 @@ ORIGCLICKPOS = false
 mousemiddledownhandler = (e) ->
   if e.button != 1 then return
   e.preventDefault()
-  console.log "MIDDLE"
   ORIGCLICKPOS = V e.pageX, e.pageY
 mousemiddleuphandler = (e) ->
   if e.button != 1 then return
@@ -1874,35 +2337,23 @@ mousemiddleuphandler = (e) ->
   ORIGCLICKPOS = false
   camera.offset = V()
 
-mousemovehandler = (e) ->
-  mpos = snapmouseadjust adjustmouseevent e
-  creatingblock = BLOCKCREATIONTOOL.creatingblock
-  if creatingblock
-    creatingblock.w = mpos.x-creatingblock.x
-    creatingblock.h = mpos.y-creatingblock.y
-    creatingblock.removesprite()
-    creatingblock.tostone()
-  if ORIGCLICKPOS
-    currclickpos=V e.pageX, e.pageY
-    offset=currclickpos.vsub ORIGCLICKPOS
-    camera.offset = offset
-    console.log offset
 
-$(renderer.view).mousemove mousemovehandler
 $(renderer.view).mousedown mousemiddledownhandler
 $(renderer.view).mouseup mousemiddleuphandler
+
+bglayer_remove_block = (ent) ->
+  WORLD.bglayer = _.without WORLD.bglayer, ent
+  #stage.removeChild ent._pixisprite
+  removesprite ent
 
 mouserightdownhandler = (e) ->
   if e.button != 2 then return
   e.preventDefault()
   adjusted = adjustmouseevent e
   blox=blocksatpoint WORLD.bglayer, adjusted
-  console.log blox
   if blox.length > 0
     ent=blox[0]
-    WORLD.bglayer = _.without WORLD.bglayer, ent
-    #stage.removeChild ent._pixisprite
-    removesprite ent
+    bglayer_remove_block ent
 
 $(renderer.view).mousedown mouserightdownhandler
 
@@ -1912,9 +2363,8 @@ $(renderer.view).bind 'wheel', (e) ->
   e.preventDefault()
   delta=e.originalEvent.deltaY
   up=delta>0
-  console.log delta
-  if up then scale-=0.1
-  if not up then scale+=0.1
+  if up then camera.zoomout()
+  if not up then camera.zoomin()
 
 lastmodified = (date) ->
   body.prepend "<p>last modified #{jQuery.timeago(new Date(date))}, #{date}</p>"
@@ -1936,7 +2386,6 @@ spawnselection.change (e) ->
 jame.burdme = ->
   ladybug = new PlayerBurd()
   WORLD.entities.push ladybug
-  console.log ladybug
 
 jame.WORLD = WORLD
 
@@ -1948,6 +2397,9 @@ root.stage = stage
 
 
 
+Block::allstrictoverlaps = ->
+  blox=WORLD.bglayer
+  return blox.filter (otherblock) => @strictoverlaps otherblock
 Block::alloverlaps = ->
   blox=WORLD.bglayer
   return blox.filter (otherblock) => @overlaps otherblock
@@ -1957,5 +2409,4 @@ Block::equals = (b) ->
 jame.cleanobj = (obj) ->
   arr= ( [key,val] for own key,val of obj)
   return _.object arr
-
 

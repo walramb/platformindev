@@ -104,21 +104,50 @@
     };
   };
 
-  V2d.vadd = vvop(mafs.add);
+  /*
+  V2d.vadd = vvop mafs.add
+  V2d.vsub = vvop mafs.sub
+  V2d.vmul = vvop mafs.mul
+  V2d.vdiv = vvop mafs.div
+  
+  V2d.nadd = vnop mafs.add
+  V2d.nsub = vnop mafs.sub
+  V2d.nmul = vnop mafs.mul
+  V2d.ndiv = vnop mafs.div
+  */
 
-  V2d.vsub = vvop(mafs.sub);
 
-  V2d.vmul = vvop(mafs.mul);
+  V2d.vadd = function(v, u) {
+    return V(v.x + u.x, v.y + u.y);
+  };
 
-  V2d.vdiv = vvop(mafs.div);
+  V2d.vsub = function(v, u) {
+    return V(v.x - u.x, v.y - u.y);
+  };
 
-  V2d.nadd = vnop(mafs.add);
+  V2d.vmul = function(v, u) {
+    return V(v.x * u.x, v.y * u.y);
+  };
 
-  V2d.nsub = vnop(mafs.sub);
+  V2d.vdiv = function(v, u) {
+    return V(v.x / u.x, v.y / u.y);
+  };
 
-  V2d.nmul = vnop(mafs.mul);
+  V2d.nadd = function(v, n) {
+    return V(v.x + n, v.y + n);
+  };
 
-  V2d.ndiv = vnop(mafs.div);
+  V2d.nsub = function(v, n) {
+    return V(v.x - n, v.y - n);
+  };
+
+  V2d.nmul = function(v, n) {
+    return V(v.x * n, v.y * n);
+  };
+
+  V2d.ndiv = function(v, n) {
+    return V(v.x / n, v.y / n);
+  };
 
   V2d.dist = function(v, u) {
     return v.vsub(u).mag();
@@ -210,6 +239,10 @@
 
   V2d.prototype.op = function(op) {
     return new V2d(op(this.x), op(this.y));
+  };
+
+  V2d.prototype.cross2d = function(b) {
+    return this.x * b.y - this.y * b.x;
   };
 
   V2d.random = function() {
