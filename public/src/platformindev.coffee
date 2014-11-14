@@ -156,32 +156,17 @@ body.append renderer.view
 
 B_MASKING = false
 
-OTHERCHAR_SUBSCREEN =
-  init: ->
+class Subscreen
+  constructor: ->
     @size= V 300, 200
-    @screenpos = V 64, 64
+    @screenpos = V 640*Math.random(), 640*Math.random()
     @subscreen= new PIXI.RenderTexture @size.x, @size.y
     @subsprite= new PIXI.Sprite @subscreen
     parentstage.addChild @subsprite
     if B_MASKING
       @mask = new PIXI.Graphics()
       parentstage.addChild @mask
-  maskupdate: ->
-    @mask.clear()
-    @mask.beginFill( 0x000000, 0.9 )
-    @mask.moveTo @screenpos.x, @screenpos.y+32
-    @mask.lineTo @screenpos.x+@size.x, @screenpos.y
-    @mask.lineTo @screenpos.x+@size.x, @screenpos.y+@size.y-32
-    @mask.lineTo @screenpos.x, @screenpos.y+@size.y
-    @mask.endFill()
-OTHERCHAR_SUBSCREEN.init()
-scale = 1
-
-tmpstage = new PIXI.DisplayObjectContainer()
-tmpinnerstage = new PIXI.DisplayObjectContainer()
-tmpstage.addChild tmpinnerstage
-
-OTHERCHAR_SUBSCREEN.subscreenadjust = ->
+Subscreen::subscreenadjust = ->
   @subsprite.position = VTOPP @screenpos
   hero=getotherhero()
   subscreencentercam = hero.pos.nmul -scale
@@ -200,13 +185,39 @@ OTHERCHAR_SUBSCREEN.subscreenadjust = ->
   if B_MASKING
     @maskupdate()
     @subsprite.mask = @mask
+Subscreen::maskupdate = ->
+  @mask.clear()
+  @mask.beginFill( 0x000000, 0.9 )
+  @mask.moveTo @screenpos.x, @screenpos.y+32
+  @mask.lineTo @screenpos.x+@size.x, @screenpos.y
+  @mask.lineTo @screenpos.x+@size.x, @screenpos.y+@size.y-32
+  @mask.lineTo @screenpos.x, @screenpos.y+@size.y
+  @mask.endFill()
+
+SCREENS = list: []
+SCREENS.add = ->
+  SCREENS.list.push new Subscreen()
+SCREENS.adjust = ->
+  @list.forEach (screen) ->
+    screen.subscreenadjust()
+
+
+# adding subscreens   duh
+SCREENS.add()
+
+scale = 1
+
+tmpstage = new PIXI.DisplayObjectContainer()
+tmpinnerstage = new PIXI.DisplayObjectContainer()
+tmpstage.addChild tmpinnerstage
+
 
 animate = ->
   cam=cameraoffset().nmul -scale
   stage.position = VTOPP cam
   stage.scale = PP scale, scale
   renderer.render parentstage
-  OTHERCHAR_SUBSCREEN.subscreenadjust()
+  SCREENS.adjust()
 
 chievs={}
 
@@ -732,8 +743,9 @@ BugLady::blockcollisions = ->
     if @.gethitbox().bottom() <= candidate.top()
       @pos.y = candidate.y
       @vel.y = 0
-  #if candidates.length > 0 and @vel.y < 0
-  #  @vel.y = 0
+    jumpthroughable = candidate instanceof OnewayBlock
+    if @vel.y < 0 and not jumpthroughable
+      @vel.y = 0
 
 closestpoint = (p, pointarr) ->
   closest = pointarr[0]
@@ -1311,6 +1323,8 @@ control.keyHoldBindRawNamed keyCharToCode['Down'], 'down', down
 control.keyHoldBindRawNamed keyCharToCode['Left'], 'left', left
 control.keyHoldBindRawNamed keyCharToCode['Right'], 'right', right
 
+control.keyHoldBindRawNamed keyCharToCode['Space'], 'up', up
+
 save = ->
   console.log ladybug
   tmpladybug = $.extend {}, ladybug
@@ -1410,6 +1424,11 @@ class Water extends Block
 Water::render = ->
   super()
   @_pixisprite.alpha=0.5
+
+class OnewayBlock extends Block
+  constructor: (@x,@y,@w,@h) ->
+    super @x, @y, @w, @h
+    @src = "groundstone.png"
 
 ladybug = new BugLady
 
@@ -1554,18 +1573,6 @@ class MoneyMeter extends BugMeter
     @spritesize = V 16,16
     @abspos = V 8, 64-16
   tick: () -> @update ladybug.score
-
-
-blockdata=[]
-blockdata.push [ -64, 64*5-4, 64*12, 100 ]
-blockdata.push [ 64*4, 64*2, 32, 32 ]
-blockdata.push [ 64*5, 64*4, 32, 32 ]
-blockdata.push [ 64*6, 64*3, 32, 32 ]
-blockdata.push [ 0, 64*4, 32, 32 ]
-blockdata.push [ 32, 64*4, 64*2, 64*2 ]
-blockdata.push [ 64*12, 64*4, 64*12, 200 ]
-blockdata.push [ 128+8, 64+20, 64, 32 ]
-blockdata.push [ 128+8+64, 64+20+32, 32, 32 ]
 
 Block::toJSON = ->
   [ @x, @y, @w, @h ]
@@ -2193,6 +2200,21 @@ WATERTOOL=_.extend {}, NOOPTOOL,
       bglayer_remove_block bl
 
 alltools = [ BLOCKCREATIONTOOL, MOVEBLOCKTOOL, MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL, UNIONTOOL, CARVER, WATERTOOL ]
+
+alltools.push _.extend {}, NOOPTOOL,
+  name: "turn block into oneway"
+  mousedown: (e) ->
+    if e.button != 0 then return
+    adjusted = adjustmouseevent e
+    adjusted=snapmouseadjust adjusted
+    blocksundercursor = blocksatpoint WORLD.bglayer, adjusted
+    for bl in blocksundercursor
+      WORLD.bglayer.unshift new OnewayBlock bl.x, bl.y, bl.w, bl.h
+      bglayer_remove_block bl
+
+
+
+
 toolbar = $ xmltag 'div', class: 'toolbar'
 toolbar.append $ xmltag 'em', undefined, 'tools:'
 toolbar.insertAfter $(renderer.view)
