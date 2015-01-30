@@ -7,6 +7,7 @@
 THISFILE = "src/platformindev.coffee"
 
 settings=
+  fps: 30
   drawsprites : true
   slowmo : false
   altcostume : true
@@ -18,7 +19,10 @@ settings=
   hat : false
 
 settings.scale=1
-screensize = new V2d 64*16*settings.scale, 64*9*settings.scale
+#screensize = new V2d 64*16*settings.scale, 64*9*settings.scale
+screensize = new V2d 960, 540 # halved 1080p
+#screensize = new V2d 320, 240 # GCW Zero
+
 
 sourcebaseurl = "./sprites/"
 audiobaseurl="./audio/"
@@ -106,6 +110,9 @@ resetstage = ->
   parentstage.addChild stage
 
 
+HUDLAYER = new PIXI.DisplayObjectContainer
+parentstage.addChild HUDLAYER
+
 hitboxlayer = new PIXI.DisplayObjectContainer
 stage.addChild hitboxlayer
 renderer = PIXI.autoDetectRenderer screensize.x, screensize.y
@@ -158,7 +165,8 @@ B_MASKING = false
 
 class Subscreen
   constructor: ->
-    @size= V 300, 200
+    #@size= #V 300, 200
+    @size = screensize.ndiv 4
     @screenpos = V 640*Math.random(), 640*Math.random()
     @subscreen= new PIXI.RenderTexture @size.x, @size.y
     @subsprite= new PIXI.Sprite @subscreen
@@ -167,8 +175,16 @@ class Subscreen
       @mask = new PIXI.Graphics()
       parentstage.addChild @mask
 Subscreen::subscreenadjust = ->
-  @subsprite.position = VTOPP @screenpos
+  maxpos=screensize.vsub @size
   hero=getotherhero()
+  p1=ladybug.pos
+  p2=hero.pos
+  tmpdirection = p2.vsub(p1).norm()
+  tmpv = tmpdirection.nadd 1
+  tmpv = tmpv.ndiv 2
+  newpos = maxpos.vmul tmpv
+  @screenpos = newpos
+  @subsprite.position = VTOPP @screenpos
   subscreencentercam = hero.pos.nmul -scale
   subscreencentercam = subscreencentercam.vadd @size.ndiv 2
   #hacky but remove the screen from the stage before rendering
@@ -196,7 +212,7 @@ Subscreen::maskupdate = ->
 
 SCREENS = list: []
 SCREENS.add = ->
-  SCREENS.list.push new Subscreen()
+   SCREENS.list.push new Subscreen()
 SCREENS.adjust = ->
   @list.forEach (screen) ->
     screen.subscreenadjust()
@@ -697,8 +713,7 @@ class BugLady extends Hero
     super()
     @invincibletimeout=0
     @controls={}
-BugLady::heal = ->
-  @health=3
+BugLady::heal = -> @health=3
 BugLady::respawn = ->
   @pos = V()
   @vel = V()
@@ -743,8 +758,9 @@ BugLady::blockcollisions = ->
     if @.gethitbox().bottom() <= candidate.top()
       @pos.y = candidate.y
       @vel.y = 0
+    #following lines handle ceiling collisions
     jumpthroughable = candidate instanceof OnewayBlock
-    if @vel.y < 0 and not jumpthroughable
+    if @vel.y < 0 and not jumpthroughable and box.top()>candidate.top()
       @vel.y = 0
 
 closestpoint = (p, pointarr) ->
@@ -776,7 +792,7 @@ BugLady::polygoncollisions = ->
 Hero::checkcontrols = -> #noop
 BugLady::checkcontrols = ->
   @holdingboggle = isholdingbound 'boggle'
-  @holdingjump = isholdingbound 'up'
+  @holdingjump = isholdingbound 'jump'
   @controls.crouch = isholdingbound 'down'
 
 
@@ -854,10 +870,10 @@ BugLady::tick = ->
   @movetick()
 
 BugLady::limitvelocity = ->
-  vellimit = 10#if @touchingground() then 4 else 5
+  vellimit = 8
   @vel.x = mafs.clamp @vel.x, -vellimit, vellimit
 BugLady::gravitate = ->
-  if not @touchingground()
+  if not @touchingground() and not @touchingwall()
     @vel.y += 1
     if not @holdingjump and @vel.y < 0 then @vel.y /= 2
 
@@ -928,6 +944,8 @@ BugLady::getsprite = ->
     src = if @vel.y < 0 then 'lovelyjump.png' else 'lovelycrouch.png'
   if not walking and @controls.crouch
     src = 'lovelycrouch.png'
+  if not walking and isholdingbound 'up'
+    src = 'lovelyjump.png'
   if not walking and @touchingground() and @holdingboggle
     src = 'boggle.png'
   if @attacking then src = 'viewtiful.png'
@@ -993,6 +1011,11 @@ PlayerBurd::tick = ->
     @gravitate()
 
 removesprite = ( ent ) ->
+  if not ent._pixisprite? then return
+  stage.removeChild ent._pixisprite
+  ent._pixisprite=undefined
+
+stageremovesprite = ( stage, ent ) ->
   if not ent._pixisprite? then return
   stage.removeChild ent._pixisprite
   ent._pixisprite=undefined
@@ -1099,9 +1122,19 @@ Block::fixnegative = () ->
   @pos = V @x, @y
   @removesprite()
 
-hitboxfilter = ( hitbox, rectarray ) ->
+
+absurdboundbox = { x: -1000, y: -1000, w: 100000, h: 100000 }
+bglayerQuads = new QuadTree 0, absurdboundbox
+
+hitboxfilter_OLD = ( hitbox, rectarray ) ->
   rectarray.filter (box) ->
     hitbox.overlaps box
+
+hitboxfilter = ( hitbox, rectarray ) ->
+  #if rectarray is WORLD.bglayer
+  #  cands=bglayerQuads.retrieve hitbox
+  #  return cands.map (c) -> quadunwrap c
+  return hitboxfilter_OLD hitbox, rectarray
 
 makebox = (position, dimensions, anchor) ->
   truepos = position.vsub dimensions.vmul anchor
@@ -1133,6 +1166,8 @@ Block::containspoint = (p) ->
 blocksatpoint = (blocks, p) ->
   blocks.filter (box) -> box.containspoint p
 
+
+
 boxtouchingwall = (collidebox) ->
   blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
@@ -1152,12 +1187,11 @@ GenericSprite::avoidwalls = () ->
   collidebox = @fallbox()
   blockcandidates=hitboxfilter collidebox, WORLD.bglayer
   for block in blockcandidates
-    overlap=collidebox.intersection block
+    jumpthroughable = block instanceof OnewayBlock
+    if jumpthroughable then continue
     notontop = actualbox.bottom() >block.top()
     if boxtouchingwall collidebox
       @vel.x = 0
-      #if overlap.w > 0
-      @pos.x += 0#overlap.w
     ###
     ofs=1
     if notontop and collidebox.left() <= block.left()
@@ -1294,6 +1328,7 @@ control.keytapbindname 'm', 'mute', ->
   settings.muted = not settings.muted
 
 up = ->
+jump = ->
   if ladybug.touchingground()
     playsound "jump.wav"
   ladybug.jumping=true
@@ -1318,12 +1353,15 @@ control.keyholdbindname 'a', 'left', left
 control.keyholdbindname 'd', 'right', right
 control.keyholdbindname 'x', 'boggle', -> #noop
 
-control.keyHoldBindRawNamed keyCharToCode['Up'], 'up', up
-control.keyHoldBindRawNamed keyCharToCode['Down'], 'down', down
-control.keyHoldBindRawNamed keyCharToCode['Left'], 'left', left
-control.keyHoldBindRawNamed keyCharToCode['Right'], 'right', right
+ControlObj::keyHoldBindCharNamed = ( key, name, func ) ->
+  @keyHoldBindRawNamed keyCharToCode[key], name, func
 
-control.keyHoldBindRawNamed keyCharToCode['Space'], 'up', up
+control.keyHoldBindCharNamed 'Up', 'up', up
+control.keyHoldBindCharNamed 'Down', 'down', down
+control.keyHoldBindCharNamed 'Left', 'left', left
+control.keyHoldBindCharNamed 'Right', 'right', right
+
+control.keyHoldBindCharNamed 'Space', 'jump', jump
 
 save = ->
   console.log ladybug
@@ -1442,7 +1480,7 @@ Cloud::spriteinit = () ->
   tex = PIXI.Texture.fromImage sourcebaseurl+@src
   sprit = new PIXI.TilingSprite tex, screensize.x, screensize.y
   @_pixisprite=sprit
-  stage.addChildAt sprit, 0
+  parentstage.addChildAt sprit, 0
   return sprit
 
 class Grid extends Renderable
@@ -1459,11 +1497,11 @@ Grid::PIXINIT = Cloud::PIXINIT = ->
     {x,y}=adjustedscreensize()
     sprit = new PIXI.TilingSprite tex, x,y
     @_pixisprite=sprit
-    stage.addChildAt sprit, 0
+    parentstage.addChildAt sprit, 0
 
 Grid::PIXREMOVE = ->
   if not settings.grid and @_pixisprite
-    stage.removeChild @_pixisprite
+    parentstage.removeChild @_pixisprite
     @_pixisprite=undefined
 
 Cloud::render = () ->
@@ -1472,10 +1510,10 @@ Cloud::render = () ->
   @PIXINIT()
   sprit = @_pixisprite
   offset=V tickno*-0.2, Math.sin(tickno/200)*64
-  sprit.position = VTOPP pos
+  #sprit.position = VTOPP pos
   sprit.tilePosition = VTOPP offset
   if settings.grid and @_pixisprite
-    stage.removeChild @_pixisprite
+    parentstage.removeChild @_pixisprite
     @_pixisprite=undefined
 
 Grid::render = () ->
@@ -1483,8 +1521,8 @@ Grid::render = () ->
   flip = false
   @PIXINIT()
   sprit = @_pixisprite
-  sprit.position = VTOPP pos
-  offset = camera.pos.nmul -1
+  #sprit.position = VTOPP pos
+  offset = pos.nmul -1
   sprit.tilePosition = new PIXI.Point offset.x, offset.y
   @PIXREMOVE()
 
@@ -1543,12 +1581,14 @@ BugMeter::spriteinit = () ->
   tex = PIXI.Texture.fromImage sourcebaseurl+@src
   sprit = new PIXI.TilingSprite tex, @spritesize.x*@value, @spritesize.y
   @_pixisprite=sprit
-  stage.addChild sprit
+  HUDLAYER.addChild sprit
+  #stage.addChild sprit
   return sprit
 
 BugMeter::render = () ->
-  pos = cameraoffset()
-  pos = pos.vadd @abspos
+  #pos = cameraoffset()
+  #pos = pos.vadd @abspos
+  pos = @abspos
   flip = false
   if not @_pixisprite then @spriteinit()
   sprit = @_pixisprite
@@ -1557,7 +1597,7 @@ BugMeter::render = () ->
 BugMeter::tick = () ->
   @update ladybug.health
 BugMeter::update = (value) ->
-  @removesprite()
+  stageremovesprite HUDLAYER, @
   @value = value
 
 class EnergyMeter extends BugMeter
@@ -1818,9 +1858,6 @@ tickwaitms = 20
 skipframes = 0
 ticktimes = []
 
-WORLD.resethitboxcache = -> #noop
-#  WORLD.gethitbox = _.memoize (sprite) -> sprite.gethitbox()
-
 WORLD.gethitbox = (sprite) -> sprite.gethitbox()
 
 checkcolls = ( ent, otherents ) ->
@@ -1839,8 +1876,20 @@ WORLD.euthanasia = ->
   doomedsprites.forEach (sprite) -> sprite.cleanup?()
   WORLD.spritelayer = _.difference WORLD.spritelayer, doomedsprites
 
+quadwrap = (origobj) ->
+  obj = origobj.gethitbox()
+  { x: obj.x, y: obj.y, w: obj.w, h: obj.h, LINK: origobj }
+
+quadunwrap = (obj) ->
+  return obj.LINK
+
+rejigCols = ->
+  bglayerQuads.clear()
+  WORLD.bglayer.forEach (block) ->
+    bglayerQuads.insert quadwrap block
+
 WORLD.tick = () ->
-  WORLD.resethitboxcache()
+  rejigCols()
   for key in control.heldkeys
     control.holdbindings[key]?()
   checkcolls ladybug, WORLD.spritelayer
@@ -1868,8 +1917,8 @@ mainloop = ->
     tt=ticktime
     fps=Math.round 1000/Math.max(tickwaitms,ticktime)
     idealfps=Math.round 1000/tickwaitms
-    fpscounter.html "tick time: #{tt}ms, running at approx #{fps} fps (aiming for #{idealfps} fps)"
-  fpsgoal = if settings.slowmo then 4 else 30
+    fpscounter.html "~#{fps}/#{idealfps} fps ; per tick: #{tt}ms"
+  fpsgoal = if settings.slowmo then 4 else settings.fps
   tickwaitms = 1000/fpsgoal
   setTimeout mainloop, Math.max tickwaitms-ticktime, 1
   requestAnimFrame animate
@@ -1972,11 +2021,19 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
       offset=currclickpos.vsub ORIGCLICKPOS
       camera.offset = offset
 
+snapmouseadjust_always = (mpos) ->
+  gridsize = 32
+  mpos = mpos.ndiv(gridsize).op(Math.round).nmul(gridsize)
+  return mpos
+snapmouseadjust_down = (mpos) ->
+  gridsize = 32
+  mpos = mpos.ndiv(gridsize).op(Math.floor).nmul(gridsize)
+  return mpos
+
 snapmouseadjust = (mpos) ->
   snaptogrid = isholdingkey 'z'
   if snaptogrid
-    gridsize = 32
-    mpos = mpos.ndiv(gridsize).op(Math.round).nmul(gridsize)
+    return snapmouseadjust_always mpos
   return mpos
 
 class MoveTool extends Tool
@@ -2199,7 +2256,30 @@ WATERTOOL=_.extend {}, NOOPTOOL,
       WORLD.spritelayer.unshift new Water bl.x, bl.y, bl.w, bl.h
       bglayer_remove_block bl
 
-alltools = [ BLOCKCREATIONTOOL, MOVEBLOCKTOOL, MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL, UNIONTOOL, CARVER, WATERTOOL ]
+BASETOOL = _.extend {}, NOOPTOOL,
+  held: {}
+  mousedown: (e) ->
+    @held[e.button]=true
+    if e.button is 0 then @leftclick adjustmouseevent e
+  mouseup: (e) ->
+    @held[e.button]=false
+  mousemove: (e) ->
+    if @held[0] then @lefthold adjustmouseevent e
+  leftclick: (pos) ->
+  lefthold: (pos) ->
+
+BLOCKPAINT=_.extend {}, BASETOOL,
+  name: "paint blocks"
+  action: (p) ->
+    snapped=snapmouseadjust_down p
+    blocksundercursor = blocksatpoint WORLD.bglayer, p
+    if blocksundercursor.length == 0
+      newblock=new Block snapped.x, snapped.y, 32, 32
+      WORLD.bglayer.push newblock
+  leftclick: (p) -> @action p
+  lefthold: (p) -> @action p
+
+alltools = [ BLOCKCREATIONTOOL, MOVEBLOCKTOOL, MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL, UNIONTOOL, CARVER, WATERTOOL, BLOCKPAINT ]
 
 alltools.push _.extend {}, NOOPTOOL,
   name: "turn block into oneway"
@@ -2431,4 +2511,5 @@ Block::equals = (b) ->
 jame.cleanobj = (obj) ->
   arr= ( [key,val] for own key,val of obj)
   return _.object arr
+
 

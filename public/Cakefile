@@ -15,6 +15,4 @@ task "buildwatch", "build the files and watch for changes", (options) ->
   spawn 'coffee', ['-cw', '-o', '.', './src' ], stdio: 'inherit'
 
 
-task "docs", "remake documentation", () ->
-  exec "docco src/*.coffee"
 
