@@ -915,9 +915,16 @@ BugLady::movetick = ->
   @climbing = @touchingwall()
 
 BugLady::jumpimpulse = (jumpvel) ->
+  if @touchingground() then @spentdoublejump = false
   jumplegal = @touchingground() or @submerged()
-  if jumplegal and @jumping
+  doublejumplegal = @vel.y >= 0
+  if @spentdoublejump then doublejumplegal = false
+  if @jumping and doublejumplegal and not jumplegal
+    @spentdoublejump = true
+  if @jumping and (jumplegal or doublejumplegal)
     @vel.y = -jumpvel
+  if @spentdoublejump
+    WORLD.spritelayer.push new PchooParticle entcenter @
 
 GenericSprite::friction = () ->
   @vel.x = @vel.x*0.5
@@ -982,33 +989,6 @@ BugLady::render = ->
   else
     sprit.rotation=0
 
-class PlayerBurd extends Hero
-  constructor: () ->
-    super()
-    @src='burd.png'
-    @anchor = V 1/2, 1
-
-PlayerBurd::takedamage = BugLady::takedamage
-PlayerBurd::getsprite = -> 'burd.png'
-PlayerBurd::render = ->
-  src=@src
-  anchor = @anchor or V(0,0)
-  flip=false
-  pos=@pos
-  sprit=drawsprite @, src, pos, flip, anchor
-  return
-
-PlayerBurd::tick = ->
-  @checkcontrols()
-  if @outofbounds() then @kill()
-  vel = Math.abs( @vel.x )
-  #BLOCK COLLISIONS
-  @blockcollisions()
-  @avoidwalls()
-  heading = if @facingleft then -1 else 1
-  @pos = @pos.vadd @vel
-  if not @touchingground()
-    @gravitate()
 
 removesprite = ( ent ) ->
   if not ent._pixisprite? then return
@@ -1268,7 +1248,6 @@ ControlObj::keyHoldBindRawNamed = ( key, name, func ) ->
 control.keytapbindname '9', 'zoom out', -> camera.zoomout()
 control.keytapbindname '0', 'zoom in', -> camera.zoomin()
 
-control.keytapbindname 'c', 'become burd', -> jame.burdme()
 
 
 launchFullScreen = (elm) ->
@@ -2485,10 +2464,6 @@ toolbar.append spawnselection
 spawnselection.change (e) ->
   SPAWNTOOL.classname = $(@).val()
   
-jame.burdme = ->
-  ladybug = new PlayerBurd()
-  WORLD.entities.push ladybug
-
 jame.WORLD = WORLD
 
 jame.control = control
