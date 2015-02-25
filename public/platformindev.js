@@ -1476,12 +1476,13 @@
   };
 
   BugLady.prototype.jumpimpulse = function(jumpvel) {
-    var doublejumplegal, jumplegal;
+    var doublejumplegal, jumplegal, unpowered;
+    unpowered = settings.altcostume;
     if (this.touchingground()) {
       this.spentdoublejump = false;
     }
     jumplegal = this.touchingground() || this.submerged();
-    doublejumplegal = this.vel.y >= 0;
+    doublejumplegal = this.vel.y >= 0 && !unpowered;
     if (this.spentdoublejump) {
       doublejumplegal = false;
     }
@@ -1802,7 +1803,9 @@
   };
 
   hitboxfilter = function(hitbox, rectarray) {
-    return hitboxfilter_OLD(hitbox, rectarray);
+    var res;
+    res = hitboxfilter_OLD(hitbox, rectarray);
+    return res;
   };
 
   makebox = function(position, dimensions, anchor) {
@@ -3809,8 +3812,14 @@
   allactions['become queen of the slimes'] = function() {
     var hat;
     WORLD.spritelayer.push(hat = new Hat());
-    hat.src = 'crown.png';
-    return hat.parent = royaljel;
+    return hat.src = 'crown.png';
+  };
+
+  allactions['become queen of the cats'] = function() {
+    var hat;
+    WORLD.spritelayer.push(hat = new Hat());
+    hat.anchor = V(1 / 2, 1 / 4);
+    return hat.src = 'cheshface.png';
   };
 
   highlightoverlaps = function() {
@@ -3832,6 +3841,24 @@
   };
 
   allactions['highlight overlapping blocks'] = highlightoverlaps;
+
+  allactions['highlight quadtree candidates'] = function() {
+    var blox, cands, hitbox, res;
+    blox = WORLD.bglayer;
+    hitbox = ladybug.gethitbox();
+    cands = bglayerQuads.retrieve(hitbox);
+    console.log(cands);
+    res = cands.map(function(c) {
+      return quadunwrap(c);
+    });
+    console.log(res);
+    blox.forEach(function(b) {
+      return b.HIGHLIGHT = void 0;
+    });
+    return res.forEach(function(b) {
+      return b.HIGHLIGHT = true;
+    });
+  };
 
   objnames = function(objs) {
     return objs.map(function(obj) {

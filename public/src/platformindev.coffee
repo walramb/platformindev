@@ -915,9 +915,10 @@ BugLady::movetick = ->
   @climbing = @touchingwall()
 
 BugLady::jumpimpulse = (jumpvel) ->
+  unpowered = settings.altcostume
   if @touchingground() then @spentdoublejump = false
   jumplegal = @touchingground() or @submerged()
-  doublejumplegal = @vel.y >= 0
+  doublejumplegal = @vel.y >= 0 and not unpowered
   if @spentdoublejump then doublejumplegal = false
   if @jumping and doublejumplegal and not jumplegal
     @spentdoublejump = true
@@ -1113,8 +1114,12 @@ hitboxfilter_OLD = ( hitbox, rectarray ) ->
 hitboxfilter = ( hitbox, rectarray ) ->
   #if rectarray is WORLD.bglayer
   #  cands=bglayerQuads.retrieve hitbox
-  #  return cands.map (c) -> quadunwrap c
-  return hitboxfilter_OLD hitbox, rectarray
+  #  res = cands.map (c) -> quadunwrap c
+  #else
+  #  console.log "using old hitboxfilter"
+  res = hitboxfilter_OLD hitbox, rectarray
+  #console.log res
+  return res
 
 makebox = (position, dimensions, anchor) ->
   truepos = position.vsub dimensions.vmul anchor
@@ -2378,7 +2383,10 @@ allactions['load .json test level'] = ->
 allactions['become queen of the slimes'] = ->
   WORLD.spritelayer.push hat= new Hat()
   hat.src = 'crown.png'
-  hat.parent=royaljel
+allactions['become queen of the cats'] = ->
+  WORLD.spritelayer.push hat= new Hat()
+  hat.anchor = V 1/2,1/4
+  hat.src = 'cheshface.png'
 
 highlightoverlaps = ->
   blox=WORLD.bglayer
@@ -2390,6 +2398,18 @@ highlightoverlaps = ->
   flatlaps.forEach (b) -> b.HIGHLIGHT = true
 
 allactions['highlight overlapping blocks'] = highlightoverlaps
+
+
+allactions['highlight quadtree candidates'] = ->
+  blox=WORLD.bglayer
+  hitbox = ladybug.gethitbox()
+  cands=bglayerQuads.retrieve hitbox
+  console.log cands
+  res = cands.map (c) -> quadunwrap c
+  console.log res
+  blox.forEach (b) -> b.HIGHLIGHT = undefined
+  res.forEach (b) -> b.HIGHLIGHT = true
+
 
 objnames = (objs) ->
   objs.map (obj) -> obj.constructor.name
