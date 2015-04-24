@@ -50,3 +50,8 @@
   border: 0.2em outset #1a0;
   background-color: #1a0;
 }
+
+em {
+  display: block;
+}
+

@@ -1,0 +1,5990 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='UTF-8'>
+  <title>CoffeeScript API Documentation</title>
+  <script src='../javascript/application.js'></script>
+  <script src='../javascript/search.js'></script>
+  <link rel='stylesheet' href='../stylesheets/application.css' type='text/css'>
+</head>
+  <body>
+    <div id='base' data-path='../'></div>
+<div id='header'>
+  <div id='menu'>
+    <a href='../alphabetical_index.html' title='Index'>
+      Index
+    </a>
+    &raquo;
+    <span class='title'>~~~platformindev.coffee</span>
+  </div>
+</div>
+    <div id='content'>
+      <h1>
+        File:
+        ~~~platformindev.coffee
+      </h1>
+      <table class='box'>
+        <tr>
+          <td>Defined in:</td>
+          <td>.</td>
+        </tr>
+        <tr>
+          <td>
+            Classes:
+          </td>
+          <td>
+            <a href='../class/Line2d.html'>
+              Line2d
+            </a>
+            <a href='../class/Renderable.html'>
+              Renderable
+            </a>
+            <a href='../class/GenericSprite.html'>
+              GenericSprite
+            </a>
+            <a href='../class/Hat.html'>
+              Hat
+            </a>
+            <a href='../class/Target.html'>
+              Target
+            </a>
+            <a href='../class/Jelly.html'>
+              Jelly
+            </a>
+            <a href='../class/Fence.html'>
+              Fence
+            </a>
+            <a href='../class/Pickup.html'>
+              Pickup
+            </a>
+            <a href='../class/Energy.html'>
+              Energy
+            </a>
+            <a href='../class/Gold.html'>
+              Gold
+            </a>
+            <a href='../class/Thug.html'>
+              Thug
+            </a>
+            <a href='../class/Lila.html'>
+              Lila
+            </a>
+            <a href='../class/Robo.html'>
+              Robo
+            </a>
+            <a href='../class/Burd.html'>
+              Burd
+            </a>
+            <a href='../class/BoggleParticle.html'>
+              BoggleParticle
+            </a>
+            <a href='../class/Smoochie.html'>
+              Smoochie
+            </a>
+            <a href='../class/PchooParticle.html'>
+              PchooParticle
+            </a>
+            <a href='../class/Bullet.html'>
+              Bullet
+            </a>
+            <a href='../class/Hero.html'>
+              Hero
+            </a>
+            <a href='../class/BugLady.html'>
+              BugLady
+            </a>
+            <a href='../class/Claire.html'>
+              Claire
+            </a>
+            <a href='../class/PlayerBurd.html'>
+              PlayerBurd
+            </a>
+            <a href='../class/Poly.html'>
+              Poly
+            </a>
+            <a href='../class/Block.html'>
+              Block
+            </a>
+            <a href='../class/PowerSuit.html'>
+              PowerSuit
+            </a>
+            <a href='../class/ControlObj.html'>
+              ControlObj
+            </a>
+            <a href='../class/Water.html'>
+              Water
+            </a>
+            <a href='../class/Cloud.html'>
+              Cloud
+            </a>
+            <a href='../class/Grid.html'>
+              Grid
+            </a>
+            <a href='../class/World.html'>
+              World
+            </a>
+            <a href='../class/Shrub.html'>
+              Shrub
+            </a>
+            <a href='../class/PlaceholderSprite.html'>
+              PlaceholderSprite
+            </a>
+            <a href='../class/BugMeter.html'>
+              BugMeter
+            </a>
+            <a href='../class/EnergyMeter.html'>
+              EnergyMeter
+            </a>
+            <a href='../class/MoneyMeter.html'>
+              MoneyMeter
+            </a>
+            <a href='../class/Goal.html'>
+              Goal
+            </a>
+            <a href='../class/Platform.html'>
+              Platform
+            </a>
+            <a href='../class/HurtWire.html'>
+              HurtWire
+            </a>
+            <a href='../class/Spawner.html'>
+              Spawner
+            </a>
+            <a href='../class/Tool.html'>
+              Tool
+            </a>
+            <a href='../class/MoveTool.html'>
+              MoveTool
+            </a>
+            <a href='../class/MoveBlockTool.html'>
+              MoveBlockTool
+            </a>
+          </td>
+        </tr>
+      </table>
+      <h2>Variables Summary</h2>
+      <dl class='constants'>
+  <dt id='THISFILE-variable'>
+    THISFILE
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>&quot;src&#47;platformindev.coffee&quot;</code></pre>
+    
+  </dd>
+  <dt id='settings-variable'>
+    settings
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  drawsprites: true,
+  slowmo: false,
+  altcostume: true,
+  beanmode: false,
+  muted: true,
+  paused: false,
+  volume: 0.2,
+  decemberween: false,
+  hat: false
+}</code></pre>
+    
+  </dd>
+  <dt id='settings.scale-variable'>
+    settings.scale
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>1</code></pre>
+    
+  </dd>
+  <dt id='sourcebaseurl-variable'>
+    sourcebaseurl
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>&quot;.&#47;sprites&#47;&quot;</code></pre>
+    
+  </dd>
+  <dt id='audiobaseurl-variable'>
+    audiobaseurl
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>&quot;.&#47;audio&#47;&quot;</code></pre>
+    
+  </dd>
+  <dt id='pausescreen.alpha-variable'>
+    pausescreen.alpha
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>0.5</code></pre>
+    
+  </dd>
+  <dt id='bogglescreen.alpha-variable'>
+    bogglescreen.alpha
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>0.5</code></pre>
+    
+  </dd>
+  <dt id='B_MASKING-variable'>
+    B_MASKING
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>false</code></pre>
+    
+  </dd>
+  <dt id='OTHERCHAR_SUBSCREEN-variable'>
+    OTHERCHAR_SUBSCREEN
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  init: function() {
+    this.size = V(300, 200);
+    this.screenpos = V(64, 64);
+    this.subscreen = new PIXI.RenderTexture(this.size.x, this.size.y);
+    this.subsprite = new PIXI.Sprite(this.subscreen);
+    parentstage.addChild(this.subsprite);
+    if (B_MASKING) {
+      this.mask = new PIXI.Graphics();
+      return parentstage.addChild(this.mask);
+    }
+  },
+  maskupdate: function() {
+    this.mask.clear();
+    this.mask.beginFill(0x000000, 0.9);
+    this.mask.moveTo(this.screenpos.x, this.screenpos.y + 32);
+    this.mask.lineTo(this.screenpos.x + this.size.x, this.screenpos.y);
+    this.mask.lineTo(this.screenpos.x + this.size.x, this.screenpos.y + this.size.y - 32);
+    this.mask.lineTo(this.screenpos.x, this.screenpos.y + this.size.y);
+    return this.mask.endFill();
+  }
+}</code></pre>
+    
+  </dd>
+  <dt id='scale-variable'>
+    scale
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>1</code></pre>
+    
+  </dd>
+  <dt id='chievs-variable'>
+    chievs
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{}</code></pre>
+    
+  </dd>
+  <dt id='chievs.fall-variable'>
+    chievs.fall
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;lovelyfall.png&quot;,
+  text: [&quot;Fractured spine&quot;, &quot;Faceplant&quot;, &quot;Dats gotta hoit&quot;, &quot;OW FUCK&quot;, &quot;pomf =3&quot;, &quot;Broken legs&quot;, &quot;Have a nice trip&quot;, &quot;Ow my organs&quot;, &quot;Shattered pelvis&quot;, &quot;Bugsplat&quot;]
+}</code></pre>
+    
+  </dd>
+  <dt id='chievs.kick-variable'>
+    chievs.kick
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;jelly.png&quot;,
+  text: [&quot;3 points field goal&quot;, &quot;Into the dunklesphere&quot;, &quot;Blasting off again&quot;, &quot;pow zoom straight to the moon&quot;]
+}</code></pre>
+    
+  </dd>
+  <dt id='chievs.boggle-variable'>
+    chievs.boggle
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;boggle.png&quot;,
+  text: [&quot;Buggy the boggle champ&quot;, &quot;Bushboggler 2013&quot;, &quot;Boggle that bush&quot;, &quot;Collosal waste of time&quot;, &quot;Boggle 2: Electric boggleoo&quot;, &quot;Buggy bushboggle&quot;, &quot;excuse me wtf are you doing&quot;, &quot;Bush it, bush it real good&quot;, &quot;Fondly regard flora&quot;, &quot;&amp;lt;chievo title unavailable due to trademark infringement&amp;gt;&quot;, &quot;Returning a bug to its natural habitat&quot;, &quot;Bush it to the limit&quot;, &quot;Live Free or Boggle Hard&quot;, &quot;Identifying bushes, accurate results with simple tools&quot;, &quot;Bugtester&quot;, &quot;A proper lady (bug)&quot;, &quot;Stupid achievement title&quot;, &quot;The daily boggle&quot;, bogimg + bogimg + bogimg]
+}</code></pre>
+    
+  </dd>
+  <dt id='chievs.murder-variable'>
+    chievs.murder
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;lovelyshorter.png&quot;,
+  text: [&quot;This isn&#39;t brave, it&#39;s murder&quot;, &quot;Jellycide&quot;]
+}</code></pre>
+    
+  </dd>
+  <dt id='chievs.target-variable'>
+    chievs.target
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;target.png&quot;,
+  text: [&quot;there&#39;s no achievement for this&quot;, &quot;\&quot;Pow, motherfucker, pow\&quot; -socrates&quot;, &quot;Expect more. Pay less.&quot;, &quot;You&#39;re supposed to use arrows you dingus&quot;]
+}</code></pre>
+    
+  </dd>
+  <dt id='chievs.start-variable'>
+    chievs.start
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  pic: &quot;crown.png&quot;,
+  text: [&quot;wow u started playin the game, congrats&quot;, &quot;walking to the right&quot;, &quot;chievo modern gaming edition&quot;, &quot;baby&#39;s first achievement&quot;]
+}</code></pre>
+    
+  </dd>
+  <dt id='Thug.prototype.anchor-variable'>
+    Thug.prototype.anchor
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>bottomcenter</code></pre>
+    
+  </dd>
+  <dt id='BugLady.prototype.dmgvelocity-variable'>
+    BugLady.prototype.dmgvelocity
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>20</code></pre>
+    
+  </dd>
+  <dt id='PlayerBurd.prototype.takedamage-variable'>
+    PlayerBurd.prototype.takedamage
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>BugLady</code></pre>
+    
+  </dd>
+  <dt id='BugLady.prototype.anchor-variable'>
+    BugLady.prototype.anchor
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>bottomcenter</code></pre>
+    
+  </dd>
+  <dt id='control-variable'>
+    control
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>control</code></pre>
+    
+  </dd>
+  <dt id='availableactions-variable'>
+    availableactions
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[up, down, left, right]</code></pre>
+    
+  </dd>
+  <dt id='CONTROL-variable'>
+    CONTROL
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>control</code></pre>
+    
+  </dd>
+  <dt id='keypushcache-variable'>
+    keypushcache
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    
+  </dd>
+  <dt id='tmpcanvas-variable'>
+    tmpcanvas
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>tmpcanvasjq</code></pre>
+    
+  </dd>
+  <dt id='tickno-variable'>
+    tickno
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>0</code></pre>
+    
+  </dd>
+  <dt id='blockdata-variable'>
+    blockdata
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    
+  </dd>
+  <dt id='spawnables-variable'>
+    spawnables
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  burd: Burd,
+  target: Target,
+  jelly: Jelly,
+  powersuit: PowerSuit,
+  gold: Gold,
+  energy: Energy,
+  lila: Lila,
+  claire: Claire,
+  platform: Platform
+}</code></pre>
+    
+  </dd>
+  <dt id='entdata-variable'>
+    entdata
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[
+  {
+    &quot;class&quot;: &quot;lila&quot;,
+    pos: {
+      x: 64 * 4,
+      y: 64 * 4
+    }
+  }, {
+    &quot;class&quot;: &quot;claire&quot;,
+    pos: {
+      x: 64 * 2,
+      y: 64 * 4
+    }
+  }
+]</code></pre>
+    
+  </dd>
+  <dt id='jame-variable'>
+    jame
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{}</code></pre>
+    
+  </dd>
+  <dt id='roboblockdata-variable'>
+    roboblockdata
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    
+  </dd>
+  <dt id='camera-variable'>
+    camera
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{}</code></pre>
+    
+  </dd>
+  <dt id='jame.camera-variable'>
+    jame.camera
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>camera</code></pre>
+    
+  </dd>
+  <dt id='camera.trackingent-variable'>
+    camera.trackingent
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>ladybug</code></pre>
+    
+  </dd>
+  <dt id='tickwaitms-variable'>
+    tickwaitms
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>20</code></pre>
+    
+  </dd>
+  <dt id='skipframes-variable'>
+    skipframes
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>0</code></pre>
+    
+  </dd>
+  <dt id='ticktimes-variable'>
+    ticktimes
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    
+  </dd>
+  <dt id='tt-variable'>
+    tt
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>0</code></pre>
+    
+  </dd>
+  <dt id='_CHARbindingnames-variable'>
+    _CHARbindingnames
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{}</code></pre>
+    <div class='docstring'>
+  <p>tmp, fix this shit</p>
+</div>
+<div class='tags'>
+</div>
+  </dd>
+  <dt id='NOOPTOOL-variable'>
+    NOOPTOOL
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  name: &#39;noop&#39;,
+  mousedown: (function() {}),
+  mouseup: (function() {}),
+  mousemove: (function() {})
+}</code></pre>
+    
+  </dd>
+  <dt id='MoveTool.prototype.name-variable'>
+    MoveTool.prototype.name
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>&#39;move entities&#39;</code></pre>
+    
+  </dd>
+  <dt id='MOVETOOL.selected-variable'>
+    MOVETOOL.selected
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    
+  </dd>
+  <dt id='tool-variable'>
+    tool
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>MOVETOOL</code></pre>
+    
+  </dd>
+  <dt id='SPAWNTOOL-variable'>
+    SPAWNTOOL
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{
+  name: &#39;Spawn entity&#39;
+}</code></pre>
+    
+  </dd>
+  <dt id='SPAWNTOOL.classname-variable'>
+    SPAWNTOOL.classname
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>&#39;burd&#39;</code></pre>
+    
+  </dd>
+  <dt id='alltools-variable'>
+    alltools
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[BLOCKCREATIONTOOL, MOVEBLOCKTOOL, MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL, UNIONTOOL, CARVER, WATERTOOL]</code></pre>
+    
+  </dd>
+  <dt id='allactions-variable'>
+    allactions
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>{}</code></pre>
+    
+  </dd>
+  <dt id='allactions-variable'>
+    allactions
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>allactions</code></pre>
+    
+  </dd>
+  <dt id='bindaction-variable'>
+    bindaction
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>bindaction</code></pre>
+    
+  </dd>
+  <dt id='allactions-variable'>
+    allactions
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>highlightoverlaps</code></pre>
+    
+  </dd>
+  <dt id='ORIGCLICKPOS-variable'>
+    ORIGCLICKPOS
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>false</code></pre>
+    
+  </dd>
+  <dt id='jame.WORLD-variable'>
+    jame.WORLD
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>WORLD</code></pre>
+    
+  </dd>
+  <dt id='jame.control-variable'>
+    jame.control
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>control</code></pre>
+    
+  </dd>
+  <dt id='root.jame-variable'>
+    root.jame
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>jame</code></pre>
+    
+  </dd>
+  <dt id='root.stage-variable'>
+    root.stage
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>stage</code></pre>
+    
+  </dd>
+</dl>
+      <h2>Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#mafs-'>
+        ~
+(void)
+<b>mafs</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mafs-'>
+        ~
+(void)
+<b>mafs</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mafs-'>
+        ~
+(void)
+<b>mafs</b><span>(max)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mafs-'>
+        ~
+(void)
+<b>mafs</b><span>(arr)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mafs-'>
+        ~
+(void)
+<b>mafs</b><span>(degs)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Line2d-'>
+        ~
+(void)
+<b>Line2d</b><span>(lineb)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#HitboxRayIntersect-'>
+        ~
+(void)
+<b>HitboxRayIntersect</b><span>(rect, line)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      based on an implementation by metamal on stackoverflow 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#pointlisttoedges-'>
+        ~
+(void)
+<b>pointlisttoedges</b><span>(parr)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#V-'>
+        ~
+(void)
+<b>V</b><span>(x = 0, y = 0)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PP-'>
+        ~
+(void)
+<b>PP</b><span>(x, y)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#VTOPP-'>
+        ~
+(void)
+<b>VTOPP</b><span>(v)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#playsound-'>
+        ~
+(void)
+<b>playsound</b><span>(src)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#resetstage-'>
+        ~
+(void)
+<b>resetstage</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#OTHERCHAR_SUBSCREEN-'>
+        ~
+(void)
+<b>OTHERCHAR_SUBSCREEN</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#animate-'>
+        ~
+(void)
+<b>animate</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#achieve-'>
+        ~
+(void)
+<b>achieve</b><span>(title)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#makechievbox-'>
+        ~
+(void)
+<b>makechievbox</b><span>(src, text)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Renderable-'>
+        ~
+(void)
+<b>Renderable</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Renderable-'>
+        ~
+(void)
+<b>Renderable</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>(obj)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      LOAD PROPERTIES FROM AN OBJECT for example to initialize from .json level data
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Hat-'>
+        ~
+(void)
+<b>Hat</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#fixbox-'>
+        ~
+(void)
+<b>fixbox</b><span>(position, dimensions, anchor)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#entitycount-'>
+        ~
+(void)
+<b>entitycount</b><span>(classtype)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Jelly-'>
+        ~
+(void)
+<b>Jelly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Jelly-'>
+        ~
+(void)
+<b>Jelly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Fence-'>
+        ~
+(void)
+<b>Fence</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Pickup-'>
+        ~
+(void)
+<b>Pickup</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Pickup-'>
+        ~
+(void)
+<b>Pickup</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Pickup-'>
+        ~
+(void)
+<b>Pickup</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Energy-'>
+        ~
+(void)
+<b>Energy</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Energy-'>
+        ~
+(void)
+<b>Energy</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Energy-'>
+        ~
+(void)
+<b>Energy</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Gold-'>
+        ~
+(void)
+<b>Gold</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Gold-'>
+        ~
+(void)
+<b>Gold</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#relativetobox-'>
+        ~
+(void)
+<b>relativetobox</b><span>(box, anchor)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Thug-'>
+        ~
+(void)
+<b>Thug</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Thug-'>
+        ~
+(void)
+<b>Thug</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Thug-'>
+        ~
+(void)
+<b>Thug</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Thug-'>
+        ~
+(void)
+<b>Thug</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Lila-'>
+        ~
+(void)
+<b>Lila</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Robo-'>
+        ~
+(void)
+<b>Robo</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Robo-'>
+        ~
+(void)
+<b>Robo</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#selectframe-'>
+        ~
+(void)
+<b>selectframe</b><span>(framelist, framewait)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Lila-'>
+        ~
+(void)
+<b>Lila</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Robo-'>
+        ~
+(void)
+<b>Robo</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Robo-'>
+        ~
+(void)
+<b>Robo</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Lila-'>
+        ~
+(void)
+<b>Lila</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Burd-'>
+        ~
+(void)
+<b>Burd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Burd-'>
+        ~
+(void)
+<b>Burd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Burd-'>
+        ~
+(void)
+<b>Burd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Burd-'>
+        ~
+(void)
+<b>Burd</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      @src = selectframe framelist, 2 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Burd-'>
+        ~
+(void)
+<b>Burd</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BoggleParticle-'>
+        ~
+(void)
+<b>BoggleParticle</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Smoochie-'>
+        ~
+(void)
+<b>Smoochie</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Bullet-'>
+        ~
+(void)
+<b>Bullet</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Target-'>
+        ~
+(void)
+<b>Target</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#isholdingkey-'>
+        ~
+(void)
+<b>isholdingkey</b><span>(key)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#isholdingbound-'>
+        ~
+(void)
+<b>isholdingbound</b><span>(name)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Hero-'>
+        ~
+(void)
+<b>Hero</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#entcenter-'>
+        ~
+(void)
+<b>entcenter</b><span>(ent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#closestpoint-'>
+        ~
+(void)
+<b>closestpoint</b><span>(p, pointarr)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Hero-'>
+        ~
+(void)
+<b>Hero</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Hero-'>
+        ~
+(void)
+<b>Hero</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#firebullet-'>
+        ~
+(void)
+<b>firebullet</b><span>(ent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#get_sprites_of_class-'>
+        ~
+(void)
+<b>get_sprites_of_class</b><span>(classtype)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>(jumpvel)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Claire-'>
+        ~
+(void)
+<b>Claire</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugLady-'>
+        ~
+(void)
+<b>BugLady</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PlayerBurd-'>
+        ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PlayerBurd-'>
+        ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PlayerBurd-'>
+        ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#removesprite-'>
+        ~
+(void)
+<b>removesprite</b><span>(ent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#initsprite-'>
+        ~
+(void)
+<b>initsprite</b><span>(ent, tex)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#drawsprite-'>
+        ~
+(void)
+<b>drawsprite</b><span>(ent, src, pos, flip, anchor = V())</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Poly-'>
+        ~
+(void)
+<b>Poly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Poly-'>
+        ~
+(void)
+<b>Poly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Poly-'>
+        ~
+(void)
+<b>Poly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Poly-'>
+        ~
+(void)
+<b>Poly</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      rename Block::touching ? 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#hitboxfilter-'>
+        ~
+(void)
+<b>hitboxfilter</b><span>(hitbox, rectarray)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#makebox-'>
+        ~
+(void)
+<b>makebox</b><span>(position, dimensions, anchor)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#leftof-'>
+        ~
+(void)
+<b>leftof</b><span>(box)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#rightof-'>
+        ~
+(void)
+<b>rightof</b><span>(box)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bottomof-'>
+        ~
+(void)
+<b>bottomof</b><span>(box)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#topof-'>
+        ~
+(void)
+<b>topof</b><span>(box)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>(p)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#blocksatpoint-'>
+        ~
+(void)
+<b>blocksatpoint</b><span>(blocks, p)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#boxtouchingwall-'>
+        ~
+(void)
+<b>boxtouchingwall</b><span>(collidebox)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#GenericSprite-'>
+        ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PowerSuit-'>
+        ~
+(void)
+<b>PowerSuit</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#normalizekey-'>
+        ~
+(void)
+<b>normalizekey</b><span>(key)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ControlObj-'>
+        ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#launchFullScreen-'>
+        ~
+(void)
+<b>launchFullScreen</b><span>(elm)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#cancelFullScreen-'>
+        ~
+(void)
+<b>cancelFullScreen</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#toggleFullScreen-'>
+        ~
+(void)
+<b>toggleFullScreen</b><span>(elm)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#pausefunc-'>
+        ~
+(void)
+<b>pausefunc</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#punch-'>
+        ~
+(void)
+<b>punch</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#kick-'>
+        ~
+(void)
+<b>kick</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#up-'>
+        ~
+(void)
+<b>up</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#down-'>
+        ~
+(void)
+<b>down</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bugspeed-'>
+        ~
+(void)
+<b>bugspeed</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#left-'>
+        ~
+(void)
+<b>left</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#right-'>
+        ~
+(void)
+<b>right</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#save-'>
+        ~
+(void)
+<b>save</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#load-'>
+        ~
+(void)
+<b>load</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#nextlevel-'>
+        ~
+(void)
+<b>nextlevel</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#restartlevel-'>
+        ~
+(void)
+<b>restartlevel</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#cheatcodecheck-'>
+        ~
+(void)
+<b>cheatcodecheck</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Water-'>
+        ~
+(void)
+<b>Water</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Cloud-'>
+        ~
+(void)
+<b>Cloud</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#adjustedscreensize-'>
+        ~
+(void)
+<b>adjustedscreensize</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Grid-'>
+        ~
+(void)
+<b>Grid</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Cloud-'>
+        ~
+(void)
+<b>Cloud</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Grid-'>
+        ~
+(void)
+<b>Grid</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#randpos-'>
+        ~
+(void)
+<b>randpos</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#placeshrub-'>
+        ~
+(void)
+<b>placeshrub</b><span>(pos)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#PlaceholderSprite-'>
+        ~
+(void)
+<b>PlaceholderSprite</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugMeter-'>
+        ~
+(void)
+<b>BugMeter</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugMeter-'>
+        ~
+(void)
+<b>BugMeter</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugMeter-'>
+        ~
+(void)
+<b>BugMeter</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#BugMeter-'>
+        ~
+(void)
+<b>BugMeter</b><span>(value)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#EnergyMeter-'>
+        ~
+(void)
+<b>EnergyMeter</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadblocks-'>
+        ~
+(void)
+<b>loadblocks</b><span>(blockdata)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadspawners-'>
+        ~
+(void)
+<b>loadspawners</b><span>(entdata)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#scatterents-'>
+        ~
+(void)
+<b>scatterents</b><span>(classproto, num)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Goal-'>
+        ~
+(void)
+<b>Goal</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Platform-'>
+        ~
+(void)
+<b>Platform</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#HurtWire-'>
+        ~
+(void)
+<b>HurtWire</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#HurtWire-'>
+        ~
+(void)
+<b>HurtWire</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#HurtWire-'>
+        ~
+(void)
+<b>HurtWire</b><span>(otherent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#HurtWire-'>
+        ~
+(void)
+<b>HurtWire</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Spawner-'>
+        ~
+(void)
+<b>Spawner</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Spawner-'>
+        ~
+(void)
+<b>Spawner</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Spawner-'>
+        ~
+(void)
+<b>Spawner</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#jame-'>
+        ~
+(void)
+<b>jame</b><span>(classname)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadent-'>
+        ~
+(void)
+<b>loadent</b><span>(entdatum)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadents-'>
+        ~
+(void)
+<b>loadents</b><span>(entdata)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD_ONE_INIT-'>
+        ~
+(void)
+<b>WORLD_ONE_INIT</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLDINIT-'>
+        ~
+(void)
+<b>WORLDINIT</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#randtri-'>
+        ~
+(void)
+<b>randtri</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#ROBOWORLD_INIT-'>
+        ~
+(void)
+<b>ROBOWORLD_INIT</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#COLLTEST_INIT-'>
+        ~
+(void)
+<b>COLLTEST_INIT</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadlevelfile-'>
+        ~
+(void)
+<b>loadlevelfile</b><span>(levelfilename)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      levelfilename = &quot;levels/1.json&quot; $.ajax levelfilename, success: (data,status,xhr) -&gt; jsondata=JSON.parse data loadlevel jsondata WORLD_ONE_INIT()
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#camera-'>
+        ~
+(void)
+<b>camera</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#camera-'>
+        ~
+(void)
+<b>camera</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#cameraoffset-'>
+        ~
+(void)
+<b>cameraoffset</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#camera-'>
+        ~
+(void)
+<b>camera</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#render-'>
+        ~
+(void)
+<b>render</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#drawhitboxes-'>
+        ~
+(void)
+<b>drawhitboxes</b><span>(ents)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#timecall-'>
+        ~
+(void)
+<b>timecall</b><span>(func)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      returns elapsed time in ms. 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>(sprite)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#checkcolls-'>
+        ~
+(void)
+<b>checkcolls</b><span>(ent, otherents)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+      remove entities that requested death 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#WORLD-'>
+        ~
+(void)
+<b>WORLD</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#updateinfobox-'>
+        ~
+(void)
+<b>updateinfobox</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mainloop-'>
+        ~
+(void)
+<b>mainloop</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#xmlwrap-'>
+        ~
+(void)
+<b>xmlwrap</b><span>(tagname, body)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#maketablerow-'>
+        ~
+(void)
+<b>maketablerow</b><span>(values)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#jame-'>
+        ~
+(void)
+<b>jame</b><span>(arrofarr)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#selectall-'>
+        ~
+(void)
+<b>selectall</b><span>(classname)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#jame-'>
+        ~
+(void)
+<b>jame</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#updatesettingstable-'>
+        ~
+(void)
+<b>updatesettingstable</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#INIT-'>
+        ~
+(void)
+<b>INIT</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#adjustmouseevent-'>
+        ~
+(void)
+<b>adjustmouseevent</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#snapmouseadjust-'>
+        ~
+(void)
+<b>snapmouseadjust</b><span>(mpos)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#MoveTool-'>
+        ~
+(void)
+<b>MoveTool</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#MoveTool-'>
+        ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#MoveTool-'>
+        ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#MoveBlockTool-'>
+        ~
+(void)
+<b>MoveBlockTool</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getentsunderpoint-'>
+        ~
+(void)
+<b>getentsunderpoint</b><span>(p)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#MoveTool-'>
+        ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#setcursor-'>
+        ~
+(void)
+<b>setcursor</b><span>(cursorname)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#randposrel-'>
+        ~
+(void)
+<b>randposrel</b><span>(p = V())</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#SPAWNTOOL-'>
+        ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#SPAWNTOOL-'>
+        ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#SPAWNTOOL-'>
+        ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#boxesbounding-'>
+        ~
+(void)
+<b>boxesbounding</b><span>(boxlist)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      take a list of Block objects return a bounding block
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#blockcarve-'>
+        ~
+(void)
+<b>blockcarve</b><span>(aa, bb)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      ughhhh 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#carveoutblock-'>
+        ~
+(void)
+<b>carveoutblock</b><span>(b)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bindaction-'>
+        ~
+(void)
+<b>bindaction</b><span>(key, actionname)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#readablebindings-'>
+        ~
+(void)
+<b>readablebindings</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getotherhero-'>
+        ~
+(void)
+<b>getotherhero</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#unzip-'>
+        ~
+(void)
+<b>unzip</b><span>(data)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#loadlevel-'>
+        ~
+(void)
+<b>loadlevel</b><span>(data)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#highlightoverlaps-'>
+        ~
+(void)
+<b>highlightoverlaps</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#objnames-'>
+        ~
+(void)
+<b>objnames</b><span>(objs)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#allactions-'>
+        ~
+(void)
+<b>allactions</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mousemiddledownhandler-'>
+        ~
+(void)
+<b>mousemiddledownhandler</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mousemiddleuphandler-'>
+        ~
+(void)
+<b>mousemiddleuphandler</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bglayer_remove_block-'>
+        ~
+(void)
+<b>bglayer_remove_block</b><span>(ent)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#mouserightdownhandler-'>
+        ~
+(void)
+<b>mouserightdownhandler</b><span>(e)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#lastmodified-'>
+        ~
+(void)
+<b>lastmodified</b><span>(date)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#jame-'>
+        ~
+(void)
+<b>jame</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#Block-'>
+        ~
+(void)
+<b>Block</b><span>(b)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#jame-'>
+        ~
+(void)
+<b>jame</b><span>(obj)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+</ul>
+      <h2>Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='mafs-'>
+      ~
+(void)
+<b>mafs</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mafs-'>
+      ~
+(void)
+<b>mafs</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mafs-'>
+      ~
+(void)
+<b>mafs</b><span>(max)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mafs-'>
+      ~
+(void)
+<b>mafs</b><span>(arr)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mafs-'>
+      ~
+(void)
+<b>mafs</b><span>(degs)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Line2d-'>
+      ~
+(void)
+<b>Line2d</b><span>(lineb)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='HitboxRayIntersect-'>
+      ~
+(void)
+<b>HitboxRayIntersect</b><span>(rect, line)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>based on an implementation by metamal on stackoverflow</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='pointlisttoedges-'>
+      ~
+(void)
+<b>pointlisttoedges</b><span>(parr)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='V-'>
+      ~
+(void)
+<b>V</b><span>(x = 0, y = 0)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PP-'>
+      ~
+(void)
+<b>PP</b><span>(x, y)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='VTOPP-'>
+      ~
+(void)
+<b>VTOPP</b><span>(v)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='playsound-'>
+      ~
+(void)
+<b>playsound</b><span>(src)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='resetstage-'>
+      ~
+(void)
+<b>resetstage</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='OTHERCHAR_SUBSCREEN-'>
+      ~
+(void)
+<b>OTHERCHAR_SUBSCREEN</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='animate-'>
+      ~
+(void)
+<b>animate</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='achieve-'>
+      ~
+(void)
+<b>achieve</b><span>(title)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='makechievbox-'>
+      ~
+(void)
+<b>makechievbox</b><span>(src, text)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Renderable-'>
+      ~
+(void)
+<b>Renderable</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Renderable-'>
+      ~
+(void)
+<b>Renderable</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>(obj)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>LOAD PROPERTIES FROM AN OBJECT
+for example to initialize from .json level data</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Hat-'>
+      ~
+(void)
+<b>Hat</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='fixbox-'>
+      ~
+(void)
+<b>fixbox</b><span>(position, dimensions, anchor)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='entitycount-'>
+      ~
+(void)
+<b>entitycount</b><span>(classtype)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Jelly-'>
+      ~
+(void)
+<b>Jelly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Jelly-'>
+      ~
+(void)
+<b>Jelly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Fence-'>
+      ~
+(void)
+<b>Fence</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Pickup-'>
+      ~
+(void)
+<b>Pickup</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Pickup-'>
+      ~
+(void)
+<b>Pickup</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Pickup-'>
+      ~
+(void)
+<b>Pickup</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Energy-'>
+      ~
+(void)
+<b>Energy</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Energy-'>
+      ~
+(void)
+<b>Energy</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Energy-'>
+      ~
+(void)
+<b>Energy</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Gold-'>
+      ~
+(void)
+<b>Gold</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Gold-'>
+      ~
+(void)
+<b>Gold</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='relativetobox-'>
+      ~
+(void)
+<b>relativetobox</b><span>(box, anchor)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Thug-'>
+      ~
+(void)
+<b>Thug</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Thug-'>
+      ~
+(void)
+<b>Thug</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Thug-'>
+      ~
+(void)
+<b>Thug</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Thug-'>
+      ~
+(void)
+<b>Thug</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Lila-'>
+      ~
+(void)
+<b>Lila</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Robo-'>
+      ~
+(void)
+<b>Robo</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Robo-'>
+      ~
+(void)
+<b>Robo</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='selectframe-'>
+      ~
+(void)
+<b>selectframe</b><span>(framelist, framewait)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Lila-'>
+      ~
+(void)
+<b>Lila</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Robo-'>
+      ~
+(void)
+<b>Robo</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Robo-'>
+      ~
+(void)
+<b>Robo</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Lila-'>
+      ~
+(void)
+<b>Lila</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Burd-'>
+      ~
+(void)
+<b>Burd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Burd-'>
+      ~
+(void)
+<b>Burd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Burd-'>
+      ~
+(void)
+<b>Burd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Burd-'>
+      ~
+(void)
+<b>Burd</b><span>(otherent)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>@src = selectframe framelist, 2</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Burd-'>
+      ~
+(void)
+<b>Burd</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BoggleParticle-'>
+      ~
+(void)
+<b>BoggleParticle</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Smoochie-'>
+      ~
+(void)
+<b>Smoochie</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Bullet-'>
+      ~
+(void)
+<b>Bullet</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Target-'>
+      ~
+(void)
+<b>Target</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='isholdingkey-'>
+      ~
+(void)
+<b>isholdingkey</b><span>(key)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='isholdingbound-'>
+      ~
+(void)
+<b>isholdingbound</b><span>(name)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Hero-'>
+      ~
+(void)
+<b>Hero</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='entcenter-'>
+      ~
+(void)
+<b>entcenter</b><span>(ent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='closestpoint-'>
+      ~
+(void)
+<b>closestpoint</b><span>(p, pointarr)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Hero-'>
+      ~
+(void)
+<b>Hero</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Hero-'>
+      ~
+(void)
+<b>Hero</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='firebullet-'>
+      ~
+(void)
+<b>firebullet</b><span>(ent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='get_sprites_of_class-'>
+      ~
+(void)
+<b>get_sprites_of_class</b><span>(classtype)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>(jumpvel)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Claire-'>
+      ~
+(void)
+<b>Claire</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugLady-'>
+      ~
+(void)
+<b>BugLady</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PlayerBurd-'>
+      ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PlayerBurd-'>
+      ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PlayerBurd-'>
+      ~
+(void)
+<b>PlayerBurd</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='removesprite-'>
+      ~
+(void)
+<b>removesprite</b><span>(ent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='initsprite-'>
+      ~
+(void)
+<b>initsprite</b><span>(ent, tex)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='drawsprite-'>
+      ~
+(void)
+<b>drawsprite</b><span>(ent, src, pos, flip, anchor = V())</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Poly-'>
+      ~
+(void)
+<b>Poly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Poly-'>
+      ~
+(void)
+<b>Poly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Poly-'>
+      ~
+(void)
+<b>Poly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Poly-'>
+      ~
+(void)
+<b>Poly</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>(rectb)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>rename Block::touching ?</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='hitboxfilter-'>
+      ~
+(void)
+<b>hitboxfilter</b><span>(hitbox, rectarray)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='makebox-'>
+      ~
+(void)
+<b>makebox</b><span>(position, dimensions, anchor)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='leftof-'>
+      ~
+(void)
+<b>leftof</b><span>(box)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='rightof-'>
+      ~
+(void)
+<b>rightof</b><span>(box)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bottomof-'>
+      ~
+(void)
+<b>bottomof</b><span>(box)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='topof-'>
+      ~
+(void)
+<b>topof</b><span>(box)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>(p)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='blocksatpoint-'>
+      ~
+(void)
+<b>blocksatpoint</b><span>(blocks, p)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='boxtouchingwall-'>
+      ~
+(void)
+<b>boxtouchingwall</b><span>(collidebox)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='GenericSprite-'>
+      ~
+(void)
+<b>GenericSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PowerSuit-'>
+      ~
+(void)
+<b>PowerSuit</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='normalizekey-'>
+      ~
+(void)
+<b>normalizekey</b><span>(key)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ControlObj-'>
+      ~
+(void)
+<b>ControlObj</b><span>(key, name, func)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='launchFullScreen-'>
+      ~
+(void)
+<b>launchFullScreen</b><span>(elm)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='cancelFullScreen-'>
+      ~
+(void)
+<b>cancelFullScreen</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='toggleFullScreen-'>
+      ~
+(void)
+<b>toggleFullScreen</b><span>(elm)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='pausefunc-'>
+      ~
+(void)
+<b>pausefunc</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='punch-'>
+      ~
+(void)
+<b>punch</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='kick-'>
+      ~
+(void)
+<b>kick</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='up-'>
+      ~
+(void)
+<b>up</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='down-'>
+      ~
+(void)
+<b>down</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bugspeed-'>
+      ~
+(void)
+<b>bugspeed</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='left-'>
+      ~
+(void)
+<b>left</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='right-'>
+      ~
+(void)
+<b>right</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='save-'>
+      ~
+(void)
+<b>save</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='load-'>
+      ~
+(void)
+<b>load</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='nextlevel-'>
+      ~
+(void)
+<b>nextlevel</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='restartlevel-'>
+      ~
+(void)
+<b>restartlevel</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='cheatcodecheck-'>
+      ~
+(void)
+<b>cheatcodecheck</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Water-'>
+      ~
+(void)
+<b>Water</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Cloud-'>
+      ~
+(void)
+<b>Cloud</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='adjustedscreensize-'>
+      ~
+(void)
+<b>adjustedscreensize</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Grid-'>
+      ~
+(void)
+<b>Grid</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Cloud-'>
+      ~
+(void)
+<b>Cloud</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Grid-'>
+      ~
+(void)
+<b>Grid</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='randpos-'>
+      ~
+(void)
+<b>randpos</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='placeshrub-'>
+      ~
+(void)
+<b>placeshrub</b><span>(pos)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='PlaceholderSprite-'>
+      ~
+(void)
+<b>PlaceholderSprite</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugMeter-'>
+      ~
+(void)
+<b>BugMeter</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugMeter-'>
+      ~
+(void)
+<b>BugMeter</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugMeter-'>
+      ~
+(void)
+<b>BugMeter</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='BugMeter-'>
+      ~
+(void)
+<b>BugMeter</b><span>(value)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='EnergyMeter-'>
+      ~
+(void)
+<b>EnergyMeter</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadblocks-'>
+      ~
+(void)
+<b>loadblocks</b><span>(blockdata)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadspawners-'>
+      ~
+(void)
+<b>loadspawners</b><span>(entdata)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='scatterents-'>
+      ~
+(void)
+<b>scatterents</b><span>(classproto, num)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Goal-'>
+      ~
+(void)
+<b>Goal</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Platform-'>
+      ~
+(void)
+<b>Platform</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='HurtWire-'>
+      ~
+(void)
+<b>HurtWire</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='HurtWire-'>
+      ~
+(void)
+<b>HurtWire</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='HurtWire-'>
+      ~
+(void)
+<b>HurtWire</b><span>(otherent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='HurtWire-'>
+      ~
+(void)
+<b>HurtWire</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Spawner-'>
+      ~
+(void)
+<b>Spawner</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Spawner-'>
+      ~
+(void)
+<b>Spawner</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Spawner-'>
+      ~
+(void)
+<b>Spawner</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='jame-'>
+      ~
+(void)
+<b>jame</b><span>(classname)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadent-'>
+      ~
+(void)
+<b>loadent</b><span>(entdatum)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadents-'>
+      ~
+(void)
+<b>loadents</b><span>(entdata)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD_ONE_INIT-'>
+      ~
+(void)
+<b>WORLD_ONE_INIT</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLDINIT-'>
+      ~
+(void)
+<b>WORLDINIT</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='randtri-'>
+      ~
+(void)
+<b>randtri</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='ROBOWORLD_INIT-'>
+      ~
+(void)
+<b>ROBOWORLD_INIT</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='COLLTEST_INIT-'>
+      ~
+(void)
+<b>COLLTEST_INIT</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadlevelfile-'>
+      ~
+(void)
+<b>loadlevelfile</b><span>(levelfilename)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>levelfilename = &quot;levels/1.json&quot;
+$.ajax levelfilename, success: (data,status,xhr) -&gt; jsondata=JSON.parse data loadlevel jsondata WORLD_ONE_INIT()</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='camera-'>
+      ~
+(void)
+<b>camera</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='camera-'>
+      ~
+(void)
+<b>camera</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='cameraoffset-'>
+      ~
+(void)
+<b>cameraoffset</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='camera-'>
+      ~
+(void)
+<b>camera</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='render-'>
+      ~
+(void)
+<b>render</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='drawhitboxes-'>
+      ~
+(void)
+<b>drawhitboxes</b><span>(ents)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='timecall-'>
+      ~
+(void)
+<b>timecall</b><span>(func)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>returns elapsed time in ms.</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>(sprite)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='checkcolls-'>
+      ~
+(void)
+<b>checkcolls</b><span>(ent, otherents)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>()</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>remove entities that requested death</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='WORLD-'>
+      ~
+(void)
+<b>WORLD</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='updateinfobox-'>
+      ~
+(void)
+<b>updateinfobox</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mainloop-'>
+      ~
+(void)
+<b>mainloop</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='xmlwrap-'>
+      ~
+(void)
+<b>xmlwrap</b><span>(tagname, body)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='maketablerow-'>
+      ~
+(void)
+<b>maketablerow</b><span>(values)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='jame-'>
+      ~
+(void)
+<b>jame</b><span>(arrofarr)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='selectall-'>
+      ~
+(void)
+<b>selectall</b><span>(classname)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='jame-'>
+      ~
+(void)
+<b>jame</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='updatesettingstable-'>
+      ~
+(void)
+<b>updatesettingstable</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='INIT-'>
+      ~
+(void)
+<b>INIT</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='adjustmouseevent-'>
+      ~
+(void)
+<b>adjustmouseevent</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='snapmouseadjust-'>
+      ~
+(void)
+<b>snapmouseadjust</b><span>(mpos)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='MoveTool-'>
+      ~
+(void)
+<b>MoveTool</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='MoveTool-'>
+      ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='MoveTool-'>
+      ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='MoveBlockTool-'>
+      ~
+(void)
+<b>MoveBlockTool</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getentsunderpoint-'>
+      ~
+(void)
+<b>getentsunderpoint</b><span>(p)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='MoveTool-'>
+      ~
+(void)
+<b>MoveTool</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='setcursor-'>
+      ~
+(void)
+<b>setcursor</b><span>(cursorname)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='randposrel-'>
+      ~
+(void)
+<b>randposrel</b><span>(p = V())</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='SPAWNTOOL-'>
+      ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='SPAWNTOOL-'>
+      ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='SPAWNTOOL-'>
+      ~
+(void)
+<b>SPAWNTOOL</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='boxesbounding-'>
+      ~
+(void)
+<b>boxesbounding</b><span>(boxlist)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>take a list of Block objects
+return a bounding block</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='blockcarve-'>
+      ~
+(void)
+<b>blockcarve</b><span>(aa, bb)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>ughhhh</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='carveoutblock-'>
+      ~
+(void)
+<b>carveoutblock</b><span>(b)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bindaction-'>
+      ~
+(void)
+<b>bindaction</b><span>(key, actionname)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='readablebindings-'>
+      ~
+(void)
+<b>readablebindings</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getotherhero-'>
+      ~
+(void)
+<b>getotherhero</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='unzip-'>
+      ~
+(void)
+<b>unzip</b><span>(data)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='loadlevel-'>
+      ~
+(void)
+<b>loadlevel</b><span>(data)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='highlightoverlaps-'>
+      ~
+(void)
+<b>highlightoverlaps</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='objnames-'>
+      ~
+(void)
+<b>objnames</b><span>(objs)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='allactions-'>
+      ~
+(void)
+<b>allactions</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mousemiddledownhandler-'>
+      ~
+(void)
+<b>mousemiddledownhandler</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mousemiddleuphandler-'>
+      ~
+(void)
+<b>mousemiddleuphandler</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bglayer_remove_block-'>
+      ~
+(void)
+<b>bglayer_remove_block</b><span>(ent)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='mouserightdownhandler-'>
+      ~
+(void)
+<b>mouserightdownhandler</b><span>(e)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='lastmodified-'>
+      ~
+(void)
+<b>lastmodified</b><span>(date)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='jame-'>
+      ~
+(void)
+<b>jame</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='Block-'>
+      ~
+(void)
+<b>Block</b><span>(b)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='jame-'>
+      ~
+(void)
+<b>jame</b><span>(obj)</span>
+      <br>
+    </p>
+    
+  </div>
+</div>
+    </div>
+    <div id='footer'>
+  November 20, 14 10:28:41 by
+  <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
+    Codo
+  </a>
+  2.0.9
+  &#10034;
+  Press H to see the keyboard shortcuts
+  &#10034;
+  <a href='http://twitter.com/netzpirat' target='_parent'>@netzpirat</a>
+  &#10034;
+  <a href='http://twitter.com/_inossidabile' target='_parent'>@_inossidabile</a>
+</div>
+<iframe id='search_frame'></iframe>
+<div id='fuzzySearch'>
+  <input type='text'>
+  <ol></ol>
+</div>
+<div id='help'>
+  <p>
+    Quickly fuzzy find classes, mixins, methods, file:
+  </p>
+  <ul>
+    <li>
+      <span>T</span>
+      Open fuzzy finder dialog
+    </li>
+  </ul>
+  <p>
+    Control the navigation frame:
+  </p>
+  <ul>
+    <li>
+      <span>L</span>
+      Toggle list view
+    </li>
+    <li>
+      <span>C</span>
+      Show class list
+    </li>
+    <li>
+      <span>I</span>
+      Show mixin list
+    </li>
+    <li>
+      <span>F</span>
+      Show file list
+    </li>
+    <li>
+      <span>M</span>
+      Show method list
+    </li>
+    <li>
+      <span>E</span>
+      Show extras list
+    </li>
+  </ul>
+  <p>
+    You can focus and blur the search input:
+  </p>
+  <ul>
+    <li>
+      <span>S</span>
+      Focus search input
+    </li>
+    <li>
+      <span>Esc</span>
+      Blur search input
+    </li>
+  </ul>
+</div>
+  </body>
+</html>
