@@ -110,11 +110,12 @@
   };
 
   QuadTree.prototype.grafics = function() {
-    var color, grafic;
+    var color, grafic, pad;
     grafic = new PIXI.Graphics();
-    color = 0x0000ff;
+    color = 0x0000ff - this.level * 8;
     grafic.lineStyle(1, color, 1);
-    grafic.drawRect(this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
+    pad = -this.level * 2;
+    grafic.drawRect(this.bounds.x - pad, this.bounds.y - pad, this.bounds.w + pad, this.bounds.h + pad);
     stage.addChild(grafic);
     return _.invoke(this.subnodes, 'grafics');
   };
