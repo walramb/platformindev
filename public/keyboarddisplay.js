@@ -36,3 +36,7 @@
   root.keyboardlayout.visualize = visualizekeyboard;
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=keyboarddisplay.map
+*/

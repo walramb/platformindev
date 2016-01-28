@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>helpers.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="animtest.html">
+                animtest.coffee
+              </a>
+            
+              
+              <a class="source" href="collision.html">
+                collision.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.js
+              </a>
+            
+              
+              <a class="source" href="helpers.html">
+                helpers.coffee
+              </a>
+            
+              
+              <a class="source" href="keyboarddisplay.html">
+                keyboarddisplay.coffee
+              </a>
+            
+              
+              <a class="source" href="keycodes.html">
+                keycodes.js
+              </a>
+            
+              
+              <a class="source" href="pixelprocessing.html">
+                pixelprocessing.coffee
+              </a>
+            
+              
+              <a class="source" href="platform.html">
+                platform.coffee
+              </a>
+            
+              
+              <a class="source" href="platformindev.html">
+                platformindev.coffee
+              </a>
+            
+              
+              <a class="source" href="quadtree.html">
+                quadtree.coffee
+              </a>
+            
+              
+              <a class="source" href="~~~platformindev.html">
+                ~~~platformindev.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>helpers.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>ARRAY HELPER FUNCS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">arrclone</span> = <span class="hljs-params">(arr)</span> -&gt;</span> arr.slice <span class="hljs-number">0</span>
+<span class="hljs-function"><span class="hljs-title">arrsansval</span> = <span class="hljs-params">(arr,val)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>DEVNOTE: unsure whether i should always return a clone,
+or just the original if there’s nothing removed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre> newarr=arrclone arr
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> val <span class="hljs-keyword">in</span> arr <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> newarr
+ i=newarr.indexOf val
+ newarr.splice i, <span class="hljs-number">1</span>
+ <span class="hljs-keyword">return</span> newarr</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>mafs</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>mafs={}
+mafs.add = <span class="hljs-function"><span class="hljs-params">(a,b)</span> -&gt;</span> a+b
+mafs.sub = <span class="hljs-function"><span class="hljs-params">(a,b)</span> -&gt;</span> a-b
+mafs.mul = <span class="hljs-function"><span class="hljs-params">(a,b)</span> -&gt;</span> a*b
+mafs.div = <span class="hljs-function"><span class="hljs-params">(a,b)</span> -&gt;</span> a/b
+
+mafs.sum = <span class="hljs-function"><span class="hljs-params">(arr)</span> -&gt;</span> arr.reduce mafs.add, <span class="hljs-number">0</span>
+mafs.avg = <span class="hljs-function"><span class="hljs-params">(arr)</span> -&gt;</span> mafs.sum(arr)/arr.length
+mafs.sq = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> Math.pow n,<span class="hljs-number">2</span>
+mafs.sign = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> n &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> n &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>
+
+mafs.clamp = <span class="hljs-function"><span class="hljs-params">( n, min, max )</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> n &gt; max <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> max
+  <span class="hljs-keyword">if</span> n &lt; min <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> min
+  <span class="hljs-keyword">return</span> n</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>vectors</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">V2d</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">( <span class="hljs-property">@x</span>=<span class="hljs-number">0</span>, <span class="hljs-property">@y</span>=<span class="hljs-number">0</span> )</span> -&gt;</span>
+<span class="hljs-function">
+<span class="hljs-title">V</span> = <span class="hljs-params">(x,y)</span> -&gt;</span> <span class="hljs-keyword">new</span> V2d x,y
+V2d.clone = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> <span class="hljs-keyword">new</span> V2d v.x, v.y
+V2d.zero = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> <span class="hljs-keyword">new</span> V2d <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+<span class="hljs-function">
+
+<span class="hljs-title">vvop</span> = <span class="hljs-params">(op)</span> -&gt;</span> (v,u) -&gt; V op(v.x,u.x), op(v.y,u.y)
+<span class="hljs-function"><span class="hljs-title">vnop</span> = <span class="hljs-params">(op)</span> -&gt;</span> (v,n) -&gt; V op(v.x,n), op(v.y,n)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>is poor opptimization of this bogging shit down?</p>
+<h1 id="-">#</h1>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>V2d.vadd = vvop mafs.add
+V2d.vsub = vvop mafs.sub
+V2d.vmul = vvop mafs.mul
+V2d.vdiv = vvop mafs.div
+
+V2d.nadd = vnop mafs.add
+V2d.nsub = vnop mafs.sub
+V2d.nmul = vnop mafs.mul
+V2d.ndiv = vnop mafs.div</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h1 id="-">#</h1>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+V2d.vadd = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> V v.x+u.x, v.y+u.y
+V2d.vsub = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> V v.x-u.x, v.y-u.y
+V2d.vmul = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> V v.x*u.x, v.y*u.y
+V2d.vdiv = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> V v.x/u.x, v.y/u.y
+
+V2d.nadd = <span class="hljs-function"><span class="hljs-params">(v,n)</span> -&gt;</span> V v.x+n, v.y+n
+V2d.nsub = <span class="hljs-function"><span class="hljs-params">(v,n)</span> -&gt;</span> V v.x-n, v.y-n
+V2d.nmul = <span class="hljs-function"><span class="hljs-params">(v,n)</span> -&gt;</span> V v.x*n, v.y*n
+V2d.ndiv = <span class="hljs-function"><span class="hljs-params">(v,n)</span> -&gt;</span> V v.x/n, v.y/n
+
+
+V2d.dist = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> v.vsub(u).mag()
+V2d.dir = <span class="hljs-function"><span class="hljs-params">(v,u)</span> -&gt;</span> u.sub(v).norm()
+V2d.mag = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> Math.sqrt mafs.sq(v.x)+mafs.sq(v.y)
+V2d.norm = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> v.ndiv v.mag()
+V2d.dot = <span class="hljs-function"><span class="hljs-params">(v,b)</span> -&gt;</span> v.x*b.x+v.y*b.y
+V2d.cross = <span class="hljs-function"><span class="hljs-params">(v,b)</span> -&gt;</span> v.x*b.y-v.y*b.x
+V2d.toarr = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> [ v.x, v.y ]
+
+<span class="hljs-attribute">V2d</span>::vadd = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> V2d.vadd @,v
+<span class="hljs-attribute">V2d</span>::vsub = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> V2d.vsub @,v
+<span class="hljs-attribute">V2d</span>::vmul = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> V2d.vmul @,v
+<span class="hljs-attribute">V2d</span>::vdiv = <span class="hljs-function"><span class="hljs-params">(v)</span> -&gt;</span> V2d.vdiv @,v
+<span class="hljs-attribute">V2d</span>::nadd = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> V2d.nadd @,n
+<span class="hljs-attribute">V2d</span>::nsub = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> V2d.nsub @,n
+<span class="hljs-attribute">V2d</span>::nmul = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> V2d.nmul @,n
+<span class="hljs-attribute">V2d</span>::ndiv = <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> V2d.ndiv @,n
+<span class="hljs-attribute">V2d</span>::dist = <span class="hljs-function"><span class="hljs-params">(u)</span> -&gt;</span> V2d.dist @,u
+<span class="hljs-attribute">V2d</span>::dir = <span class="hljs-function"><span class="hljs-params">(u)</span> -&gt;</span> V2d.dir @,u
+<span class="hljs-attribute">V2d</span>::mag = <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span> V2d.mag @
+<span class="hljs-attribute">V2d</span>::norm = <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span> V2d.norm @
+<span class="hljs-attribute">V2d</span>::dot = <span class="hljs-function"><span class="hljs-params">(b)</span> -&gt;</span> V2d.dot @,b
+<span class="hljs-attribute">V2d</span>::cross = <span class="hljs-function"><span class="hljs-params">(b)</span> -&gt;</span> V2d.cross @,b
+<span class="hljs-attribute">V2d</span>::toarr = <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span> V2d.toarr @
+
+<span class="hljs-attribute">V2d</span>::op = <span class="hljs-function"><span class="hljs-params">(op)</span> -&gt;</span> <span class="hljs-keyword">new</span> V2d op(@.x), op(@.y)
+
+<span class="hljs-attribute">V2d</span>::cross2d = <span class="hljs-function"><span class="hljs-params">(b)</span> -&gt;</span> @.x*b.y-@.y*b.x</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>alright fuck this
+for key,value of V2d
+ console.log key,value
+ V2d::[key] = (rest) =&gt; value @, rest</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+
+V2d.random = <span class="hljs-function">-&gt;</span> <span class="hljs-keyword">new</span> V2d Math.random(), Math.random()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>random float between -1 and 1</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">randfloat</span> = <span class="hljs-params">()</span> -&gt;</span> -<span class="hljs-number">1</span>+Math.random()*<span class="hljs-number">2</span>
+<span class="hljs-function"><span class="hljs-title">randint</span> = <span class="hljs-params">(max)</span> -&gt;</span> Math.floor Math.random()*max
+<span class="hljs-function">
+<span class="hljs-title">memoize</span> = <span class="hljs-params">(fn)</span> -&gt;</span>
+  (args...) -&gt;
+    fn._memos <span class="hljs-keyword">or</span> fn._memos={}
+    fn._memos[args] <span class="hljs-keyword">or</span> fn._memos[args] = fn.apply @, args
+<span class="hljs-function">
+
+<span class="hljs-title">xmlatts</span> = <span class="hljs-params">(atts)</span> -&gt;</span>
+  (<span class="hljs-string">" <span class="hljs-subst">#{key}</span>=\"<span class="hljs-subst">#{val}</span>\""</span> <span class="hljs-keyword">for</span> own key,val <span class="hljs-keyword">of</span> atts).join() 
+<span class="hljs-function"><span class="hljs-title">xmltag</span> = <span class="hljs-params">(type=<span class="hljs-string">"div"</span>, atts={}, body=<span class="hljs-string">""</span>)</span> -&gt;</span>
+  <span class="hljs-string">"&lt;<span class="hljs-subst">#{type}</span><span class="hljs-subst">#{xmlatts atts}</span>&gt;<span class="hljs-subst">#{body}</span>&lt;/<span class="hljs-subst">#{type}</span>&gt;"</span>
+
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Line2d</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@p1</span>,<span class="hljs-property">@p2</span>)</span> -&gt;</span>
+
+<span class="hljs-attribute">Line2d</span>::lineintersect = <span class="hljs-function"><span class="hljs-params">( lineb )</span> -&gt;</span>
+  linea = @
+  p = linea.p1
+  r = linea.p2.vsub p
+  q = lineb.p1
+  s = lineb.p2.vsub q
+  t = q.vsub(p).cross2d(s) / r.cross2d s
+  u = q.vsub(p).cross2d(r) / r.cross2d s
+  <span class="hljs-keyword">if</span> t &lt;= <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> t &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> u &lt;= <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> u &gt;= <span class="hljs-number">0</span>
+    <span class="hljs-keyword">return</span> p.vadd r.nmul t
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>based on an implementation by metamal on stackoverflow</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">HitboxRayIntersect</span> = <span class="hljs-params">( rect, line )</span> -&gt;</span>
+  minx = line.p1.x
+  maxx = line.p2.x
+  <span class="hljs-keyword">if</span> line.p1.x &gt; line.p2.x
+    minx=line.p2.x
+    maxx=line.p1.x
+  maxx = Math.min maxx, rect.bottomright.x
+  minx = Math.max minx, rect.topleft.x
+  <span class="hljs-keyword">if</span> minx &gt; maxx
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+  miny = line.p1.y
+  maxy = line.p2.y
+  dx = line.p2.x-line.p1.x</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>tiny wiggle room to account for floating point errors</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> Math.abs(dx) &gt; <span class="hljs-number">0.0000001</span>
+    a=(line.p2.y-line.p1.y)/dx
+    b=line.p1.y-a*line.p1.x
+  miny=a*minx+b
+  maxy=a*maxx+b
+  <span class="hljs-keyword">if</span> miny &gt; maxy
+    tmp=maxy
+    maxy = miny
+    miny = tmp
+  maxy=Math.min maxy, rect.bottomright.y
+  miny=Math.max miny, rect.topleft.y
+  <span class="hljs-keyword">if</span> miny&gt;maxy
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+
+mafs.pointlisttoedges = <span class="hljs-function"><span class="hljs-params">( parr )</span> -&gt;</span>
+  edges=[]
+  prev = parr[parr.length-<span class="hljs-number">1</span>]
+  <span class="hljs-keyword">for</span> curr,i <span class="hljs-keyword">in</span> parr
+    edges.push <span class="hljs-keyword">new</span> Line2d prev,curr
+    prev=curr
+  <span class="hljs-keyword">return</span> edges
+
+mafs.HitboxRayIntersect = HitboxRayIntersect
+mafs.Line2d = Line2d
+
+root = exports ? <span class="hljs-keyword">this</span>
+root.V2d = V2d
+root.mafs = mafs
+root.memoize = memoize
+root.xmltag = xmltag</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

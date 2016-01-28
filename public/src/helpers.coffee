@@ -29,6 +29,8 @@ mafs.clamp = ( n, min, max ) ->
   if n < min then return min
   return n
 
+
+
 #vectors
 class V2d
   constructor: ( @x=0, @y=0 ) ->
@@ -102,8 +104,12 @@ V2d::cross2d = (b) -> @.x*b.y-@.y*b.x
 V2d.random = -> new V2d Math.random(), Math.random()
 
 #random float between -1 and 1
-randfloat = () -> -1+Math.random()*2
-randint = (max) -> Math.floor Math.random()*max
+mafs.randfloat = -> -1+Math.random()*2
+mafs.randvec = -> V mafs.randfloat(), mafs.randfloat()
+mafs.randint = (max) -> Math.floor Math.random()*max
+mafs.randelem = (arr) -> arr[mafs.randint(arr.length)]
+mafs.degstorads = (degs) -> degs*Math.PI/180
+
 
 memoize = (fn) ->
   (args...) ->
@@ -112,9 +118,67 @@ memoize = (fn) ->
 
 
 xmlatts = (atts) ->
-  (" #{key}=\"#{val}\"" for own key,val of atts).join() 
+  (" #{key}=\"#{val}\"" for own key,val of atts).join()
 xmltag = (type="div", atts={}, body="") ->
   "<#{type}#{xmlatts atts}>#{body}</#{type}>"
+
+
+class Line2d
+  constructor: (@p1,@p2) ->
+
+Line2d::lineintersect = ( lineb ) ->
+  linea = @
+  p = linea.p1
+  r = linea.p2.vsub p
+  q = lineb.p1
+  s = lineb.p2.vsub q
+  t = q.vsub(p).cross2d(s) / r.cross2d s
+  u = q.vsub(p).cross2d(r) / r.cross2d s
+  if t <= 1 and t >= 0 and u <= 1 and u >= 0
+    return p.vadd r.nmul t
+  return null
+
+
+#based on an implementation by metamal on stackoverflow
+HitboxRayIntersect = ( rect, line ) ->
+  minx = line.p1.x
+  maxx = line.p2.x
+  if line.p1.x > line.p2.x
+    minx=line.p2.x
+    maxx=line.p1.x
+  maxx = Math.min maxx, rect.bottomright.x
+  minx = Math.max minx, rect.topleft.x
+  if minx > maxx
+    return false
+  miny = line.p1.y
+  maxy = line.p2.y
+  dx = line.p2.x-line.p1.x
+  #tiny wiggle room to account for floating point errors
+  if Math.abs(dx) > 0.0000001
+    a=(line.p2.y-line.p1.y)/dx
+    b=line.p1.y-a*line.p1.x
+  miny=a*minx+b
+  maxy=a*maxx+b
+  if miny > maxy
+    tmp=maxy
+    maxy = miny
+    miny = tmp
+  maxy=Math.min maxy, rect.bottomright.y
+  miny=Math.max miny, rect.topleft.y
+  if miny>maxy
+    return false
+  return true
+
+mafs.pointlisttoedges = ( parr ) ->
+  edges=[]
+  prev = parr[parr.length-1]
+  for curr,i in parr
+    edges.push new Line2d prev,curr
+    prev=curr
+  return edges
+
+mafs.HitboxRayIntersect = HitboxRayIntersect
+mafs.Line2d = Line2d
 
 root = exports ? this
 root.V2d = V2d

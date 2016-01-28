@@ -114,3 +114,7 @@
   root.QuadTree = QuadTree;
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=quadtree.map
+*/

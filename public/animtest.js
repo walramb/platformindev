@@ -107,3 +107,7 @@
   });
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=animtest.map
+*/

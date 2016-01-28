@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>platform.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="animtest.html">
+                animtest.coffee
+              </a>
+            
+              
+              <a class="source" href="collision.html">
+                collision.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.js
+              </a>
+            
+              
+              <a class="source" href="helpers.html">
+                helpers.coffee
+              </a>
+            
+              
+              <a class="source" href="keyboarddisplay.html">
+                keyboarddisplay.coffee
+              </a>
+            
+              
+              <a class="source" href="keycodes.html">
+                keycodes.js
+              </a>
+            
+              
+              <a class="source" href="pixelprocessing.html">
+                pixelprocessing.coffee
+              </a>
+            
+              
+              <a class="source" href="platform.html">
+                platform.coffee
+              </a>
+            
+              
+              <a class="source" href="platformindev.html">
+                platformindev.coffee
+              </a>
+            
+              
+              <a class="source" href="quadtree.html">
+                quadtree.coffee
+              </a>
+            
+              
+              <a class="source" href="~~~platformindev.html">
+                ~~~platformindev.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>platform.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>canvas = $ <span class="hljs-string">"&lt;canvas&gt;"</span>
+body = $ <span class="hljs-string">"body"</span>
+<span class="hljs-function">
+<span class="hljs-title">xmlatts</span> = <span class="hljs-params">(atts)</span> -&gt;</span>
+  (<span class="hljs-string">" <span class="hljs-subst">#{key}</span>=\"<span class="hljs-subst">#{val}</span>\""</span> <span class="hljs-keyword">for</span> own key,val <span class="hljs-keyword">of</span> atts).join() 
+<span class="hljs-function"><span class="hljs-title">xmltag</span> = <span class="hljs-params">(type=<span class="hljs-string">"div"</span>, atts={}, body=<span class="hljs-string">""</span>)</span> -&gt;</span>
+  <span class="hljs-string">"&lt;<span class="hljs-subst">#{type}</span><span class="hljs-subst">#{xmlatts atts}</span>&gt;<span class="hljs-subst">#{body}</span>&lt;/<span class="hljs-subst">#{type}</span>&gt;"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>mafs</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">V2d</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">( <span class="hljs-property">@x</span>=<span class="hljs-number">0</span>, <span class="hljs-property">@y</span>=<span class="hljs-number">0</span> )</span> -&gt;</span>
+<span class="hljs-function"><span class="hljs-title">add</span> = <span class="hljs-params">(a,b)</span> -&gt;</span> a+b</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>vadd = (v,w) -&gt; x: add(v.x,w.x), y: add(v.y,w.y)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">vadd</span> = <span class="hljs-params">(v,u)</span> -&gt;</span>
+  <span class="hljs-keyword">new</span> V2d add(v.x,u.x), add(v.y,u.y)
+<span class="hljs-function"><span class="hljs-title">vnmul</span> = <span class="hljs-params">(v,n)</span> -&gt;</span>
+  <span class="hljs-keyword">new</span> V2d v.x*n, v.y*n
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sprite</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+    <span class="hljs-property">@vel</span>=<span class="hljs-keyword">new</span> V2d()
+    <span class="hljs-property">@pos</span>=<span class="hljs-keyword">new</span> V2d()
+  <span class="hljs-attribute">tick</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+    <span class="hljs-property">@pos</span> = vadd <span class="hljs-property">@pos</span>, <span class="hljs-property">@vel</span>
+<span class="hljs-function">
+<span class="hljs-title">isholdingkey</span> = <span class="hljs-params">(key)</span> -&gt;</span>
+  key = key.toUpperCase().charCodeAt <span class="hljs-number">0</span>
+  key <span class="hljs-keyword">in</span> heldkeys
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BugLady</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Sprite</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+    <span class="hljs-keyword">super</span>
+    <span class="hljs-property">@jumping</span> = <span class="hljs-literal">false</span>
+  <span class="hljs-attribute">tick</span>: <span class="hljs-function">-&gt;</span>
+    <span class="hljs-property">@jumping</span> = isholdingkey <span class="hljs-string">'w'</span>
+    <span class="hljs-keyword">super</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@touchingground</span>()
+      <span class="hljs-property">@pos</span>.y = <span class="hljs-number">64</span>*<span class="hljs-number">4</span>
+      <span class="hljs-property">@vel</span>.y = <span class="hljs-number">0</span>
+      <span class="hljs-property">@vel</span>.x = <span class="hljs-property">@vel</span>.x/<span class="hljs-number">2</span>
+      <span class="hljs-keyword">if</span> Math.abs(<span class="hljs-property">@vel</span>.x)&lt;<span class="hljs-number">0.0001</span>
+        <span class="hljs-property">@vel</span>.x = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@touchingground</span>()
+      <span class="hljs-property">@vel</span>.y += <span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@touchingground</span>() <span class="hljs-keyword">and</span> <span class="hljs-property">@jumping</span>
+      <span class="hljs-property">@vel</span>.y = -<span class="hljs-number">10</span>
+    lbw=<span class="hljs-number">64</span>
+    width = <span class="hljs-number">640</span>+lbw
+    <span class="hljs-property">@pos</span>.x = ( (<span class="hljs-property">@pos</span>.x + (width+lbw)) % (width) )-lbw <span class="hljs-comment">#WRAPAROUND</span>
+
+<span class="hljs-attribute">BugLady</span>::render = <span class="hljs-function"><span class="hljs-params">(ctx)</span> -&gt;</span>
+   src=<span class="hljs-string">"lovelyshorter.png"</span>
+   vel = Math.abs( <span class="hljs-property">@vel</span>.x )
+   walking = vel &gt; <span class="hljs-number">0.2</span>
+   <span class="hljs-keyword">if</span> walking
+     src = <span class="hljs-keyword">if</span> (tickno%<span class="hljs-number">12</span>&gt;<span class="hljs-number">6</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">'lovelyrun1.png'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'lovelyrun2.png'</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@touchingground</span>()
+     src = <span class="hljs-string">'lovelyjump.png'</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> walking <span class="hljs-keyword">and</span> isholdingkey <span class="hljs-string">'s'</span>
+     src = <span class="hljs-string">'lovelycrouch.png'</span>
+   img = <span class="hljs-keyword">if</span> <span class="hljs-property">@facingleft</span> <span class="hljs-keyword">then</span> cacheflippedimg(src) <span class="hljs-keyword">else</span> cachedimg(src)
+   ctx.drawImage img, <span class="hljs-property">@pos</span>.x, <span class="hljs-property">@pos</span>.y
+
+ladybug = <span class="hljs-keyword">new</span> BugLady
+ladybug.facingleft = <span class="hljs-literal">false</span>
+ladybug.jumping=<span class="hljs-literal">false</span>
+<span class="hljs-attribute">BugLady</span>::touchingground = <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  <span class="hljs-property">@pos</span>.y &gt;= <span class="hljs-number">64</span>*<span class="hljs-number">4</span>
+bindings = {}
+holdbindings = {}
+heldkeys = []
+<span class="hljs-function">
+<span class="hljs-title">keytapbind</span> = <span class="hljs-params">( key, func )</span> -&gt;</span>
+  k=key.toUpperCase().charCodeAt <span class="hljs-number">0</span>
+  bindings[k]=func
+<span class="hljs-function"><span class="hljs-title">keyholdbind</span> = <span class="hljs-params">( key, func )</span> -&gt;</span>
+  k=key.toUpperCase().charCodeAt <span class="hljs-number">0</span>
+  holdbindings[k]=func
+<span class="hljs-function">
+<span class="hljs-title">arrclone</span> = <span class="hljs-params">(arr)</span> -&gt;</span> arr.slice <span class="hljs-number">0</span>
+
+keyholdbind <span class="hljs-string">'w'</span>, <span class="hljs-function">-&gt;</span>
+  ladybug.jumping=<span class="hljs-literal">true</span>
+keyholdbind <span class="hljs-string">'s'</span>, <span class="hljs-function">-&gt;</span>
+keyholdbind <span class="hljs-string">'a'</span>, <span class="hljs-function">-&gt;</span>
+  ladybug.facingleft = <span class="hljs-literal">true</span>
+  ladybug.vel.x=-<span class="hljs-number">4</span>
+keyholdbind <span class="hljs-string">'d'</span>, <span class="hljs-function">-&gt;</span>
+  ladybug.facingleft = <span class="hljs-literal">false</span>
+  ladybug.vel.x=<span class="hljs-number">4</span>
+<span class="hljs-function">
+<span class="hljs-title">arrsansval</span> = <span class="hljs-params">(arr,val)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>DEVNOTE: unsure whether i should always return a clone,
+or just the original if there’s nothing removed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> val <span class="hljs-keyword">in</span> arr <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> arr
+ newarr=arrclone arr
+ i=newarr.indexOf val
+ <span class="hljs-keyword">if</span> i <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> newarr
+ newarr.splice i, <span class="hljs-number">1</span>
+ <span class="hljs-keyword">return</span> newarr
+
+$(<span class="hljs-built_in">document</span>).bind <span class="hljs-string">'keydown'</span>, <span class="hljs-function"><span class="hljs-params">(e)</span> -&gt;</span>
+  key = e.which
+  bindings[key]?()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (key <span class="hljs-keyword">in</span> heldkeys)
+    heldkeys.push key
+$(<span class="hljs-built_in">document</span>).bind <span class="hljs-string">'keyup'</span>, <span class="hljs-function"><span class="hljs-params">(e)</span> -&gt;</span>
+  key = e.which
+  heldkeys = arrsansval heldkeys, key
+
+tmpcanvasjq = $ <span class="hljs-string">"&lt;canvas&gt;"</span>
+tmpcanvas = tmpcanvasjq[<span class="hljs-number">0</span>]
+
+ladybug.pos = <span class="hljs-attribute">x</span>: <span class="hljs-number">64</span>, <span class="hljs-attribute">y</span>: <span class="hljs-number">100</span>
+
+ctx = canvas[<span class="hljs-number">0</span>].getContext <span class="hljs-string">'2d'</span>
+
+canvas.attr <span class="hljs-string">'height'</span>, <span class="hljs-number">64</span>*<span class="hljs-number">6</span>
+canvas.attr <span class="hljs-string">'width'</span>, <span class="hljs-number">640</span>
+canvas.css <span class="hljs-string">'border'</span>, <span class="hljs-string">'1px solid black'</span>
+
+tickno = <span class="hljs-number">0</span>
+
+sourcebaseurl = <span class="hljs-string">"./sprites/"</span>
+<span class="hljs-function"><span class="hljs-title">loadimg</span> = <span class="hljs-params">(src)</span> -&gt;</span>
+  img = <span class="hljs-keyword">new</span> Image
+  img.src = sourcebaseurl+src
+  <span class="hljs-keyword">return</span> img
+<span class="hljs-function">
+<span class="hljs-title">memoize</span> = <span class="hljs-params">(func)</span> -&gt;</span>
+<span class="hljs-function">  <span class="hljs-title">newfunc</span> = <span class="hljs-params">(args...)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (args <span class="hljs-keyword">of</span> newfunc._memos)
+      newfunc._memos[args]=func.apply @, args
+    newfunc._memos[args]
+  newfunc._memos={}
+  <span class="hljs-keyword">return</span> newfunc
+
+cachedimg = memoize loadimg
+<span class="hljs-function">
+<span class="hljs-title">flipimg</span> = <span class="hljs-params">(src)</span> -&gt;</span>
+  img = cachedimg src
+  newcanvas = $(<span class="hljs-string">"&lt;canvas&gt;"</span>)[<span class="hljs-number">0</span>]
+  newcanvas.width = img.naturalWidth
+  newcanvas.height = img.naturalHeight
+  newctx = newcanvas.getContext <span class="hljs-string">'2d'</span>
+  newctx.scale -<span class="hljs-number">1</span>, <span class="hljs-number">1</span>
+  newctx.translate -img.naturalWidth, <span class="hljs-number">0</span>
+  newctx.drawImage img, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+  <span class="hljs-keyword">return</span> newcanvas
+
+cacheflippedimg = memoize flipimg
+
+sources = [ <span class="hljs-string">'lovelyshorter.png'</span>, <span class="hljs-string">'lovelycrouch.png'</span>, <span class="hljs-string">'lovelyrun1.png'</span>, <span class="hljs-string">'lovelyrun2.png'</span>, <span class="hljs-string">'lovelyjump.png'</span>, <span class="hljs-string">'cloud.png'</span>, <span class="hljs-string">'lovelyfall.png'</span> ]
+sources.push <span class="hljs-string">'groundtile.png'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>PRELOAD</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+preloadcontainer = $ <span class="hljs-string">"&lt;div&gt;"</span>
+preloadcontainer.hide()
+body.append preloadcontainer
+<span class="hljs-function">
+
+<span class="hljs-title">preload</span> = -&gt;</span>
+  <span class="hljs-keyword">for</span> src <span class="hljs-keyword">in</span> sources
+    <span class="hljs-built_in">console</span>.log <span class="hljs-string">"PRELOADING <span class="hljs-subst">#{src}</span>"</span>
+    img = cachedimg src
+    preloadcontainer.append img
+
+
+preload()
+<span class="hljs-function">
+<span class="hljs-title">tilebackground</span> = <span class="hljs-params">( ctx, offset, src )</span> -&gt;</span>
+  cw = canvas[<span class="hljs-number">0</span>].width
+  ch = canvas[<span class="hljs-number">0</span>].height
+  img = cachedimg src
+  <span class="hljs-keyword">if</span> img.width == <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> img.height == <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span>
+  horiznum = Math.floor cw/img.width
+  vertnum = Math.floor ch/img.height
+  [-<span class="hljs-number">1.</span>..horiznum+<span class="hljs-number">1</span>].forEach (n) -&gt;
+    [-<span class="hljs-number">1.</span>.vertnum+<span class="hljs-number">1</span>].forEach (m) -&gt;
+      finalx = n*img.width+(offset.x%img.width)
+      finaly = m*img.height+(offset.y%img.height)
+      ctx.drawImage img, finalx, finaly
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Block</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@x</span>,<span class="hljs-property">@y</span>,<span class="hljs-property">@w</span>,<span class="hljs-property">@h</span>)</span> -&gt;</span>
+  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(ctx)</span> -&gt;</span>
+    ctx.beginPath()
+    ctx.fillStyle = <span class="hljs-string">'brown'</span>
+    ctx.fillRect <span class="hljs-property">@x</span>, <span class="hljs-property">@y</span>, <span class="hljs-property">@w</span>, <span class="hljs-property">@h</span>
+
+tmpcanvas.width = canvas[<span class="hljs-number">0</span>].width
+tmpcanvas.height = canvas[<span class="hljs-number">0</span>].height
+tmpctx = tmpcanvas.getContext <span class="hljs-string">'2d'</span>
+
+bglayer = []
+bglayer.push <span class="hljs-keyword">new</span> Block <span class="hljs-number">0</span>, <span class="hljs-number">64</span>*<span class="hljs-number">5</span>-<span class="hljs-number">4</span>, <span class="hljs-number">640</span>, <span class="hljs-number">100</span>
+bglayer.push <span class="hljs-keyword">new</span> Block <span class="hljs-number">64</span>*<span class="hljs-number">4</span>, <span class="hljs-number">64</span>*<span class="hljs-number">2</span>, <span class="hljs-number">32</span>, <span class="hljs-number">32</span>
+<span class="hljs-function">
+<span class="hljs-title">Layer</span> = <span class="hljs-params">()</span> -&gt;</span>
+  newlayer = $ <span class="hljs-string">"&lt;canvas&gt;"</span>
+  <span class="hljs-keyword">return</span> newlayer[<span class="hljs-number">0</span>]
+
+brickcanvas = Layer()
+brickcanvas.width = canvas[<span class="hljs-number">0</span>].width
+brickcanvas.height = canvas[<span class="hljs-number">0</span>].height
+brickctx = brickcanvas.getContext <span class="hljs-string">'2d'</span>
+<span class="hljs-function">
+<span class="hljs-title">render</span> = -&gt;</span>
+  tilebackground ctx, <span class="hljs-attribute">x</span>: tickno*-<span class="hljs-number">0.2</span>, <span class="hljs-attribute">y</span>: Math.sin(tickno/<span class="hljs-number">200</span>)*<span class="hljs-number">64</span>, <span class="hljs-string">"cloud.png"</span>
+  tilebackground brickctx, (<span class="hljs-attribute">x</span>: <span class="hljs-number">0</span>, <span class="hljs-attribute">y</span>: <span class="hljs-number">0</span>), <span class="hljs-string">"groundtile.png"</span>
+  tmpctx.clearRect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">640</span>, <span class="hljs-number">640</span>
+  bglayer.forEach (sprite) -&gt;
+    sprite.render? tmpctx
+  tmpctx.globalCompositeOperation = <span class="hljs-string">"source-in"</span>
+  tmpctx.drawImage brickcanvas, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+  tmpctx.globalCompositeOperation = <span class="hljs-string">"source-over"</span>
+  ctx.drawImage tmpcanvas , <span class="hljs-number">0</span>, <span class="hljs-number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>ledibag start</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  ladybug.render ctx
+<span class="hljs-function">
+<span class="hljs-title">looptick</span> = -&gt;</span>
+  <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> heldkeys
+    holdbindings[key]?()
+  ladybug.tick()
+  tickno++
+  render()
+
+tickwaitms = <span class="hljs-number">10</span>
+<span class="hljs-function"><span class="hljs-title">mainloop</span> = -&gt;</span>
+  looptick()
+  setTimeout mainloop, tickwaitms</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>uses imagesLoaded.js by desandro</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+preloadcontainer.imagesLoaded <span class="hljs-string">'done'</span>, <span class="hljs-function">-&gt;</span>
+  body.append canvas
+  ctx.fillStyle=<span class="hljs-string">"#008080"</span>
+  ctx.fillRect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">640</span>, <span class="hljs-number">64</span>
+  body.append <span class="hljs-string">"&lt;br/&gt;&lt;em&gt;there's no crime to fight around here, use WASD to waste time by purposelessly wiggling around&lt;/em&gt;&lt;br/&gt;"</span>
+  body.append xmltag <span class="hljs-string">'a'</span>, <span class="hljs-attribute">target</span>: <span class="hljs-string">'_blank'</span>, <span class="hljs-attribute">href</span>: <span class="hljs-string">'http://www.youtube.com/watch?v=NbVZPu_JM6I'</span>, <span class="hljs-string">"recommended soundtrack"</span>
+  body.append c=$ xmltag()
+  c.css <span class="hljs-string">'color'</span>, <span class="hljs-string">'silver'</span>
+  c.append <span class="hljs-string">"&lt;p&gt;psst CAN YOU FIND THE SAUCY SUPER SECRET SAPPHIC SLOPPY SMOOCHING SCENE??&lt;/p&gt;"</span>
+  c.append answer = $ <span class="hljs-string">"&lt;em&gt;(answer: no you can't, because it doesn't exist)&lt;/em&gt;"</span>
+  answer.css <span class="hljs-string">'transform'</span>, <span class="hljs-string">'rotate(180deg)'</span>
+  answer.css <span class="hljs-string">'display'</span>: <span class="hljs-string">'inline-block'</span>
+  mainloop()</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,8 +1,9 @@
 {exec}= require 'child_process'
 {spawn,exec}= require 'child_process'
+fs = require 'fs'
 
 task "build", "build the source in ./src/*.coffe to .", ->
-  exec "coffee -c --output . ./src/*.coffee", (err,stdout,stderr) ->
+  exec "coffee -cm --output . ./src/*.coffee", (err,stdout,stderr) ->
     throw err if err
     console.log stdout + stderr
 
@@ -12,7 +13,25 @@ task "build", "build the source in ./src/*.coffe to .", ->
 #    console.log stdout + stderr
 
 task "buildwatch", "build the files and watch for changes", (options) ->
-  spawn 'coffee', ['-cw', '-o', '.', './src' ], stdio: 'inherit'
+  spawn 'coffee', ['-cmw', '-o', '.', './src' ], stdio: 'inherit'
+  do updateversion
 
+generateVersion = () ->
+  now = new Date()
+  return [0,now.getFullYear()-2000,now.getMonth(),now.getDate()].join "."
+
+updateversion = ->
+  filename="./version.json"
+  data=do generateVersion
+  fs.writeFile filename, data
+
+task "updateversion", "update version number", () ->
+  do updateversion
+  console.log "version updated, probably."
+task "version", "display version", () ->
+  console.log do generateVersion
+
+task "builddocs", "build the docs", (options) ->
+  spawn 'codo', ['./src' ], stdio: 'inherit'
 
 

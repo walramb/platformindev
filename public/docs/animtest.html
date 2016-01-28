@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>animtest.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="animtest.html">
+                animtest.coffee
+              </a>
+            
+              
+              <a class="source" href="collision.html">
+                collision.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.coffee
+              </a>
+            
+              
+              <a class="source" href="geometry.html">
+                geometry.js
+              </a>
+            
+              
+              <a class="source" href="helpers.html">
+                helpers.coffee
+              </a>
+            
+              
+              <a class="source" href="keyboarddisplay.html">
+                keyboarddisplay.coffee
+              </a>
+            
+              
+              <a class="source" href="keycodes.html">
+                keycodes.js
+              </a>
+            
+              
+              <a class="source" href="pixelprocessing.html">
+                pixelprocessing.coffee
+              </a>
+            
+              
+              <a class="source" href="platform.html">
+                platform.coffee
+              </a>
+            
+              
+              <a class="source" href="platformindev.html">
+                platformindev.coffee
+              </a>
+            
+              
+              <a class="source" href="quadtree.html">
+                quadtree.coffee
+              </a>
+            
+              
+              <a class="source" href="~~~platformindev.html">
+                ~~~platformindev.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>animtest.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>canvas = $ <span class="hljs-string">"&lt;canvas&gt;"</span>
+body = $ <span class="hljs-string">"body"</span>
+body.append $ <span class="hljs-string">"&lt;b&gt;gotta go fast&lt;/b&gt;&lt;br&gt;"</span>
+ladybug = <span class="hljs-attribute">imgsrc</span>: <span class="hljs-string">'lovely.png'</span>
+
+ladybug.pos = <span class="hljs-attribute">x</span>: -<span class="hljs-number">64</span>, <span class="hljs-attribute">y</span>: <span class="hljs-number">0</span>
+
+ctx = canvas[<span class="hljs-number">0</span>].getContext <span class="hljs-string">'2d'</span>
+
+canvas.attr <span class="hljs-string">'height'</span>, <span class="hljs-number">64</span>
+canvas.attr <span class="hljs-string">'width'</span>, <span class="hljs-number">640</span>
+canvas.css <span class="hljs-string">'border'</span>, <span class="hljs-string">'1px solid black'</span>
+
+tickno = <span class="hljs-number">0</span>
+<span class="hljs-function">
+<span class="hljs-title">loadimg</span> = <span class="hljs-params">(src)</span> -&gt;</span>
+  img = <span class="hljs-keyword">new</span> Image
+  img.src = basehref+src
+  <span class="hljs-keyword">return</span> img
+
+basehref = <span class="hljs-string">'./sprites/'</span>
+sources = [ <span class="hljs-string">'lovelyshorter.png'</span>, <span class="hljs-string">'lovelycrouch.png'</span>, <span class="hljs-string">'lovelyrun1.png'</span>, <span class="hljs-string">'lovelyrun2.png'</span>, <span class="hljs-string">'lovelyjump.png'</span> ]
+<span class="hljs-function">
+<span class="hljs-title">preload</span> = -&gt;</span>
+  sources.forEach (src) -&gt; loadimg src
+<span class="hljs-function">
+<span class="hljs-title">render</span> = -&gt;</span>
+  ctx.fillStyle=<span class="hljs-string">"#008080"</span>
+  ctx.fillRect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">640</span>, <span class="hljs-number">64</span>
+  img = <span class="hljs-keyword">new</span> Image()
+  src = <span class="hljs-keyword">if</span> (tickno%<span class="hljs-number">12</span>&gt;<span class="hljs-number">6</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">'lovelyrun1.png'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'lovelyrun2.png'</span>
+  posing = tickno%<span class="hljs-number">1000</span>&lt;<span class="hljs-number">200</span>
+  <span class="hljs-keyword">if</span> posing
+    src = <span class="hljs-keyword">if</span> (tickno%<span class="hljs-number">32</span>&gt;<span class="hljs-number">16</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">'lovelycrouch.png'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'lovelyshorter.png'</span>
+  lastframe = <span class="hljs-number">1000</span>
+  <span class="hljs-keyword">if</span> tickno%lastframe&lt;<span class="hljs-number">50</span> <span class="hljs-comment">#or (tickno%lastframe&gt;175 and tickno%lastframe&lt;200)</span>
+    src = <span class="hljs-string">'lovelyshorter.png'</span>
+  <span class="hljs-keyword">if</span> tickno%<span class="hljs-number">500</span>&gt;<span class="hljs-number">350</span>
+    src = <span class="hljs-string">'lovelyshorter.png'</span>
+    posing = <span class="hljs-literal">true</span>
+    jumping = <span class="hljs-literal">true</span>
+  <span class="hljs-keyword">if</span> tickno%lastframe&gt;lastframe-<span class="hljs-number">150</span> <span class="hljs-keyword">and</span> jumping
+    posing = <span class="hljs-literal">true</span>
+    src = <span class="hljs-string">'lovelycrouch.png'</span>
+  <span class="hljs-keyword">if</span> tickno%lastframe&gt;lastframe-<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> jumping
+    posing = <span class="hljs-literal">false</span>
+    src = <span class="hljs-string">'lovelyjump.png'</span>
+  <span class="hljs-keyword">if</span> tickno%lastframe&gt;lastframe-<span class="hljs-number">50</span> <span class="hljs-keyword">and</span> jumping
+    posing=<span class="hljs-literal">true</span>
+    src = <span class="hljs-string">'lovelyfall.png'</span>
+  <span class="hljs-keyword">if</span> tickno%lastframe&gt;lastframe-<span class="hljs-number">20</span>
+    src = <span class="hljs-string">'lovelycrouch.png'</span>
+  img.src = basehref+src
+  ctx.drawImage img, ladybug.pos.x, ladybug.pos.y
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> posing <span class="hljs-keyword">then</span> ladybug.pos.x++
+  <span class="hljs-keyword">if</span> ladybug.pos.x&gt;<span class="hljs-number">640</span>
+    ladybug.pos.x = -<span class="hljs-number">64</span>
+<span class="hljs-function">
+<span class="hljs-title">looptick</span> = -&gt;</span>
+  tickno++
+  render()
+
+tickwaitms = <span class="hljs-number">10</span>
+<span class="hljs-function"><span class="hljs-title">mainloop</span> = -&gt;</span>
+  looptick()
+  setTimeout mainloop, tickwaitms
+
+body.ready -&gt;
+  preload()
+  body.append canvas
+  mainloop()</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

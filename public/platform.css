@@ -53,4 +53,16 @@
 em {
   display: block;
 }
-
+footer {
+  background-color: pink;
+  padding: 1em;
+  margin: 0;
+}
+.ticklog {
+  background-color: #eee;
+  border: 2px inset #ccc;
+  margin: 0.5em 0;
+  padding: 0.5em;
+  height: 9em;
+  width: 50%;
+}

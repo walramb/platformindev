@@ -65,9 +65,10 @@ PHYSOBJTORECT = (child) ->
   return fuck
 QuadTree::grafics = ->
   grafic=new PIXI.Graphics()
-  color = 0x0000ff
+  color = 0x0000ff-@level*8
   grafic.lineStyle 1, color, 1
-  grafic.drawRect @bounds.x, @bounds.y, @bounds.w, @bounds.h
+  pad = -@level*2
+  grafic.drawRect @bounds.x-pad, @bounds.y-pad, @bounds.w+pad, @bounds.h+pad
   stage.addChild grafic
   _.invoke @subnodes, 'grafics'
 
