@@ -18,7 +18,7 @@ task "buildwatch", "build the files and watch for changes", (options) ->
 
 generateVersion = () ->
   now = new Date()
-  return [0,now.getFullYear()-2000,now.getMonth(),now.getDate()].join "."
+  return [0,now.getFullYear()-2000,now.getMonth()+1,now.getDate()].join "."
 
 updateversion = ->
   filename="./version.json"

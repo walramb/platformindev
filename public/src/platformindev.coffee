@@ -5,7 +5,7 @@
 #pixi.js
 
 #THISFILE = "src/platformindev.coffee"
-THISFILE = "platformindev.js"
+THISFILE = "js/platformindev.js"
 
 settings=
   gridsize: 16
@@ -29,6 +29,9 @@ settings=
   recordingdemo: false
   forcemove: false #when at max speed, prevent deceleration
   aircontrol: true #can move left/right in midair?
+  devmode: no
+
+settings.devmode = window.location.hash is "#dev"
 
 #global var to be moved elsewhere
 TILESELECT = 0
@@ -72,7 +75,8 @@ stats=
   collisionchecks: 0
 
 V = (x=0,y=0) -> new V2d x,y
-screensize = V 960, 540 # halved 1080p
+screensize_default = V 960, 540 # halved 1080p
+screensize = screensize_default.nadd 0 # halved 1080p
 #screensize = new V2d 320, 240 # GCW Zero
 
 #pilfered from stackoverflow
@@ -174,13 +178,14 @@ for n in [0...audiocachelength]
 
 curraudiotrack=0
 
-playsound = ( src ) ->
+
+playsound = ( src, volume ) ->
   curraudiotrack++
   curraudiotrack=curraudiotrack%audiocachelength
   if settings.muted then return
   snd = audiocache[curraudiotrack]
   snd.src = audiobaseurl+src
-  snd.volume = settings.volume
+  snd.volume = volume or settings.volume
   snd.play()
 
 parentstage = new PIXI.Stage 0x66FF99
@@ -1044,7 +1049,7 @@ BugLady::polygoncollisions = ->
     if geometry.pointInsidePoly p, candidate.points
       @vel.y--
     #  @vel.y = 0
-      
+
 
 Hero::checkcontrols = -> #noop
 BugLady::checkcontrols = ->
@@ -1086,6 +1091,19 @@ BugLady::attackchecks = ->
   if @attacking and dashing
     @vel.x *= 1/2
     @timers.uppercut = 10
+  forward = isholdingbound('left') or isholdingbound('right')
+  up = isholdingbound 'up'
+  down = isholdingbound 'down'
+  if @attacking and up
+    @vel.x *= 1/2
+    @timers.uppercut = 10
+  if @attacking and @kicking and down
+    @timers.slide = 10
+    @vel = V heading*10, 0
+  if @attacking and @kicking and forward
+    @vel = V heading*10, 0
+  if @attacking and @kicking and up and !@timers.roundhouse
+    @timers.roundhouse = 20
   #if @attacking and not @punching
   #  @vel.y *= 0.7
   #  #@vel.x += heading*0.3
@@ -1094,6 +1112,21 @@ BugLady::attackchecks = ->
     if entitycount(Bullet) < 3 and @energy > 0
       @energy-=0.1
       firebullet @
+  if @attacking and not @timers.hitboxery
+    @timers.hitboxery=10
+    nent = new Damagebox(@)
+    WORLD.entAdd nent
+
+class Damagebox extends Renderable
+  constructor: (@owner) ->
+    @pos = @owner.pos
+    @life = 15
+    @anchor = V 0.5, 2
+    @size = V 64, 16
+  tick: ->
+    if @life-- <= 0
+      @KILLME=true
+  gethitbox: GenericSprite::gethitbox
 
 firebullet = (ent) ->
   heading = _facing ent
@@ -1278,7 +1311,7 @@ BugLady::getsprite = ->
   if not walking and @controls.crouch
     src = 'lovelycrouch'
   if not walking and isholdingbound 'up'
-    src = 'lovelyjump'
+    src = 'bugstance'
   if not walking and @touchingground() and @holdingboggle
     src = 'boggle'
   if @attacking then src = 'viewtiful'
@@ -1287,6 +1320,10 @@ BugLady::getsprite = ->
     if @timers.uppercut then src = 'buguppercut'
   if @attacking and @timers.attack < 2 and @punching then src = 'lovelyrun2'
   if @attacking and @kicking then src = 'bugkick'
+  if @attacking and @kicking
+    if @timers.slide then src = 'lovelyfall'
+    if @timers.roundhouse then src = 'lb_roundhouse'
+    if @timers.roundhouse>=15 then src = 'bugkick'
   if @timers.stun > 0 then src = 'lovelycrouch'
   if @timers.mildstun > 2 then src = 'lovelycrouch'
   if @timers.stun > 4 then src = 'bugbonk'
@@ -1661,8 +1698,9 @@ ControlObj::keyHoldBindRawNamed = ( key, name, func ) ->
   @bindingnames[key]=name
   @holdbindings[key]=func
 
-control.keytapbindname '9', 'zoom out', -> camera.zoomout()
-control.keytapbindname '0', 'zoom in', -> camera.zoomin()
+if settings.devmode
+  control.keytapbindname '9', 'zoom out', -> camera.zoomout()
+  control.keytapbindname '0', 'zoom in', -> camera.zoomin()
 
 
 _doc=document
@@ -1670,16 +1708,28 @@ launchFullScreen = (elm) ->
   elm.requestFullScreen?()
   elm.mozRequestFullScreen?()
   elm.webkitRequestFullScreen?()
-cancelFullScreen = ->
-  document.cancelFullScreen?()
-  document.mozCancelFullScreen?()
-  document.webkitCancelFullScreen?()
-toggleFullScreen = (elm) ->
-  isfullscreen = _doc.fullScreen || _doc.mozFullScreen || _doc.webkitFullScreen
-  if isfullscreen
-    cancelFullScreen()
+cancelFullScreen = (elm) ->
+  _doc.cancelFullScreen?()
+  _doc.mozCancelFullScreen?()
+  _doc.webkitCancelFullScreen?()
+isfullscreen = ->
+  _doc.fullscreenElement || _doc.mozFullscreenElement || _doc.webkitFullscreenElement
+_toggleFullScreen = (elm) ->
+  if isfullscreen()
+    cancelFullScreen elm
   else
     launchFullScreen elm
+
+toggleFullScreen = (elm) ->
+  _toggleFullScreen(elm)
+  [x,y]=[0,0]
+  if isfullscreen()
+    [x,y] = [screen.width,screen.height]
+  else
+    [x,y] = [screensize_default.x, screensize_default.y]
+  renderer.resize x, y
+  screensize = V x, y
+
 
 control.keytapbindname 'y', 'toggle fullscreen', ->
   toggleFullScreen renderer.view
@@ -1687,18 +1737,31 @@ control.keytapbindname 'y', 'toggle fullscreen', ->
 pausefunc = ->
   playsound "pause.wav"
   settings.paused = not settings.paused
+  if settings.paused
+    playsound "gimmebreak.ogg", 1
+  else
+    playsound "gameon.ogg", 1
   if settings.paused then parentstage.addChild pausescreen
   if not settings.paused then parentstage.removeChild pausescreen
 
 control.keytapbindname 'p', 'pause', pausefunc
 control.keyBindCharNamed 'Pause/Break', 'pause', pausefunc
+control.keyBindCharNamed 'Enter', 'pause', ->
+  key = keyCharToCode["Alt"]
+  if key in control.heldkeys
+    toggleFullScreen renderer.view
+  else
+    pausefunc()
+
+control.keyBindCharNamed 'Esc', 'pause', pausefunc
 
 
-control.keytapbindname 't', 'underclock/slowmo', ->
-  settings.slowmo = not settings.slowmo
+if settings.devmode
+  control.keytapbindname 't', 'underclock/slowmo', ->
+    settings.slowmo = not settings.slowmo
 
-control.keytapbindname 'g', 'toggle grid', ->
-  settings.grid = not settings.grid
+  control.keytapbindname 'g', 'toggle grid', ->
+    settings.grid = not settings.grid
 
 ghostbusters= () ->
   #fix this oh god
@@ -1706,15 +1769,16 @@ ghostbusters= () ->
   spooky_ghosts.forEach (spoop) -> spoop.KILLME = true
   camera.trackingent = ladybug
 
-control.keytapbindname 'h', 'ghost mode', ->
-  somethingstrange = entitycount(Wisp)>0
-  if somethingstrange
-    call ghostbusters
-  else #i aint fraid of no ghost
-    ghost = new Wisp()
-    ghost.pos = ladybug.pos
-    camera.trackingent = ghost
-    WORLD.entAdd ghost
+if settings.devmode
+  control.keytapbindname 'h', 'ghost mode', ->
+    somethingstrange = entitycount(Wisp)>0
+    if somethingstrange
+      call ghostbusters
+    else #i aint fraid of no ghost
+      ghost = new Wisp()
+      ghost.pos = ladybug.pos
+      camera.trackingent = ghost
+      WORLD.entAdd ghost
 
 control.keytapbindname 'l', 'WHAM!', ->
   #ladybug.jumping=true
@@ -1826,7 +1890,6 @@ _bind 's', 'down', down
 _bind 'a', 'left', left
 _bind 'd', 'right', right
 _bind 'x', 'boggle', -> #noop
-_bind 'q', 'cling', -> #noop
 
 ControlObj::keyHoldBindCharNamed = ( key, name, func ) ->
   @keyHoldBindRawNamed keyCharToCode[key], name, func
@@ -1837,6 +1900,8 @@ control.keyHoldBindCharNamed 'Left', 'left', left
 control.keyHoldBindCharNamed 'Right', 'right', right
 
 control.keyHoldBindCharNamed 'Space', 'jump', jump
+control.keyHoldBindCharNamed 'Shift', 'cling', -> #noop
+
 
 save = ->
   console.log ladybug
@@ -1876,8 +1941,9 @@ settings.layer = 1
 changelayer = (num) ->
   settings.layer = num
 
-control.keytapbindname '1', 'layer1', -> changelayer 1
-control.keytapbindname '2', 'layer2', -> changelayer 2
+if settings.devmode
+  control.keytapbindname '1', 'layer1', -> changelayer 1
+  control.keytapbindname '2', 'layer2', -> changelayer 2
 
 #control.keytapbindname '6', 'save', save
 #control.keytapbindname '7', 'load', load
@@ -1904,8 +1970,9 @@ restartlevel = ->
   WORLDINIT()
   ladybug.respawn()
 
-control.keytapbindname 'r', 'restart level', restartlevel
-control.keytapbindname 'n', 'change level', nextlevel
+if settings.devmode
+  control.keytapbindname 'r', 'restart level', restartlevel
+  control.keytapbindname 'n', 'change level', nextlevel
 
 @CONTROL = control
 
@@ -2069,7 +2136,7 @@ World::entAdd = (ent) ->
   @spritelayer.push ent
 World::spritesRemove = (doomed) ->
   @spritelayer = _.difference @spritelayer, doomed
-  
+
 
 WORLD=new World
 
@@ -2326,13 +2393,6 @@ roboblockdata=[]
 roboblockdata.push [ -64, 64*4, 64*12, 100 ]
 roboblockdata.push [ 64*12, 64*5, 64*12, 100 ]
 
-ROBOWORLD_INIT = ->
-  scatterents Burd, 8
-  loadblocks roboblockdata
-  WORLD.spritelayer=WORLD.spritelayer.concat [0..3].map ->
-    new Robo randpos()
-  WORLD.entAdd randtri()
-
 COLLTEST_INIT = ->
   scatterents Jelly, 8
   loadblocks roboblockdata
@@ -2347,12 +2407,13 @@ $.ajax levelfilename, success: (data,status,xhr) ->
 loadlevel = (data) ->
   loadblocks data.blockdata
   loadents data.ents
-  
+
 
 loadlevelfile = (levelfilename) ->
   WORLD.doneloading=false
   $.ajax levelfilename, success: (data,status,xhr) ->
-    jsondata=JSON.parse data
+    #jsondata=JSON.parse data
+    jsondata = data
     loadlevel jsondata
     WORLD.doneloading=true
     settings.paused = false
@@ -2551,6 +2612,7 @@ WORLD.tick = () ->
   render()
   tickno++
 
+
 fpscounter=$ xmltag()
 fpscounter.attr class: "ticklog"
 tt=0
@@ -2561,6 +2623,7 @@ updateinfobox = ->
 
 # for displaying info that is updated every frame
 TICKLOG = (datum) ->
+  return if not settings.devmode
   fpscounter.append $ xmlwrap 'div', datum
 
 _ml = ->
@@ -2643,9 +2706,11 @@ updatesettingstable = () ->
     settingsDOM.append maketablerow [k,tempv]
 
 INIT = ->
-  body.append fpscounter
+  if settings.devmode
+    body.append fpscounter
   bindingsDOMcontainer.append "<summary>bindings:</summary>"
   #DEPENDS ON  keyboarddisplay.js
+  body.append $ "<br/>"
   body.append keyboardlayout.visualize _CHARbindingnames
   body.append bindingsDOMcontainer
   settingsDOMcontainer.append "<summary>settings:</summary>"
@@ -2654,6 +2719,10 @@ INIT = ->
   #requestAnimFrame animate
 
 INIT()
+
+
+# LEVEL EDITING SECTION
+#
 
 adjustmouseevent = (e) ->
   coffs=$(renderer.view).offset()
@@ -2697,14 +2766,13 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
       offset=currclickpos.vsub ORIGCLICKPOS
       camera.offset = offset
 
+__snap = (mpos,func) ->
+  mpos.ndiv(settings.gridsize).op(func).nmul(settings.gridsize)
+
 snapmouseadjust_always = (mpos) ->
-  gridsize = settings.gridsize
-  mpos = mpos.ndiv(gridsize).op(Math.round).nmul(gridsize)
-  return mpos
+  __snap mpos, Math.round
 snapmouseadjust_down = (mpos) ->
-  gridsize = settings.gridsize
-  mpos = mpos.ndiv(gridsize).op(Math.floor).nmul(gridsize)
-  return mpos
+  __snap mpos, Math.floor
 
 snapmouseadjust = (mpos) ->
   snaptogrid = isholdingkey 'z'
@@ -2782,7 +2850,7 @@ setcursor = (cursorname) ->
 MOVETOOL=new MoveTool()
 MOVETOOL.selected = []
 MOVEBLOCKTOOL=new MoveBlockTool()
-  
+
 tool = MOVETOOL
 prevtool = MOVETOOL
 
@@ -2847,7 +2915,7 @@ boxesbounding = (boxlist) ->
   t=ts.reduce (n,m) -> Math.min n,m
   b=bs.reduce (n,m) -> Math.max n,m
   return new Block l,t,r-l,b-t
-  
+
 # ughhhh
 blockcarve = ( aa, bb ) ->
   b = boxesbounding [ aa, bb ]
@@ -3037,22 +3105,22 @@ alltools.push _.extend {}, NOOPTOOL,
       bglayer_remove_block bl
 
 
-
-toolbar = $ xmltag 'details', class: 'toolbar'
-toolbar.append $ xmltag 'summary', undefined, 'tools'
-toolbar.insertAfter $(renderer.view)
-blocktools.forEach (t) ->
-  but=$ xmltag 'button', undefined, t.name
-  but.click -> tool = t
-  toolbar.append but
-alltools.forEach (t) ->
-  but=$ xmltag 'button', undefined, t.name
-  but.click ->
-    prevtool = tool
-    tool = t
-    $(".toolbar button").css backgroundColor: 'lightgray'
-    but.css backgroundColor: 'pink'
-  toolbar.append but
+if settings.devmode
+  toolbar = $ xmltag 'details', class: 'toolbar'
+  toolbar.append $ xmltag 'summary', undefined, 'tools'
+  toolbar.insertAfter $(renderer.view)
+  blocktools.forEach (t) ->
+    but=$ xmltag 'button', undefined, t.name
+    but.click -> tool = t
+    toolbar.append but
+  alltools.forEach (t) ->
+    but=$ xmltag 'button', undefined, t.name
+    but.click ->
+      prevtool = tool
+      tool = t
+      $(".toolbar button").css backgroundColor: 'lightgray'
+      but.css backgroundColor: 'pink'
+    toolbar.append but
 
 allactions={}
 @allactions = allactions
@@ -3066,11 +3134,6 @@ readablebindings = ->
   vs=_.values control.bindingnames
   ks=ks.map (k) -> keyCodeToChar[Number(k)]
   return _.zip ks,vs
-
-allactions['spawn block under hero'] = ->
-  p = ladybug.pos.vadd V -32, 0
-  creatingblock=new Block p.x, p.y, 64, 64
-  WORLD.addblock creatingblock
 
 getotherhero = ->
   heroes = jame.WORLD.spritelayer.filter (ent) -> ent instanceof Hero
@@ -3106,7 +3169,7 @@ allactions['import keybindings'] = ->
       func=control.holdbindings[k]
       if func?
         newholdbinds.push k: k, name: v, f:func
-    
+
     console.log newbinds
     console.log newholdbinds
     control.bindings={}
@@ -3195,20 +3258,20 @@ allactions['generate entity list'] = ->
   body.append entlist
   entlist.html objnames(WORLD.spritelayer).join()
 
-
-toolbar.append $ xmltag 'em', undefined, 'actions: '
-for k,v of allactions
-  but=$ xmltag 'button', undefined, k
-  but.click v
-  toolbar.append but
-for ck,cv of actioncategories
-  tb = $ xmltag 'details', class: 'toolbar'
-  toolbar.append tb
-  tb.append $ xmltag 'summary', undefined, "#{ck} actions: "
-  for k,v of cv
+if settings.devmode
+  toolbar.append $ xmltag 'em', undefined, 'actions: '
+  for k,v of allactions
     but=$ xmltag 'button', undefined, k
     but.click v
-    tb.append but
+    toolbar.append but
+  for ck,cv of actioncategories
+    tb = $ xmltag 'details', class: 'toolbar'
+    toolbar.append tb
+    tb.append $ xmltag 'summary', undefined, "#{ck} actions: "
+    for k,v of cv
+      but=$ xmltag 'button', undefined, k
+      but.click v
+      tb.append but
 
 
 ORIGCLICKPOS = false
@@ -3244,7 +3307,7 @@ edithistory =
     if type is "remove"
       console.log ent
       WORLD.addblock ent
-    
+
 control.keyBindCharNamed 'Backspace',
   'undo', -> edithistory.undo()
 
@@ -3308,15 +3371,15 @@ $.ajax "./version.json", success: _versionfoot
 
 root = exports ? this
 
-
 spawnselection = $ xmltag 'select'
 for classname of spawnables
   spawnselection.append $ xmltag 'option', value: classname, classname
-toolbar.append $ xmltag 'em', undefined, "entity class:"
-toolbar.append spawnselection
+if settings.devmode
+  toolbar.append $ xmltag 'em', undefined, "entity class:"
+  toolbar.append spawnselection
 spawnselection.change (e) ->
   SPAWNTOOL.classname = $(@).val()
-  
+
 jame.WORLD = WORLD
 
 jame.control = control
@@ -3339,4 +3402,3 @@ Block::equals = (b) ->
 jame.cleanobj = (obj) ->
   arr= ( [key,val] for own key,val of obj)
   return _.object arr
-
