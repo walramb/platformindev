@@ -30,7 +30,8 @@
     recordingdemo: false,
     forcemove: false,
     aircontrol: true,
-    devmode: false
+    devmode: false,
+    hudscale: 2
   };
 
   settings.devmode = window.location.hash === "#dev";
@@ -42,6 +43,10 @@
   MLEFT = 0;
 
   MRIGHT = 2;
+
+  mafs.roundn = function(num, base) {
+    return Math.round(num / base) * base;
+  };
 
   TEXBYNAME = function(imgsrc) {
     return PIXI.Texture.fromImage(sourcebaseurl + imgsrc);
@@ -145,6 +150,12 @@
       b = hue2rgb(p, q, h - 1 / 3);
     }
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  };
+
+  rgbToHex = function(rgb) {
+    var b, g, r;
+    r = rgb[0], g = rgb[1], b = rgb[2];
+    return r * 256 * 256 + g * 256 + b;
   };
 
   sourcebaseurl = "./sprites/";
@@ -401,6 +412,10 @@
   titlescreen = new PIXI.Sprite(tex);
 
   body.append(renderer.view);
+
+  $(renderer.view).attr({
+    tabindex: 0
+  });
 
   B_MASKING = false;
 
@@ -1967,7 +1982,7 @@
     unpowered = settings.altcostume;
     this.physmove();
     this.attackchecks();
-    jumpvel = unpowered ? 12 : 16;
+    jumpvel = unpowered ? 11 : 13;
     this.jumpimpulse(jumpvel);
     if (this.vel.y > 1 && this.controls.crouch && this.timers.charge) {
       ladybug.timers.charge = 0;
@@ -2068,39 +2083,39 @@
     if (this.timers.fightstance > 0) {
       src = "bugstance";
     }
-    if (!walking && this.controls.crouch) {
-      src = 'lovelycrouch';
-    }
-    if (!walking && isholdingbound('up')) {
-      src = 'bugstance';
-    }
-    if (!walking && this.touchingground() && this.holdingboggle) {
-      src = 'boggle';
+    if (!walking) {
+      if (this.controls.crouch) {
+        src = 'lovelycrouch';
+      }
+      if (isholdingbound('up')) {
+        src = 'bugstance';
+      }
+      if (this.touchingground() && this.holdingboggle) {
+        src = 'boggle';
+      }
     }
     if (this.attacking) {
       src = 'viewtiful';
-    }
-    if (this.attacking && this.punching) {
-      src = 'bugpunch';
-      if (this.timers.uppercut) {
-        src = 'buguppercut';
+      if (this.punching) {
+        src = 'bugpunch';
+        if (this.timers.uppercut) {
+          src = 'buguppercut';
+        }
       }
-    }
-    if (this.attacking && this.timers.attack < 2 && this.punching) {
-      src = 'lovelyrun2';
-    }
-    if (this.attacking && this.kicking) {
-      src = 'bugkick';
-    }
-    if (this.attacking && this.kicking) {
-      if (this.timers.slide) {
-        src = 'lovelyfall';
+      if (this.timers.attack < 2 && this.punching) {
+        src = 'lovelyrun2';
       }
-      if (this.timers.roundhouse) {
-        src = 'lb_roundhouse';
-      }
-      if (this.timers.roundhouse >= 15) {
+      if (this.kicking) {
         src = 'bugkick';
+        if (this.timers.slide) {
+          src = 'lovelyfall';
+        }
+        if (this.timers.roundhouse) {
+          src = 'lb_roundhouse';
+        }
+        if (this.timers.roundhouse >= 15) {
+          src = 'bugkick';
+        }
       }
     }
     if (this.timers.stun > 0) {
@@ -2132,14 +2147,14 @@
     if (this.timers.turn > 0) {
       src = 'lovelycrouch';
     }
-    if (!settings.pone && settings.altcostume) {
+    if (settings.altcostume) {
       src = "marl/" + src;
     }
     if (this.climbing) {
       src = 'bugledge';
-    }
-    if (this.climbing && settings.altcostume) {
-      src = 'marl/boggle';
+      if (settings.altcostume) {
+        src = 'marl/boggle';
+      }
     }
     if (this.state === 'headfirst') {
       src = 'bugdrop';
@@ -2152,9 +2167,6 @@
     }
     if (this.timers.flinching > 0 && !this.touchingground()) {
       src = "bugdmg2";
-    }
-    if (settings.pone) {
-      src = "pone/" + src;
     }
     return src + ".png";
   };
@@ -2227,18 +2239,12 @@
     vel = Math.abs(this.vel.x);
     walking = vel > 1;
     src = this.getsprite();
-    if (settings.HD) {
-      src = "bugrunhd.png";
-    }
     flip = this.facingleft;
     if (settings.beanmode && walking) {
       flip = tickno % 8 < 4;
     }
     pos = relativetobox(this.gethitbox(), this.anchor);
     sprit = drawsprite(this, src, pos, flip, this.anchor);
-    if (settings.HD) {
-      sprit.texture.frame = new PIXI.Rectangle(tickno % 9 * 32, 0, 40, 45);
-    }
     if (src === 'boggle.png') {
       sprit.rotation = mafs.degstorads(mafs.randfloat() * 4);
     } else {
@@ -2974,7 +2980,7 @@
   bugthrust = function(vel) {
     ladybug.vel.x = vel;
     ladybug.vel.y = 0;
-    ladybug.timers.hover = 20;
+    ladybug.timers.hover = 8;
     return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(_particle);
   };
 
@@ -2995,6 +3001,11 @@
 
   _move = function(dir) {
     var vx;
+    if (isholdingbound('cling')) {
+      MAXBUGSPEED = 12;
+    } else {
+      MAXBUGSPEED = 8;
+    }
     if (ladybug.timers.fightstance > 0) {
       _sidestep(dir);
       return;
@@ -3156,7 +3167,17 @@
 
   this.CONTROL = control;
 
-  eventelement = $(document);
+  eventelement = $(renderer.view);
+
+  eventelement.attr({
+    onclick: "this.focus()"
+  });
+
+  body.attr({
+    onload: function() {
+      return eventelement.focus();
+    }
+  });
 
   keypushcache = [];
 
@@ -3500,6 +3521,7 @@
     sprit = this._pixisprite;
     sprit.zIndex = 100;
     sprit.width = this.spritesize.x * this.value;
+    sprit.scale = PP(settings.hudscale, settings.hudscale);
     return sprit.position = VTOPP(pos);
   };
 
@@ -3555,12 +3577,6 @@
     return MoneyMeter;
 
   })(BugMeter);
-
-  rgbToHex = function(rgb) {
-    var b, g, r;
-    r = rgb[0], g = rgb[1], b = rgb[2];
-    return r * 256 * 256 + g * 256 + b;
-  };
 
   Block.prototype.toJSON = function() {
     return [this.x, this.y, this.w, this.h, this.tile];
@@ -3919,10 +3935,6 @@
     return scale = mafs.clamp(scale, 0.1, 1);
   };
 
-  mafs.roundn = function(num, base) {
-    return Math.round(num / base) * base;
-  };
-
   cameraoffset = function() {
     var tmppos;
     if (settings.grid || ladybug.timers.fightstance) {
@@ -4253,7 +4265,7 @@
 
   mainloop = function() {
     var dms, fps, fpsgoal, idealfps, ticktime;
-    if (tickno % 30 === 0) {
+    if (tickno % 300 === 0) {
       updatesettingstable();
     }
     updateinfobox();
@@ -4359,6 +4371,12 @@
         tempv = xmltag("button", {
           onclick: "jame.settings." + k + "=!jame.settings." + k
         }, v);
+      } else if (typeof v === "number") {
+        tempv = xmltag("input", {
+          type: "number",
+          oninput: "jame.settings." + k + "=parseFloat(this.value)",
+          value: v
+        });
       } else {
         tempv = v;
       }

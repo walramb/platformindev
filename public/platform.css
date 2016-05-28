@@ -66,3 +66,6 @@ footer {
   height: 9em;
   width: 50%;
 }
+details input {
+  width: 5em;
+}
