@@ -30,6 +30,7 @@ settings=
   forcemove: false #when at max speed, prevent deceleration
   aircontrol: true #can move left/right in midair?
   devmode: no
+  hudscale: 2
 
 settings.devmode = window.location.hash is "#dev"
 
@@ -40,6 +41,9 @@ tickno = 0
 #constants
 MLEFT = 0
 MRIGHT = 2
+
+#
+mafs.roundn = ( num, base ) -> Math.round(num/base)*base
 
 #helper function, easy to globally replace later??
 TEXBYNAME = (imgsrc) -> PIXI.Texture.fromImage sourcebaseurl+imgsrc
@@ -87,6 +91,7 @@ hue2rgb = (p,q,t) ->
   if t < 1/2 then return q
   if t < 2/3 then return p+(q-p)*(2/3-t)*6
   return p
+
 hslToRgb = (h,s,l) ->
   if s is 0
     r = g = b = l
@@ -97,6 +102,10 @@ hslToRgb = (h,s,l) ->
     g=hue2rgb(p,q,h)
     b=hue2rgb(p,q,h-1/3)
   return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]
+
+rgbToHex = (rgb) ->
+  [r,g,b]=rgb
+  r*256*256+g*256+b
 
 
 sourcebaseurl = "./sprites/"
@@ -279,7 +288,9 @@ bogglescreen.addChild bogsprite
 tex = TEXBYNAME 'titleplaceholder.png'
 titlescreen = new PIXI.Sprite tex
 
+
 body.append renderer.view
+$(renderer.view).attr tabindex: 0
 
 
 B_MASKING = false
@@ -295,6 +306,7 @@ class Subscreen
     if B_MASKING
       @mask = new PIXI.Graphics()
       parentstage.addChild @mask
+
 Subscreen::subscreenadjust = ->
   if settings.NOSUBSCREENS then return false
   maxpos=screensize.vsub @size
@@ -323,6 +335,7 @@ Subscreen::subscreenadjust = ->
   if B_MASKING
     @maskupdate()
     @subsprite.mask = @mask
+
 Subscreen::maskupdate = ->
   @mask.clear()
   @mask.beginFill( 0x000000, 0.9 )
@@ -780,6 +793,7 @@ Robo::getsprite = ->
   #@pos.y--
   framewait = 4
   @src = selectframe framelist, framewait
+
 Robo::collide = (otherent) ->
   if otherent instanceof Hero and @state is "attacking"
     otherent.takedamage()
@@ -1045,10 +1059,8 @@ BugLady::polygoncollisions = ->
       closest = closestpoint p, hits
       @pos = closest.vsub(@vel.norm())
       @vel.y = 0 #-Math.abs(@vel.x)
-      #@vel.x = 0
     if geometry.pointInsidePoly p, candidate.points
       @vel.y--
-    #  @vel.y = 0
 
 
 Hero::checkcontrols = -> #noop
@@ -1086,7 +1098,6 @@ BugLady::timeoutcheck = -> #rename to timerhandler or something?
 BugLady::attackchecks = ->
   @attacking=@timers.attack > 0
   heading = _facing @
-  #if @attacking then @timers.attack--
   dashing = Math.abs(@vel.x)>11
   if @attacking and dashing
     @vel.x *= 1/2
@@ -1104,10 +1115,6 @@ BugLady::attackchecks = ->
     @vel = V heading*10, 0
   if @attacking and @kicking and up and !@timers.roundhouse
     @timers.roundhouse = 20
-  #if @attacking and not @punching
-  #  @vel.y *= 0.7
-  #  #@vel.x += heading*0.3
-  #  WORLD.entAdd new PchooParticle entcenter @
   if @attacking and @punching
     if entitycount(Bullet) < 3 and @energy > 0
       @energy-=0.1
@@ -1238,7 +1245,7 @@ BugLady::movetick = ->
   unpowered = settings.altcostume
   @physmove()
   @attackchecks()
-  jumpvel = if unpowered then 12 else 16
+  jumpvel = if unpowered then 11 else 13
   @jumpimpulse jumpvel
   if @vel.y>1 and @controls.crouch and @timers.charge
     ladybug.timers.charge=0
@@ -1301,29 +1308,29 @@ BugLady::getsprite = ->
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
   running = vel > 5
-  if walking
-    src = selectframe [ 'lovelyrun1', 'lovelyrun2' ], 6
-  if running
-    src = selectframe [ 'lovelyrun1', 'lovelyrun2' ], 2
+  if walking then src = selectframe [ 'lovelyrun1', 'lovelyrun2' ], 6
+  if running then src = selectframe [ 'lovelyrun1', 'lovelyrun2' ], 2
   if not @touchingground()
     src = if @vel.y < 0 then 'lovelyjump' else 'lovelycrouch'
   if @timers.fightstance > 0 then src = "bugstance"
-  if not walking and @controls.crouch
-    src = 'lovelycrouch'
-  if not walking and isholdingbound 'up'
-    src = 'bugstance'
-  if not walking and @touchingground() and @holdingboggle
-    src = 'boggle'
-  if @attacking then src = 'viewtiful'
-  if @attacking and @punching
-    src = 'bugpunch'
-    if @timers.uppercut then src = 'buguppercut'
-  if @attacking and @timers.attack < 2 and @punching then src = 'lovelyrun2'
-  if @attacking and @kicking then src = 'bugkick'
-  if @attacking and @kicking
-    if @timers.slide then src = 'lovelyfall'
-    if @timers.roundhouse then src = 'lb_roundhouse'
-    if @timers.roundhouse>=15 then src = 'bugkick'
+  if not walking
+    if @controls.crouch
+      src = 'lovelycrouch'
+    if isholdingbound 'up'
+      src = 'bugstance'
+    if @touchingground() and @holdingboggle
+      src = 'boggle'
+  if @attacking
+    src = 'viewtiful'
+    if @punching
+      src = 'bugpunch'
+      if @timers.uppercut then src = 'buguppercut'
+    if @timers.attack < 2 and @punching then src = 'lovelyrun2'
+    if @kicking
+      src = 'bugkick'
+      if @timers.slide then src = 'lovelyfall'
+      if @timers.roundhouse then src = 'lb_roundhouse'
+      if @timers.roundhouse>=15 then src = 'bugkick'
   if @timers.stun > 0 then src = 'lovelycrouch'
   if @timers.mildstun > 2 then src = 'lovelycrouch'
   if @timers.stun > 4 then src = 'bugbonk'
@@ -1338,14 +1345,14 @@ BugLady::getsprite = ->
     @lastfacing = @facingleft
   if @timers.turn>0
     src = 'lovelycrouch'
-  if not settings.pone and settings.altcostume then src = "marl/" + src
-  if @climbing then src = 'bugledge'
-  if @climbing and settings.altcostume then src = 'marl/boggle'
+  if settings.altcostume then src = "marl/" + src
+  if @climbing
+    src = 'bugledge'
+    if settings.altcostume then src = 'marl/boggle'
   if @state == 'headfirst' then src = 'bugdrop'
   if @timers.flinching > 10 and @touchingground() then src= "bugflinch"
   if @timers.flinching > 15 then src= "bugdmg"
   if @timers.flinching > 0 and not @touchingground() then src= "bugdmg2"
-  if settings.pone then src = "pone/" + src
   return src+".png"
 
 class Claire extends BugLady
@@ -1376,13 +1383,10 @@ BugLady::render = ->
   vel = Math.abs( @vel.x )
   walking = vel > 1
   src=@getsprite()
-  if settings.HD then src = "bugrunhd.png"
   flip = @facingleft
   if settings.beanmode and walking then flip = tickno % 8 < 4
   pos = relativetobox @gethitbox(), @anchor
   sprit=drawsprite @, src, pos, flip, @anchor
-  if settings.HD
-    sprit.texture.frame = new PIXI.Rectangle(tickno%9*32, 0, 40,45)
   if src == 'boggle.png'
     sprit.rotation=mafs.degstorads mafs.randfloat()*4
   else
@@ -1541,8 +1545,6 @@ BugLady::size = V 16, 32+16
 
 GenericSprite::fallbox = ->
   box=@gethitbox()
-  #box.y+=@vel.y
-  #box.x+=@vel.x
   box.w+=Math.abs @vel.x
   box.h+=Math.abs @vel.y
   if @vel.x < 0
@@ -1602,6 +1604,7 @@ GenericSprite::avoidwalls = () ->
     if notontop and rightof(collidebox) >= rightof(block)
       @pos.x+=ofs
     ###
+
 BugLady::hitwall = () ->
   if Math.abs(@vel.x) > 11 then @timers.invincible = 10
 
@@ -1763,7 +1766,7 @@ if settings.devmode
   control.keytapbindname 'g', 'toggle grid', ->
     settings.grid = not settings.grid
 
-ghostbusters= () ->
+ghostbusters = ->
   #fix this oh god
   spooky_ghosts = get_sprites_of_class Wisp
   spooky_ghosts.forEach (spoop) -> spoop.KILLME = true
@@ -1849,7 +1852,7 @@ _particle = () ->
 bugthrust = (vel) ->
   ladybug.vel.x=vel
   ladybug.vel.y=0
-  ladybug.timers.hover=20
+  ladybug.timers.hover=8
   [0..10].forEach _particle
 
 _sidestep = (dir) ->
@@ -1864,6 +1867,10 @@ _dash = (dir) ->
   bugthrust dir*20
 
 _move = (dir) ->
+  if isholdingbound 'cling' #doubles as a sprint for now
+    MAXBUGSPEED = 12
+  else
+    MAXBUGSPEED = 8
   if ladybug.timers.fightstance > 0
     _sidestep dir
     return
@@ -1976,8 +1983,11 @@ if settings.devmode
 
 @CONTROL = control
 
-eventelement = $ document
-# renderer.view
+#eventelement = $ document
+eventelement = $ renderer.view
+
+eventelement.attr onclick: "this.focus()"
+body.attr onload: -> eventelement.focus()
 
 keypushcache = []
 
@@ -2186,6 +2196,7 @@ BugMeter::render = () ->
   sprit = @_pixisprite
   sprit.zIndex = 100
   sprit.width = @spritesize.x*@value
+  sprit.scale = PP settings.hudscale, settings.hudscale
   sprit.position = VTOPP pos
 BugMeter::tick = () ->
   @update ladybug.health
@@ -2212,9 +2223,6 @@ class MoneyMeter extends BugMeter
       hhh = spr.x/200-tickno/20
       spr.tint = rgbToHex hslToRgb hhh%1,1,0.5
       spr.anchor.y = 0.5-Math.sin(tickno+spr.x/16)/8
-rgbToHex = (rgb) ->
-  [r,g,b]=rgb
-  r*256*256+g*256+b
 
 
 Block::toJSON = ->
@@ -2433,7 +2441,6 @@ camera.zoomin = ->
   scale+=0.1
   scale = mafs.clamp scale, 0.1, 1
 
-mafs.roundn = ( num, base ) -> Math.round(num/base)*base
 
 cameraoffset = ->
   #for debugging, hitboxes are easier to read if the camera is kept still
@@ -2636,7 +2643,9 @@ hz = (ms) -> Math.round 1000/ms
 #all this framerate nonsense seems overly fancy and hacked together,
 #see if you can just cut it all out
 mainloop = ->
-  if tickno % 30 is 0
+  #TODO: updating the settings table should
+  #only be done when values actually change
+  if tickno % 300 is 0
     updatesettingstable()
   updateinfobox()
   if not WORLD.doneloading then settings.paused = true
@@ -2702,6 +2711,9 @@ updatesettingstable = () ->
     if ( v is true or v is false )
       tempv = xmltag "button",
         onclick: "jame.settings.#{k}=!jame.settings.#{k}", v
+    else if ( typeof v is "number"  )
+      tempv = xmltag "input",
+        type: "number", oninput: "jame.settings.#{k}=parseFloat(this.value)", value: v
     else tempv = v
     settingsDOM.append maketablerow [k,tempv]
 
@@ -3104,7 +3116,6 @@ alltools.push _.extend {}, NOOPTOOL,
       WORLD.entities.unshift bl
       bglayer_remove_block bl
 
-
 if settings.devmode
   toolbar = $ xmltag 'details', class: 'toolbar'
   toolbar.append $ xmltag 'summary', undefined, 'tools'
@@ -3180,7 +3191,6 @@ allactions['import keybindings'] = ->
     newholdbinds.forEach (binding) ->
       control.holdbindings[binding.k]=binding.f
 
-
 allactions['export level'] = ->
   ents=WORLD.getallents()
   spawners = ents.filter (ent) -> ent instanceof Spawner
@@ -3250,7 +3260,6 @@ highlightoverlaps = ->
 
 allactions['highlight overlapping blocks'] = highlightoverlaps
 
-
 objnames = (objs) ->
   objs.map (obj) -> obj.constructor.name
 allactions['generate entity list'] = ->
@@ -3273,7 +3282,6 @@ if settings.devmode
       but.click v
       tb.append but
 
-
 ORIGCLICKPOS = false
 
 mousemiddledownhandler = (e) ->
@@ -3290,7 +3298,6 @@ $(body).mousemove (e) ->
   p = smame e
   SCREENCURS = V e.pageX, e.pageY
   CURSOR = p
-
 
 $(renderer.view).mousedown mousemiddledownhandler
 $(renderer.view).mouseup mousemiddleuphandler
@@ -3316,7 +3323,6 @@ bglayer_remove_block = (ent) ->
   WORLD.bglayer = _.without WORLD.bglayer, ent
   #stage.removeChild ent._pixisprite
   removesprite ent
-
 
 tool_clickdelete = (p) ->
   blox=blocksatpoint WORLD.bglayer, p
