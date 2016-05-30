@@ -364,11 +364,13 @@ tmpstage.addChild tmpinnerstage
 
 
 animate = ->
+  camera.tick()
   cam=cameraoffset().nmul -scale
   stage.position = VTOPP cam
   stage.scale = PP scale, scale
   renderer.render parentstage
   SCREENS.adjust()
+  requestAnimationFrame animate
 
 chievs={}
 
@@ -1668,6 +1670,12 @@ class ControlObj
     @holdbindings={}
     @heldkeys=[]
     @bindingnames={}
+    @removedkeys=[]
+
+
+ControlObj::trimheldkeys = ->
+  @heldkeys = _.difference @heldkeys,  @removedkeys
+  @removedkeys = []
 
 control = new ControlObj
 @control = control
@@ -2022,7 +2030,9 @@ eventelement.bind 'keydown', (e) ->
   if key in reservedkeys then return false
 eventelement.bind 'keyup', (e) ->
   key = e.which
-  control.heldkeys = _.without control.heldkeys, key
+  #remove at the end of next frame instead
+  control.removedkeys.push key
+  #control.heldkeys = _.without control.heldkeys, key
   if key in reservedkeys then return false
 
 tmpcanvasjq = $ "<canvas>"
@@ -2444,7 +2454,7 @@ camera.zoomin = ->
 
 cameraoffset = ->
   #for debugging, hitboxes are easier to read if the camera is kept still
-  if settings.grid or ladybug.timers.fightstance then return camera.pos
+  #if settings.grid or ladybug.timers.fightstance then return camera.pos
   tmppos = camera.trackingent.pos.nadd 0
   offs = camera.trackingent.vel.vmul V 5, 0
   tmppos = tmppos.vadd offs
@@ -2452,7 +2462,7 @@ cameraoffset = ->
   tmppos = tmppos.vsub camera.offset.ndiv scale
   tmppos = tmppos.vsub screensize.ndiv 2*scale
   #return tmppos
-  return camera.pos.vadd(tmppos).ndiv 2
+  return camera.pos.vadd tmppos.vsub(camera.pos).ndiv 10
 
 camera.tick = ->
   camera.pos = cameraoffset()
@@ -2556,6 +2566,9 @@ WORLD.updateboxes = () ->
     WORLD.collgrid.set box, ent
     #if box then WORLD.BOXCACHE.push box
 
+
+#heres the info box thing that follows the cursor
+
 css=transition: "background .2s", boxShadow: "4px 4px 8px rgba(0,0,0,.5)",
 top: "200px", left: "400px", position: "absolute", width: 32, height: 32,
 background: "url('sprites/metroid like.png')"
@@ -2563,17 +2576,21 @@ background: "url('sprites/metroid like.png')"
 WORLD.xx = [
   {
     elm: do ->
+      return if not settings.devmode
       e=$ "<div>"
       e.css css
       e.appendTo body
       e
     tick: ->
+      return if not settings.devmode
       pos=gettileoffs TILESELECT, 20, 16
       pos=pos.nmul -16
       @elm.css backgroundPosition: pos.x+" "+pos.y
       @elm.css left: 16+SCREENCURS.x+'px', top: 16+SCREENCURS.y+'px'
   }
 ]
+
+
 
 jame.demofile=[]
 recordinputs = () ->
@@ -2662,8 +2679,9 @@ mainloop = ->
   tickwaitms = hz fpsgoal
   dms = tickwaitms-ticktime
   TICKLOG dms
+  control.trimheldkeys()
   setTimeout mainloop, Math.max dms, 1
-  requestAnimationFrame animate
+  #requestAnimationFrame animate
 
 xmlwrap = (tagname,body) ->
   xmltag tagname, undefined, body
@@ -2728,7 +2746,7 @@ INIT = ->
   settingsDOMcontainer.append "<summary>settings:</summary>"
   body.append settingsDOMcontainer
   mainloop()
-  #requestAnimFrame animate
+  requestAnimationFrame animate
 
 INIT()
 
@@ -2867,13 +2885,15 @@ tool = MOVETOOL
 prevtool = MOVETOOL
 
 $(renderer.view).mousedown (e) ->
+  return if not settings.devmode
   if e.button is MLEFT then tool.mousedown? e
   if e.button is MRIGHT then prevtool.mousedown? e
 $(renderer.view).mouseup (e) ->
+  return if not settings.devmode
   if e.button is MLEFT then tool.mouseup? e
   if e.button is MRIGHT then prevtool.mouseup? e
 $(renderer.view).mousemove (e) ->
-  console.log tool.held, prevtool.held
+  return if not settings.devmode
   tool.mousemove? e
   prevtool.mousemove? e
 
@@ -3357,6 +3377,7 @@ wheel =
   down: (e) -> _wheelin(1)
 
 $(renderer.view).bind 'wheel', (e) ->
+  return if not settings.devmode
   e.preventDefault()
   delta=e.originalEvent.deltaY
   up=delta<0
