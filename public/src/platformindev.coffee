@@ -1670,6 +1670,12 @@ class ControlObj
     @holdbindings={}
     @heldkeys=[]
     @bindingnames={}
+    @removedkeys=[]
+
+
+ControlObj::trimheldkeys = ->
+  @heldkeys = _.difference @heldkeys,  @removedkeys
+  @removedkeys = []
 
 control = new ControlObj
 @control = control
@@ -2024,7 +2030,9 @@ eventelement.bind 'keydown', (e) ->
   if key in reservedkeys then return false
 eventelement.bind 'keyup', (e) ->
   key = e.which
-  control.heldkeys = _.without control.heldkeys, key
+  #remove at the end of next frame instead
+  control.removedkeys.push key
+  #control.heldkeys = _.without control.heldkeys, key
   if key in reservedkeys then return false
 
 tmpcanvasjq = $ "<canvas>"
@@ -2671,6 +2679,7 @@ mainloop = ->
   tickwaitms = hz fpsgoal
   dms = tickwaitms-ticktime
   TICKLOG dms
+  control.trimheldkeys()
   setTimeout mainloop, Math.max dms, 1
   #requestAnimationFrame animate
 

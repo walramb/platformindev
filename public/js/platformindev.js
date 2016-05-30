@@ -2688,11 +2688,17 @@
       this.holdbindings = {};
       this.heldkeys = [];
       this.bindingnames = {};
+      this.removedkeys = [];
     }
 
     return ControlObj;
 
   })();
+
+  ControlObj.prototype.trimheldkeys = function() {
+    this.heldkeys = _.difference(this.heldkeys, this.removedkeys);
+    return this.removedkeys = [];
+  };
 
   control = new ControlObj;
 
@@ -3234,7 +3240,7 @@
 
   eventelement.bind('keyup', function(e) {
     key = e.which;
-    control.heldkeys = _.without(control.heldkeys, key);
+    control.removedkeys.push(key);
     if (indexOf.call(reservedkeys, key) >= 0) {
       return false;
     }
@@ -4291,6 +4297,7 @@
     tickwaitms = hz(fpsgoal);
     dms = tickwaitms - ticktime;
     TICKLOG(dms);
+    control.trimheldkeys();
     return setTimeout(mainloop, Math.max(dms, 1));
   };
 
