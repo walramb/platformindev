@@ -501,11 +501,13 @@
 
   animate = function() {
     var cam;
+    camera.tick();
     cam = cameraoffset().nmul(-scale);
     stage.position = VTOPP(cam);
     stage.scale = PP(scale, scale);
     renderer.render(parentstage);
-    return SCREENS.adjust();
+    SCREENS.adjust();
+    return requestAnimationFrame(animate);
   };
 
   chievs = {};
@@ -3937,16 +3939,13 @@
 
   cameraoffset = function() {
     var tmppos;
-    if (settings.grid || ladybug.timers.fightstance) {
-      return camera.pos;
-    }
     tmppos = camera.trackingent.pos.nadd(0);
     offs = camera.trackingent.vel.vmul(V(5, 0));
     tmppos = tmppos.vadd(offs);
     tmppos.y = mafs.roundn(tmppos.y, 256);
     tmppos = tmppos.vsub(camera.offset.ndiv(scale));
     tmppos = tmppos.vsub(screensize.ndiv(2 * scale));
-    return camera.pos.vadd(tmppos).ndiv(2);
+    return camera.pos.vadd(tmppos.vsub(camera.pos).ndiv(10));
   };
 
   camera.tick = function() {
@@ -4131,6 +4130,9 @@
     {
       elm: (function() {
         var e;
+        if (!settings.devmode) {
+          return;
+        }
         e = $("<div>");
         e.css(css);
         e.appendTo(body);
@@ -4138,6 +4140,9 @@
       })(),
       tick: function() {
         var pos;
+        if (!settings.devmode) {
+          return;
+        }
         pos = gettileoffs(TILESELECT, 20, 16);
         pos = pos.nmul(-16);
         this.elm.css({
@@ -4286,8 +4291,7 @@
     tickwaitms = hz(fpsgoal);
     dms = tickwaitms - ticktime;
     TICKLOG(dms);
-    setTimeout(mainloop, Math.max(dms, 1));
-    return requestAnimationFrame(animate);
+    return setTimeout(mainloop, Math.max(dms, 1));
   };
 
   xmlwrap = function(tagname, body) {
@@ -4395,7 +4399,8 @@
     body.append(bindingsDOMcontainer);
     settingsDOMcontainer.append("<summary>settings:</summary>");
     body.append(settingsDOMcontainer);
-    return mainloop();
+    mainloop();
+    return requestAnimationFrame(animate);
   };
 
   INIT();
@@ -4605,6 +4610,9 @@
   prevtool = MOVETOOL;
 
   $(renderer.view).mousedown(function(e) {
+    if (!settings.devmode) {
+      return;
+    }
     if (e.button === MLEFT) {
       if (typeof tool.mousedown === "function") {
         tool.mousedown(e);
@@ -4616,6 +4624,9 @@
   });
 
   $(renderer.view).mouseup(function(e) {
+    if (!settings.devmode) {
+      return;
+    }
     if (e.button === MLEFT) {
       if (typeof tool.mouseup === "function") {
         tool.mouseup(e);
@@ -4627,7 +4638,9 @@
   });
 
   $(renderer.view).mousemove(function(e) {
-    console.log(tool.held, prevtool.held);
+    if (!settings.devmode) {
+      return;
+    }
     if (typeof tool.mousemove === "function") {
       tool.mousemove(e);
     }
@@ -5391,6 +5404,9 @@
 
   $(renderer.view).bind('wheel', function(e) {
     var delta;
+    if (!settings.devmode) {
+      return;
+    }
     e.preventDefault();
     delta = e.originalEvent.deltaY;
     up = delta < 0;
