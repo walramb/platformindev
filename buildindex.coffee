@@ -68,7 +68,13 @@ tree = ( dirname ) ->
 out = ""
 put = (text) -> out += text
 
-put "<style>summary + div {  margin: 0 2em;  }</style>"
+put """
+<style>
+summary + div {  margin: 0 2em;  }
+summary:hover { color: blue; cursor: pointer }
+table td { border-bottom: thin dotted }
+</style>
+"""
 put tree "./public/"
 
 console.log out

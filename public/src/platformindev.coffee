@@ -40,6 +40,7 @@ MRIGHT = 2
 
 #
 mafs.roundn = ( num, base ) -> Math.round(num/base)*base
+linterpolate = (a,b,frac) -> a+(b-a)*frac
 
 #helper function, easy to globally replace later??
 TEXBYNAME = (imgsrc) -> PIXI.Texture.fromImage sourcebaseurl+imgsrc
@@ -214,25 +215,21 @@ pausescreen.addChild pausetext
 ascii = String.fromCharCode.apply @, [32..126] #from Space to Tilde
 fontmap=ascii
 
-pausestring="calm down"
-textcontainer = new PIXI.Graphics()
-parentstage.addChild textcontainer
 
+string_to_pixi = (text = "I AM ERROR" ) ->
+  textcontainer = new PIXI.Graphics()
 
-hypesprites = []
-
-for char,i in pausestring
-  offs=V 32,64
-  wspacing=16
-  glyph = fonttexs[ fontmap.indexOf(char) ]
-  spr = new PIXI.Sprite glyph
-  spr.tint = 0xFF0000
-  spr.anchor = PP 1/2, 1/2
-  spr.position = VTOPP offs.vadd V i*wspacing, 0
-  spr.scale = PP 2, 2
-  if char.charCodeAt(0) <= 90
-    hypesprites.push spr
-  textcontainer.addChild spr
+  for char,i in text
+    offs=V 0,0
+    wspacing=16
+    glyph = fonttexs[ fontmap.indexOf(char) ]
+    spr = new PIXI.Sprite glyph
+    spr.tint = 0xFF0000
+    spr.anchor = PP 1/2, 1/2
+    spr.position = VTOPP offs.vadd V i*wspacing, 0
+    spr.scale = PP 2, 2
+    textcontainer.addChild spr
+  return textcontainer
 
 
 body.append renderer.view
@@ -248,6 +245,7 @@ tmpstage.addChild tmpinnerstage
 
 animate = ->
   camera.tick()
+  render()
   cam=cameraoffset().nmul -scale
   stage.position = VTOPP cam
   stage.scale = PP scale, scale
@@ -264,6 +262,7 @@ class Renderable
 Renderable::hassprite = -> typeof @._pixisprite isnt "undefined"
 Renderable::removesprite = -> removesprite @
 
+
 class GenericSprite extends Renderable
   constructor: ( @pos=V(), @src ) ->
     @vel=V()
@@ -275,6 +274,40 @@ class GenericSprite extends Renderable
     drawsprite @, @src, pos, flip, anchor
 GenericSprite::cleanup = ->
   removesprite @
+
+class TextEnt extends GenericSprite
+  constructor: (@text) ->
+    super()
+    @age=0
+    @targetpos = @pos
+  initsprite: () ->
+    textcontainer = string_to_pixi @text
+    @_pixisprite = textcontainer
+    stage.addChild @_pixisprite
+  render: () ->
+    if not @hassprite() then @initsprite()
+    if @_pixisprite?
+      sprit=@_pixisprite
+      sprit.position = VTOPP @pos
+      return
+  tick: () ->
+    @age++
+    @pos.y = linterpolate @pos.y, @targetpos.y, 1/2
+    if (@age % 60) is 0
+      @targetpos.y -= 64
+    if @age > 200
+      @KILLME = true
+
+CUE_DIALOGUE = (location) ->
+  CUE_DIALOGUE = -> #one time only
+  lines = [ "oh hai marl", "this is dialogue", "anyway how's your sex life" ]
+  offs = 0
+  for line in lines
+    te=new TextEnt line
+    WORLD.entAdd te
+    te.targetpos = location.nadd 0
+    te.targetpos.y += offs
+    offs += 32
 
 
 #LOAD PROPERTIES FROM AN OBJECT
@@ -522,10 +555,13 @@ Robo::getsprite = ->
   framewait = 4
   @src = selectframe framelist, framewait
 
+
 Robo::collide = (otherent) ->
   if otherent instanceof Hero and @state is "attacking"
     otherent.takedamage()
 Lila::collide = ( otherent ) ->
+  if otherent instanceof Hero
+    CUE_DIALOGUE(@pos)
   if otherent instanceof BoggleParticle
     #parentstage.addChild bogglescreen
     if not (@kisstimeout > 0)
@@ -654,6 +690,28 @@ class BugLady extends Hero
     super()
     @controls={}
     @controls.tapstatus={}
+    @state = "normal"
+    @state_frame = 0
+  state_call: ->
+    @state_functions[@state]?.call this
+    @state_frame++
+  state_set: (statename) ->
+    @state_frame = 0
+    @state = statename
+  state_functions:
+    recover: ->
+      if @state_frame > 4 then @state_set "normal"
+    punch: ->
+      @vel = V 0, 8
+      @state_punch()
+      if @state_frame > 4 then @state_set "recover"
+    kick: ->
+      if @state_frame is 0 then @vel = V @dirfaced()*4, -1
+      if @state_frame > 4 then @state_set "recover"
+    roundhouse: ->
+      if @state_frame is 0 then @vel = V @dirfaced()*4, -8
+      if @state_frame > 4 then @state_set "recover"
+
 BugLady::heal = -> @health=3
 BugLady::respawn = ->
   @pos = V()
@@ -673,7 +731,6 @@ BugLady::takedamage = ->
   if @timers.stun <= 0 then @flinch()
   @health-=1
   if @health <= 0 then @kill()
-
 
 entcenter = ( ent ) ->
   hb=ent.gethitbox()
@@ -752,7 +809,14 @@ BugLady::timeoutcheck = -> #rename to timerhandler or something?
     @shield.KILLME = true
     @shield=null
 
+BugLady::state_punch = ->
+  if @attacking and @punching
+    if entitycount(Bullet) < 3 and @energy > 0
+      @energy-=0.1
+      firebullet @
+
 BugLady::attackchecks = ->
+NOOPE = ->
   @attacking=@timers.attack > 0
   heading = _facing @
   dashing = Math.abs(@vel.x)>11
@@ -772,10 +836,8 @@ BugLady::attackchecks = ->
     @vel = V heading*10, 0
   if @attacking and @kicking and up and !@timers.roundhouse
     @timers.roundhouse = 20
-  if @attacking and @punching
-    if entitycount(Bullet) < 3 and @energy > 0
-      @energy-=0.1
-      firebullet @
+  if @state is "punching"
+    @state_punch()
   if @attacking and not @timers.hitboxery
     @timers.hitboxery=10
     nent = new Damagebox(@)
@@ -806,7 +868,13 @@ firebullet = (ent) ->
 get_sprites_of_class = (classtype) ->
   ents = WORLD.spritelayer.filter (sprite) -> sprite instanceof classtype
 
+
 BugLady::tick = ->
+  TICKLOG @state
+  @state_call()
+  @timeoutcheck()
+  @movetick()
+BugLady::state_functions.normal = ->
   #slow energy recharge
   @energy+=0.001
   if @getsprite() is "bugdash.png" #no, bad. fix this
@@ -817,10 +885,7 @@ BugLady::tick = ->
   if @outofbounds() then @kill()
   vel = Math.abs( @vel.x )
   walking = vel > 0.2
-  boggling = not walking and @touchingground() and @holdingboggle
-  if boggling and Math.random()<0.3 then @boggle()
-  @timeoutcheck()
-  @movetick()
+
 
 BugLady::limitvelocity = ->
   vellimit = 800
@@ -955,11 +1020,8 @@ BugLady::getsprite = ->
       src = 'boggle'
   if @attacking
     src = 'viewtiful'
-    if @punching
-      src = 'bugpunch'
-      if @timers.uppercut then src = 'buguppercut'
     if @timers.attack < 2 and @punching then src = 'lovelyrun2'
-    if @kicking
+    if @state is "kick"
       src = 'bugkick'
       if @timers.slide then src = 'lovelyfall'
       if @timers.roundhouse then src = 'lb_roundhouse'
@@ -986,6 +1048,10 @@ BugLady::getsprite = ->
   if @timers.flinching > 10 and @touchingground() then src= "bugflinch"
   if @timers.flinching > 15 then src= "bugdmg"
   if @timers.flinching > 0 and not @touchingground() then src= "bugdmg2"
+  if @state is "punch" then src= "buguppercut"
+  if @state is "kick" then src= "bugkick"
+  if @state is "roundhouse" then src= "lb_roundhouse"
+  if @state is "recover" then src = "bugbean"
   return src+".png"
 
 
@@ -1310,27 +1376,16 @@ if settings.devmode
 
 control.keytapbindname 'l', 'WHAM!', ->
   #ladybug.jumping=true
-  ladybug.kicking=false
-  ladybug.punching=false
 control.keyholdbind 'l', -> ladybug.timers.attack=10
 
 BugLady::dirfaced = -> if @facingleft then -1 else 1
 _facing = (ent) -> if ent.facingleft then -1 else 1
-BugLady::impPunch = ->
-  @punching=true
-  @kicking=false
-  @timers.attack=10
-  playsound "hit.wav"
-  @vel.x += @dirfaced()*2
-BugLady::impKick = ->
-  @kicking=true
-  @vel.y -= 4
-  @punching=false
-  @timers.attack=10
-  playsound "hit.wav"
-  @vel.x += @dirfaced()*2
-punch = -> ladybug.impPunch()
-kick = -> ladybug.impKick()
+punch = -> ladybug.state_set "punch"
+kick = ->
+  if isholdingbound 'up'
+    ladybug.state_set "roundhouse"
+  else
+    ladybug.state_set "kick"
 
 control.keytapbindname 'e', 'charge suit', ->
   return if settings.altcostume
@@ -1922,6 +1977,7 @@ render = ->
   renderables = [].concat WORLD.bglayer, WORLD.spritelayer, [ladybug], WORLD.fglayer, WORLD.entities
   renderables.forEach (ent) -> ent.render?()
   highlighted = renderables.filter (ent) -> ent.HIGHLIGHT?
+  highlighted = highlighted.concat getCursorBlocks()
   if settings.grid then highlighted = renderables
   drawhitboxes highlighted
   #stage.updateLayersOrder()
@@ -2067,7 +2123,7 @@ WORLD.tick = () ->
   ACTIVEENTS = [].concat WORLD.spritelayer, WORLD.entities, WORLD.xx
   #ACTIVEENTS.forEach (ent) -> ent.updatehitbox?()
   ACTIVEENTS.forEach (ent) -> ent.tick?()
-  render()
+  #render()
   tickno++
 
 
@@ -2207,15 +2263,13 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
   mousedown: (e) ->
     #ADD BLOCK, LEFT MBUTTON
     #HOLD Z TO SNAP TO GRID
-    if e.button != 0 then return
     adjusted = adjustmouseevent e
     adjusted=snapmouseadjust adjusted
-    BLOCKCREATIONTOOL.creatingblock=new Block adjusted.x, adjusted.y, 32, 32
+    BLOCKCREATIONTOOL.creatingblock=new Block adjusted.x, adjusted.y, 16, 16
     BLOCKCREATIONTOOL.creatingblock.layer = settings.layer
+    BLOCKCREATIONTOOL.creatingblock.tile = TILESELECT
     WORLD.addblock BLOCKCREATIONTOOL.creatingblock
-    BLOCKCREATIONTOOL.creatingblock.src = selectedtexture
   mouseup: (e) ->
-    if e.button != 0 then return
     BLOCKCREATIONTOOL.creatingblock.fixnegative()
     BLOCKCREATIONTOOL.creatingblock = false
   mousemove: (e) ->
@@ -2224,11 +2278,9 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
     if creatingblock
       creatingblock.w = mpos.x-creatingblock.x
       creatingblock.h = mpos.y-creatingblock.y
+      if creatingblock.w is 0 then creatingblock.w = 16
+      if creatingblock.h is 0 then creatingblock.h = 16
       creatingblock.removesprite()
-    if ORIGCLICKPOS
-      currclickpos=V e.pageX, e.pageY
-      offset=currclickpos.vsub ORIGCLICKPOS
-      camera.offset = offset
 
 __snap = (mpos,func) ->
   mpos.ndiv(settings.gridsize).op(func).nmul(settings.gridsize)
@@ -2278,25 +2330,35 @@ class MoveBlockTool extends Tool
   constructor: ->
     @selected = []
     @relpos = V 0,0
+    @relative_positions = []
   mouseup: (e) ->
-    @selected = []
+    @isholding = false
     setcursor 'auto'
-  mousemove: (e) ->
+  mousehold: (e) ->
     @selected = @selected or [] #jesus christ how horrifying
     isSelecting = @selected.length > 0
-    p = adjustmouseevent e
-    p = p.vsub @relpos
-    p = snapmouseadjust p
-    @selected.forEach (ent) =>
+    @selected.forEach (ent, i) =>
+      p = adjustmouseevent e
+      p = p.vsub @relative_positions[i]
+      p = snapmouseadjust p
       ent.pos = p
       ent.x = p.x
       ent.y = p.y
-      ent.removesprite()
+      ent.render()
+  mousemove: (e) ->
+    if @isholding then @mousehold e
 MoveBlockTool::mousedown = (e) ->
+  @isholding = true
   p = adjustmouseevent e
   blocksundercursor = blocksatpoint WORLD.bglayer, p
-  @selected=blocksundercursor
+  if blocksundercursor.length is 0
+    @selected.forEach (e) -> e.HIGHLIGHT = undefined
+    @selected=[]
+  else
+    @selected=@selected.concat blocksundercursor
+  @selected.forEach (e) -> e.HIGHLIGHT = true
   @relpos = p.vsub @selected[0].pos
+  @relative_positions = @selected.map (e) -> p.vsub e.pos
 
 getentsunderpoint = (p) ->
   WORLD.spritelayer.filter (ent) ->
@@ -2413,6 +2475,7 @@ blockcarve = ( aa, bb ) ->
   #_.extend WORLD.bglayer, blokx
   for blok in blokx
     WORLD.addblock blok
+  return blokx
 
 unfuck = (p) ->
   blocks = blocksatpoint WORLD.bglayer, p
@@ -2436,7 +2499,8 @@ carveoutblock = (b) ->
   block = new Block b.x, b.y, b.w, b.h
   tocarve=block.allstrictoverlaps()
   for bloke in tocarve
-    blockcarve bloke,block
+    newcarved=blockcarve bloke,block
+    newcarved.forEach (blech) -> blech.tile = bloke.tile
   todelete=block.allstrictoverlaps()
   for bloke in todelete
     WORLD.bglayer = _.without WORLD.bglayer, bloke
@@ -2452,12 +2516,10 @@ CARVER=_.extend {}, NOOPTOOL,
   mousedown: (e) ->
     #ADD BLOCK, LEFT MBUTTON
     #HOLD Z TO SNAP TO GRID
-    if e.button != 0 then return
     adjusted = adjustmouseevent e
     adjusted=snapmouseadjust adjusted
     @carve adjusted
   mouseup: (e) ->
-    if e.button != 0 then return
     CARVER.creatingblock.fixnegative()
     carveoutblock CARVER.creatingblock
     CARVER.creatingblock = false
@@ -2469,10 +2531,6 @@ CARVER=_.extend {}, NOOPTOOL,
       creatingblock.h = mpos.y-creatingblock.y
       creatingblock.src="lila.png"
       creatingblock.removesprite()
-    if ORIGCLICKPOS
-      currclickpos=V e.pageX, e.pageY
-      offset=currclickpos.vsub ORIGCLICKPOS
-      camera.offset = offset
 
 WATERTOOL=_.extend {}, NOOPTOOL,
   name: "turn block into water"
@@ -2509,7 +2567,6 @@ BLOCKPAINT=_.extend {}, BASETOOL,
     if blocksundercursor.length == 0
       newblock=new Block snapped.x, snapped.y, gs, gs
       WORLD.addblock newblock
-      newblock.src = selectedtexture
     settings.gridsize = tmp
 
 alltools = [ MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL ]
@@ -2574,11 +2631,7 @@ if settings.devmode
   toolbar = $ xmltag 'details', class: 'toolbar'
   toolbar.append $ xmltag 'summary', undefined, 'tools'
   toolbar.insertAfter $(renderer.view)
-  blocktools.forEach (t) ->
-    but=$ xmltag 'button', undefined, t.name
-    but.click -> tool = t
-    toolbar.append but
-  alltools.forEach (t) ->
+  makebutton = (t) ->
     but=$ xmltag 'button', undefined, t.name
     but.click ->
       prevtool = tool
@@ -2586,6 +2639,9 @@ if settings.devmode
       $(".toolbar button").css backgroundColor: 'lightgray'
       but.css backgroundColor: 'pink'
     toolbar.append but
+  blocktools.forEach makebutton
+  alltools.forEach makebutton
+
 
 allactions={}
 @allactions = allactions
@@ -2705,23 +2761,40 @@ if settings.devmode
 
 ORIGCLICKPOS = false
 
-mousemiddledownhandler = (e) ->
-  if e.button != 1 then return
-  e.preventDefault()
+# a "TOOL" in this context is analogous to tools in e.g. photoshop
+# actions that can be bound to mouse buttons
+
+# camera movement tool
+# middle button by default
+
+cameratool =
+down: (e) ->
   ORIGCLICKPOS = V e.pageX, e.pageY
-mousemiddleuphandler = (e) ->
-  if e.button != 1 then return
-  e.preventDefault()
+up: (e) ->
   ORIGCLICKPOS = false
   camera.offset = V()
+move: (e) ->
+  mpos = snapmouseadjust adjustmouseevent e
+  if ORIGCLICKPOS
+    currclickpos=V e.pageX, e.pageY
+    offset=currclickpos.vsub ORIGCLICKPOS
+    camera.offset = offset.nmul 2
+
+#e.preventDefault()
+$(renderer.view).mousedown (e) ->
+  if e.button is 1 then cameratool.down e
+$(renderer.view).mouseup (e) ->
+  if e.button is 1 then cameratool.up e
+$(renderer.view).mousemove (e) ->
+  cameratool.move e
+
+
 
 $(body).mousemove (e) ->
   p = smame e
   SCREENCURS = V e.pageX, e.pageY
   CURSOR = p
 
-$(renderer.view).mousedown mousemiddledownhandler
-$(renderer.view).mouseup mousemiddleuphandler
 
 edithistory =
   data: []
