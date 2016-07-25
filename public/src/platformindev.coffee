@@ -55,14 +55,21 @@ WARN = (msg) ->
 DEPRECATE = ->
   throw "deprecated"
 
-voidcaller = (func) -> do func; return
-noop = ->
 
 b2n = (bool) -> if bool then 1 else 0 #poorly named bool to num function
 
 #return args as array
 arr = (args...) -> args
 call = (func) -> do func
+
+# XML (html) generator functions
+xmlwrap = (tagname,body) ->
+  xmltag tagname, undefined, body
+
+# returns a string of each item individually wrapped in tagname
+# xmlmultiwrap( "h1", ["a","b","c"] ) == "<h1>a</h1><h1>b</h1><h1>c</h1>"
+xmlmultiwrap = ( tagname, bodyarr ) ->
+  (xmlwrap(tagname,item) for item in bodyarr).join("")
 
 
 #need this for some CSS
@@ -286,6 +293,10 @@ class TextEnt extends GenericSprite
     stage.addChild @_pixisprite
   render: () ->
     if not @hassprite() then @initsprite()
+    if @age < 20
+      @_pixisprite.alpha = Math.max 0, @age/20
+    if @age > 180
+        @_pixisprite.alpha = 1- (@age-180)/20
     if @_pixisprite?
       sprit=@_pixisprite
       sprit.position = VTOPP @pos
@@ -294,20 +305,23 @@ class TextEnt extends GenericSprite
     @age++
     @pos.y = linterpolate @pos.y, @targetpos.y, 1/2
     if (@age % 60) is 0
-      @targetpos.y -= 64
+      @targetpos.y -= 32
     if @age > 200
       @KILLME = true
 
 CUE_DIALOGUE = (location) ->
   CUE_DIALOGUE = -> #one time only
-  lines = [ "oh hai marl", "this is dialogue", "anyway how's your sex life" ]
+  lines = [ "oh hai marl", "this is dialogue", "anyway how's your sex life", "what a story marl" ]
   offs = 0
+  n = 0
   for line in lines
     te=new TextEnt line
     WORLD.entAdd te
     te.targetpos = location.nadd 0
     te.targetpos.y += offs
+    te.age = n * -60
     offs += 32
+    n += 1
 
 
 #LOAD PROPERTIES FROM AN OBJECT
@@ -665,6 +679,8 @@ isholdingkey = (key) ->
   key = key.toUpperCase().charCodeAt 0
   return key in control.heldkeys
 
+_isholdingkey = (keyname) -> keyCharToCode[keyname] in control.heldkeys
+
 isholdingbound = (name) ->
   keys=control.heldkeys.map (key) -> control.bindingnames[key]
   return name in keys
@@ -871,6 +887,8 @@ get_sprites_of_class = (classtype) ->
 
 BugLady::tick = ->
   TICKLOG @state
+  TICKLOG xmlwrap "table", xmlmultiwrap "td", [@vel.x, @vel.y]
+  TICKLOG xmlwrap "table", xmlmultiwrap "td", [@pos.x, @pos.y]
   @state_call()
   @timeoutcheck()
   @movetick()
@@ -1358,8 +1376,7 @@ pausefunc = ->
 control.keytapbindname 'p', 'pause', pausefunc
 control.keyBindCharNamed 'Pause/Break', 'pause', pausefunc
 control.keyBindCharNamed 'Enter', 'pause', ->
-  key = keyCharToCode["Alt"]
-  if key in control.heldkeys
+  if _isholdingkey "Alt"
     toggleFullScreen renderer.view
   else
     pausefunc()
@@ -1529,8 +1546,11 @@ changelayer = (num) ->
   settings.layer = num
 
 if settings.devmode
-  control.keytapbindname '1', 'layer1', -> changelayer 1
-  control.keytapbindname '2', 'layer2', -> changelayer 2
+  #control.keytapbindname '1', 'layer1', -> changelayer 1
+  #control.keytapbindname '2', 'layer2', -> changelayer 2
+  control.keytapbindname '1', 'tool: building', -> chtool "create block", "block carver"
+  control.keytapbindname '2', 'tool: painting', -> chtool "painter", "picker"
+  control.keytapbindname '3', 'tool: ??', ->
 
 #wee woo here is where we store level list
 level_files = ["1.json", "2.json"]
@@ -1977,7 +1997,8 @@ render = ->
   renderables = [].concat WORLD.bglayer, WORLD.spritelayer, [ladybug], WORLD.fglayer, WORLD.entities
   renderables.forEach (ent) -> ent.render?()
   highlighted = renderables.filter (ent) -> ent.HIGHLIGHT?
-  highlighted = highlighted.concat getCursorBlocks()
+  if settings.devmode
+    highlighted = highlighted.concat getCursorBlocks()
   if settings.grid then highlighted = renderables
   drawhitboxes highlighted
   #stage.updateLayersOrder()
@@ -2066,9 +2087,10 @@ background: "url('sprites/metroid like.png')"
 WORLD.xx = [
   {
     elm: do ->
-      return if not settings.devmode
-      e=$ "<div>"
+      e=$ "<div class=tooltip>"
       e.css css
+      if not settings.devmode
+        e.css display: "none"
       e.appendTo body
       e
     tick: ->
@@ -2139,11 +2161,17 @@ updateinfobox = ->
 TICKLOG = (datum) ->
   return if not settings.devmode
   fpscounter.append $ xmlwrap 'div', datum
+TOOLTIP = (datum) ->
+  #TODO CLEANUP
+  WORLD.xx[0].elm.append $ xmlwrap 'div', datum
 
 _ml = ->
+  #tooltip stuff
+  TOOLTIP tool.name + "/" + prevtool.name
   getCursorBlocks().forEach (bl) ->
     tmp = [bl.x,bl.y,bl.w,bl.h].map (n) -> n/settings.gridsize
-    TICKLOG tmp.join ", "
+    TOOLTIP "Block " + tmp.join ", "
+  TOOLTIP objnames(getentsunderpoint CURSOR).join()
 
 hz = (ms) -> Math.round 1000/ms
 
@@ -2157,6 +2185,7 @@ mainloop = ->
   updateinfobox()
   if not WORLD.doneloading then settings.paused = true
   fpscounter.html ""
+  WORLD.xx[0].elm.html "" #tooltip element
   if not settings.paused
     ticktime = timecall WORLD.tick
     tt=ticktime
@@ -2164,17 +2193,16 @@ mainloop = ->
     idealfps=hz tickwaitms
     TICKLOG "~#{fps}/#{idealfps} fps ; per tick: #{tt}ms"
     TICKLOG "#{stats.collisionchecks} collisionchecks"
+    TICKLOG "#{WORLD.spritelayer.length} entities"
     _ml()
   fpsgoal = if settings.slowmo then 4 else settings.fps
   tickwaitms = hz fpsgoal
   dms = tickwaitms-ticktime
-  TICKLOG dms
+  TICKLOG "dms: " + dms
   control.trimheldkeys()
   setTimeout mainloop, Math.max dms, 1
   #requestAnimationFrame animate
 
-xmlwrap = (tagname,body) ->
-  xmltag tagname, undefined, body
 
 maketablerow = ( values ) ->
   tds = values.map (v) -> xmlwrap "td", v
@@ -2265,16 +2293,16 @@ BLOCKCREATIONTOOL = _.extend {}, NOOPTOOL,
     #HOLD Z TO SNAP TO GRID
     adjusted = adjustmouseevent e
     adjusted=snapmouseadjust adjusted
-    BLOCKCREATIONTOOL.creatingblock=new Block adjusted.x, adjusted.y, 16, 16
-    BLOCKCREATIONTOOL.creatingblock.layer = settings.layer
-    BLOCKCREATIONTOOL.creatingblock.tile = TILESELECT
-    WORLD.addblock BLOCKCREATIONTOOL.creatingblock
+    @creatingblock=new Block adjusted.x, adjusted.y, 16, 16
+    @creatingblock.layer = settings.layer
+    @creatingblock.tile = TILESELECT
+    WORLD.addblock @creatingblock
   mouseup: (e) ->
-    BLOCKCREATIONTOOL.creatingblock.fixnegative()
-    BLOCKCREATIONTOOL.creatingblock = false
+    @creatingblock.fixnegative()
+    @creatingblock = false
   mousemove: (e) ->
     mpos = snapmouseadjust adjustmouseevent e
-    creatingblock = BLOCKCREATIONTOOL.creatingblock
+    creatingblock = @creatingblock
     if creatingblock
       creatingblock.w = mpos.x-creatingblock.x
       creatingblock.h = mpos.y-creatingblock.y
@@ -2512,7 +2540,7 @@ CARVER=_.extend {}, NOOPTOOL,
   name: "block carver"
   carve: (p) ->
     CARVER.creatingblock=new Block p.x, p.y, 32, 32
-    WORLD.addblock CARVER.creatingblock
+    #WORLD.addblock CARVER.creatingblock
   mousedown: (e) ->
     #ADD BLOCK, LEFT MBUTTON
     #HOLD Z TO SNAP TO GRID
@@ -2529,8 +2557,6 @@ CARVER=_.extend {}, NOOPTOOL,
     if creatingblock
       creatingblock.w = mpos.x-creatingblock.x
       creatingblock.h = mpos.y-creatingblock.y
-      creatingblock.src="lila.png"
-      creatingblock.removesprite()
 
 WATERTOOL=_.extend {}, NOOPTOOL,
   name: "turn block into water"
@@ -2573,7 +2599,7 @@ alltools = [ MOVETOOL, TRIANGLETOOL, SPAWNERTOOL, TELEPORTTOOL ]
 blocktools = [ BLOCKCREATIONTOOL, MOVEBLOCKTOOL, UNIONTOOL,
   CARVER, WATERTOOL, BLOCKPAINT ]
 
-alltools.push _.extend {}, NOOPTOOL,
+blocktools.push _.extend {}, NOOPTOOL,
   name: "delete block"
   mousedown: (e) ->
     adjusted = adjustmouseevent e
@@ -2581,16 +2607,32 @@ alltools.push _.extend {}, NOOPTOOL,
     selected=blocksatpoint WORLD.bglayer, adjusted
     tool_clickdelete adjusted
 
-alltools.push _.extend {}, NOOPTOOL,
-  name: "select entity"
-  mousedown: (e) ->
-    if e.button != 0 then return
-    adjusted = adjustmouseevent e
-    adjusted=snapmouseadjust adjusted
-    selected=getentsunderpoint adjusted
-    console.log selected[0]
 
-mktool = (obj) -> alltools.push _.extend {}, BASETOOL, obj
+tool_index = {}
+
+mktool = (obj) ->
+  newobj = _.extend {}, BASETOOL, obj
+  alltools.push newobj
+  register_tool newobj
+
+register_tool = (tool) ->
+  tool_index[tool.name] = tool
+
+#TODO move yada yada
+register_tool BLOCKCREATIONTOOL
+register_tool CARVER
+
+
+chtool = (name,secondtoolname) ->
+  tool = tool_index[name]
+  if secondtoolname
+    prevtool = tool_index[secondtoolname]
+
+mktool
+  name: "select entity"
+  action: (p) ->
+    selected=getentsunderpoint p
+    console.log selected[0]
 
 mktool
   name: "painter"
@@ -2605,24 +2647,18 @@ mktool
     selected=blocksatpoint WORLD.bglayer, p
     TILESELECT=selected[0].tile
 
-alltools.push _.extend {}, NOOPTOOL,
+mktool
   name: "turn block into oneway"
-  mousedown: (e) ->
-    if e.button != 0 then return
-    adjusted = adjustmouseevent e
-    adjusted=snapmouseadjust adjusted
-    blocksundercursor = blocksatpoint WORLD.bglayer, adjusted
+  action: (p) ->
+    blocksundercursor = blocksatpoint WORLD.bglayer, p
     for bl in blocksundercursor
       WORLD.bglayer.unshift new OnewayBlock bl.x, bl.y, bl.w, bl.h
       bglayer_remove_block bl
 
-alltools.push _.extend {}, NOOPTOOL,
+mktool
   name: "turn block into background"
-  mousedown: (e) ->
-    if e.button != 0 then return
-    adjusted = adjustmouseevent e
-    adjusted=snapmouseadjust adjusted
-    blocksundercursor = blocksatpoint WORLD.bglayer, adjusted
+  mousedown: (p) ->
+    blocksundercursor = blocksatpoint WORLD.bglayer, p
     for bl in blocksundercursor
       WORLD.entities.unshift bl
       bglayer_remove_block bl
@@ -2638,8 +2674,11 @@ if settings.devmode
       tool = t
       $(".toolbar button").css backgroundColor: 'lightgray'
       but.css backgroundColor: 'pink'
+      eventelement.focus()
     toolbar.append but
+  toolbar.append $ xmltag 'em', undefined, 'block tools: '
   blocktools.forEach makebutton
+  toolbar.append $ xmltag 'em', undefined, 'misc tools: '
   alltools.forEach makebutton
 
 
@@ -2736,28 +2775,24 @@ highlightoverlaps = ->
   flatlaps.forEach (b) -> b.HIGHLIGHT = true
 
 allactions['highlight overlapping blocks'] = highlightoverlaps
+actioncategories['core'] = allactions
 
 objnames = (objs) ->
   objs.map (obj) -> obj.constructor.name
-allactions['generate entity list'] = ->
-  entlist = $ "<div>"
-  body.append entlist
-  entlist.html objnames(WORLD.spritelayer).join()
+
+__makebutton = (k,v) ->
+  but=$ xmltag 'button', undefined, k
+  but.click v
+  but.click -> eventelement.focus()
+  return but
 
 if settings.devmode
-  toolbar.append $ xmltag 'em', undefined, 'actions: '
-  for k,v of allactions
-    but=$ xmltag 'button', undefined, k
-    but.click v
-    toolbar.append but
   for ck,cv of actioncategories
     tb = $ xmltag 'details', class: 'toolbar'
     toolbar.append tb
     tb.append $ xmltag 'summary', undefined, "#{ck} actions: "
     for k,v of cv
-      but=$ xmltag 'button', undefined, k
-      but.click v
-      tb.append but
+      tb.append __makebutton k,v
 
 ORIGCLICKPOS = false
 
@@ -2839,16 +2874,39 @@ getCursorBlocks = () ->
   blocksatpoint WORLD.bglayer, CURSOR
 
 #move this to control obj later
+
+zoomwheel =
+  up: -> camera.zoomin()
+  down: -> camera.zoomout()
+
 _wheelin = (offs) ->
+  console.log offs
   size = if isholdingkey('z') then 20 else 1
   TILESELECT += offs * size
   for bl in getCursorBlocks()
     bl.tile=TILESELECT
     bl.removesprite()
 
-wheel =
+paintwheel =
   up: (e) -> _wheelin(-1)
   down: (e) -> _wheelin(1)
+
+wheel =
+  currmode: paintwheel
+  update: ->
+    if _isholdingkey "X"
+      @currmode = paintwheel;
+    else
+      @currmode = zoomwheel
+  up: (e) ->
+    @update()
+    @currmode.up(e)
+    console.log "up"
+  down: (e) ->
+    @update()
+    @currmode.down(e)
+    console.log "down"
+
 
 $(renderer.view).bind 'wheel', (e) ->
   return if not settings.devmode

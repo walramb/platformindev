@@ -69,3 +69,10 @@ footer {
 details input {
   width: 5em;
 }
+.tooltip div{
+  background-color: rgba(255,255,240,0.8);
+  width: 200px;
+}
+table td {
+  width: 4em;
+}
